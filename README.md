@@ -1,6 +1,14 @@
-# `pokeemerald-expansion` Features
-A collection of feature branches to implement flexible systems to the [pokeemerald-expansion codebase](https://github.com/rh-hideout/pokeemerald-expansion).
+# Round Move Defect
 
-Please visit [the wiki](https://github.com/fisham-org/pokeemerald-expansion-features/wiki) for detailed descriptions, videos & implementation details for the feature branches within this repo.
+This branch demonstrates a defect with the move Round.
 
-> Note: In addition to hand-writing it, AI has been used to generate documentation & code used for these features.
+## Steps to replicate:
+1. Build the rom.
+2. Open the debug menu and execute script 1.
+3. Use Round in the battle - after knocking out the opponent's Nidorina, the next time the Pokemon uses Round, its backsprite becomes distorted.
+
+## Video Recording
+
+<video src="Replay 2026-01-11 18-41-18-00.02.30.982-00.04.52.719.mp4" controls>
+  Your browser does not support the video tag.
+</video>
