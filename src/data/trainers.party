@@ -16873,3 +16873,37 @@ Double Battle: No
 Kyogre
 Level: 5
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+
+=== TRAINER_DEBUG_ROUND_TEST ===
+Name: Debug
+Class: Pkmn Trainer 1
+Pic: Youngster
+Gender: Male
+Music: Male
+Double Battle: Yes
+AI: Check Bad Move
+
+Nidorina
+Level: 50
+- False Swipe
+
+Nidorina
+Level: 50
+- False Swipe
+
+Nidorina
+Level: 50
+- False Swipe
+
+Nidorina
+Level: 50
+- False Swipe
+
+Nidorina
+Level: 50
+- False Swipe
+
+Nidorina
+Level: 50
+- False Swipe
