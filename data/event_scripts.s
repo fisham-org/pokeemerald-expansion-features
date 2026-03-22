@@ -1740,3 +1740,5 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/maps/MapTest/scripts.inc"
 
 	.include "data/maps/Prairie/scripts.inc"
+
+	.include "data/maps/Prairie2/scripts.inc"
