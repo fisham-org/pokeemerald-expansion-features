@@ -786,6 +786,40 @@ const struct SpriteTemplate gFieldEffectObjectTemplate_JumpPrairieLongGrass = {
     .callback = UpdateJumpImpactEffect,
 };
 
+// Prairie Tall Grass - reuses tall grass sprite data with prairie palette
+static const struct SpriteFrameImage sPicTable_PrairieTallGrass[] = {
+    overworld_frame(gFieldEffectObjectPic_PrairieTallGrass, 2, 2, 0),
+    overworld_frame(gFieldEffectObjectPic_PrairieTallGrass, 2, 2, 1),
+    overworld_frame(gFieldEffectObjectPic_PrairieTallGrass, 2, 2, 2),
+    overworld_frame(gFieldEffectObjectPic_PrairieTallGrass, 2, 2, 3),
+    overworld_frame(gFieldEffectObjectPic_PrairieTallGrass, 2, 2, 4),
+};
+
+const struct SpriteTemplate gFieldEffectObjectTemplate_PrairieTallGrass = {
+    .tileTag = TAG_NONE,
+    .paletteTag = FLDEFF_PAL_TAG_PRAIRIE_LONG_GRASS,
+    .oam = &gObjectEventBaseOam_16x16,
+    .anims = sAnimTable_TallGrass, // reuse same animation timing as regular tall grass
+    .images = sPicTable_PrairieTallGrass,
+    .callback = UpdatePrairieTallGrassFieldEffect,
+};
+
+static const struct SpriteFrameImage sPicTable_JumpPrairieTallGrass[] = {
+    overworld_frame(gFieldEffectObjectPic_JumpPrairieTallGrass, 2, 1, 0),
+    overworld_frame(gFieldEffectObjectPic_JumpPrairieTallGrass, 2, 1, 1),
+    overworld_frame(gFieldEffectObjectPic_JumpPrairieTallGrass, 2, 1, 2),
+    overworld_frame(gFieldEffectObjectPic_JumpPrairieTallGrass, 2, 1, 3),
+};
+
+const struct SpriteTemplate gFieldEffectObjectTemplate_JumpPrairieTallGrass = {
+    .tileTag = TAG_NONE,
+    .paletteTag = FLDEFF_PAL_TAG_PRAIRIE_LONG_GRASS,
+    .oam = &gObjectEventBaseOam_16x8,
+    .anims = sAnimTable_JumpTallGrass,
+    .images = sPicTable_JumpPrairieTallGrass,
+    .callback = UpdateJumpImpactEffect,
+};
+
 static const struct SpriteFrameImage sPicTable_UnusedGrass[] = {
     overworld_frame(gFieldEffectObjectPic_JumpLongGrass, 2, 2, 6),
     overworld_frame(gFieldEffectObjectPic_Unknown17, 2, 2, 0),

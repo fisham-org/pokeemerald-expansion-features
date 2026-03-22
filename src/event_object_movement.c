@@ -9660,6 +9660,8 @@ static void UpdateObjectEventSpriteVisibility(struct ObjectEvent *objectEvent, s
 
 static void GetGroundEffectFlags_PrairieLongGrassOnSpawn(struct ObjectEvent *objEvent, u32 *flags);
 static void GetGroundEffectFlags_PrairieLongGrassOnBeginStep(struct ObjectEvent *objEvent, u32 *flags);
+static void GetGroundEffectFlags_PrairieTallGrassOnSpawn(struct ObjectEvent *objEvent, u32 *flags);
+static void GetGroundEffectFlags_PrairieTallGrassOnBeginStep(struct ObjectEvent *objEvent, u32 *flags);
 
 static void GetAllGroundEffectFlags_OnSpawn(struct ObjectEvent *objEvent, u32 *flags)
 {
@@ -9668,6 +9670,7 @@ static void GetAllGroundEffectFlags_OnSpawn(struct ObjectEvent *objEvent, u32 *f
     GetGroundEffectFlags_TallGrassOnSpawn(objEvent, flags);
     GetGroundEffectFlags_LongGrassOnSpawn(objEvent, flags);
     GetGroundEffectFlags_PrairieLongGrassOnSpawn(objEvent, flags);
+    GetGroundEffectFlags_PrairieTallGrassOnSpawn(objEvent, flags);
     GetGroundEffectFlags_SandHeap(objEvent, flags);
     GetGroundEffectFlags_ShallowFlowingWater(objEvent, flags);
     GetGroundEffectFlags_ShortGrass(objEvent, flags);
@@ -9681,6 +9684,7 @@ static void GetAllGroundEffectFlags_OnBeginStep(struct ObjectEvent *objEvent, u3
     GetGroundEffectFlags_TallGrassOnBeginStep(objEvent, flags);
     GetGroundEffectFlags_LongGrassOnBeginStep(objEvent, flags);
     GetGroundEffectFlags_PrairieLongGrassOnBeginStep(objEvent, flags);
+    GetGroundEffectFlags_PrairieTallGrassOnBeginStep(objEvent, flags);
     GetGroundEffectFlags_Tracks(objEvent, flags);
     GetGroundEffectFlags_SandHeap(objEvent, flags);
     GetGroundEffectFlags_ShallowFlowingWater(objEvent, flags);
@@ -9764,6 +9768,18 @@ static void GetGroundEffectFlags_PrairieLongGrassOnBeginStep(struct ObjectEvent 
 {
     if (MetatileBehavior_IsPrairieLongGrass(objEvent->currentMetatileBehavior))
         *flags |= GROUND_EFFECT_FLAG_PRAIRIE_LONG_GRASS_ON_MOVE;
+}
+
+static void GetGroundEffectFlags_PrairieTallGrassOnSpawn(struct ObjectEvent *objEvent, u32 *flags)
+{
+    if (MetatileBehavior_IsPrairieTallGrass(objEvent->currentMetatileBehavior))
+        *flags |= GROUND_EFFECT_FLAG_PRAIRIE_TALL_GRASS_ON_SPAWN;
+}
+
+static void GetGroundEffectFlags_PrairieTallGrassOnBeginStep(struct ObjectEvent *objEvent, u32 *flags)
+{
+    if (MetatileBehavior_IsPrairieTallGrass(objEvent->currentMetatileBehavior))
+        *flags |= GROUND_EFFECT_FLAG_PRAIRIE_TALL_GRASS_ON_MOVE;
 }
 
 static void GetGroundEffectFlags_Tracks(struct ObjectEvent *objEvent, u32 *flags)
@@ -9879,6 +9895,7 @@ static void GetGroundEffectFlags_JumpLanding(struct ObjectEvent *objEvent, u32 *
         MetatileBehavior_IsTallGrass,
         MetatileBehavior_IsLongGrass,
         MetatileBehavior_IsPrairieLongGrass,
+        MetatileBehavior_IsPrairieTallGrass,
         MetatileBehavior_IsPuddle,
         MetatileBehavior_IsSurfableWaterOrUnderwater,
         MetatileBehavior_IsShallowFlowingWater,
@@ -9889,6 +9906,7 @@ static void GetGroundEffectFlags_JumpLanding(struct ObjectEvent *objEvent, u32 *
         GROUND_EFFECT_FLAG_LAND_IN_TALL_GRASS,
         GROUND_EFFECT_FLAG_LAND_IN_LONG_GRASS,
         GROUND_EFFECT_FLAG_LAND_IN_PRAIRIE_LONG_GRASS,
+        GROUND_EFFECT_FLAG_LAND_IN_PRAIRIE_TALL_GRASS,
         GROUND_EFFECT_FLAG_LAND_IN_SHALLOW_WATER,
         GROUND_EFFECT_FLAG_LAND_IN_DEEP_WATER,
         GROUND_EFFECT_FLAG_LAND_IN_SHALLOW_WATER,
@@ -10392,6 +10410,53 @@ void GroundEffect_JumpOnPrairieLongGrass(struct ObjectEvent *objEvent, struct Sp
     FieldEffectStart(FLDEFF_JUMP_PRAIRIE_LONG_GRASS);
 }
 
+void GroundEffect_SpawnOnPrairieTallGrass(struct ObjectEvent *objEvent, struct Sprite *sprite)
+{
+    gFieldEffectArguments[0] = objEvent->currentCoords.x;
+    gFieldEffectArguments[1] = objEvent->currentCoords.y;
+    gFieldEffectArguments[2] = objEvent->previousElevation;
+    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[4] = objEvent->localId << 8 | objEvent->mapNum;
+    gFieldEffectArguments[5] = objEvent->mapGroup;
+    gFieldEffectArguments[6] = (u8)gSaveBlock1Ptr->location.mapNum << 8 | (u8)gSaveBlock1Ptr->location.mapGroup;
+    gFieldEffectArguments[7] = 1;
+    FieldEffectStart(FLDEFF_PRAIRIE_TALL_GRASS);
+}
+
+void GroundEffect_StepOnPrairieTallGrass(struct ObjectEvent *objEvent, struct Sprite *sprite)
+{
+    gFieldEffectArguments[0] = objEvent->currentCoords.x;
+    gFieldEffectArguments[1] = objEvent->currentCoords.y;
+    gFieldEffectArguments[2] = objEvent->previousElevation;
+    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[4] = (objEvent->localId << 8) | objEvent->mapNum;
+    gFieldEffectArguments[5] = objEvent->mapGroup;
+    gFieldEffectArguments[6] = (u8)gSaveBlock1Ptr->location.mapNum << 8 | (u8)gSaveBlock1Ptr->location.mapGroup;
+    gFieldEffectArguments[7] = 0;
+    FieldEffectStart(FLDEFF_PRAIRIE_TALL_GRASS);
+}
+
+void GroundEffect_JumpOnPrairieTallGrass(struct ObjectEvent *objEvent, struct Sprite *sprite)
+{
+    u8 spriteId;
+
+    gFieldEffectArguments[0] = objEvent->currentCoords.x;
+    gFieldEffectArguments[1] = objEvent->currentCoords.y;
+    gFieldEffectArguments[2] = objEvent->previousElevation;
+    gFieldEffectArguments[3] = 2;
+    FieldEffectStart(FLDEFF_JUMP_PRAIRIE_TALL_GRASS);
+
+    spriteId = FindPrairieTallGrassFieldEffectSpriteId(
+        objEvent->localId,
+        objEvent->mapNum,
+        objEvent->mapGroup,
+        objEvent->currentCoords.x,
+        objEvent->currentCoords.y);
+
+    if (spriteId == MAX_SPRITES)
+        GroundEffect_SpawnOnPrairieTallGrass(objEvent, sprite);
+}
+
 void GroundEffect_JumpOnShallowWater(struct ObjectEvent *objEvent, struct Sprite *sprite)
 {
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
@@ -10460,6 +10525,9 @@ static void (*const sGroundEffectFuncs[])(struct ObjectEvent *objEvent, struct S
     GroundEffect_SpawnOnPrairieLongGrass,  // GROUND_EFFECT_FLAG_PRAIRIE_LONG_GRASS_ON_SPAWN
     GroundEffect_StepOnPrairieLongGrass,   // GROUND_EFFECT_FLAG_PRAIRIE_LONG_GRASS_ON_MOVE
     GroundEffect_JumpOnPrairieLongGrass,   // GROUND_EFFECT_FLAG_LAND_IN_PRAIRIE_LONG_GRASS
+    GroundEffect_SpawnOnPrairieTallGrass,  // GROUND_EFFECT_FLAG_PRAIRIE_TALL_GRASS_ON_SPAWN
+    GroundEffect_StepOnPrairieTallGrass,   // GROUND_EFFECT_FLAG_PRAIRIE_TALL_GRASS_ON_MOVE
+    GroundEffect_JumpOnPrairieTallGrass,   // GROUND_EFFECT_FLAG_LAND_IN_PRAIRIE_TALL_GRASS
 };
 
 static void DoFlaggedGroundEffects(struct ObjectEvent *objEvent, struct Sprite *sprite, u32 flags)

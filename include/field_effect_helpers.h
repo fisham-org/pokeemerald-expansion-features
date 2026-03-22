@@ -35,6 +35,8 @@ void UpdateFootprintsTireTracksFieldEffect(struct Sprite *sprite);
 void UpdateSplashFieldEffect(struct Sprite *sprite);
 void UpdateLongGrassFieldEffect(struct Sprite *sprite);
 void UpdatePrairieLongGrassFieldEffect(struct Sprite *sprite);
+void UpdatePrairieTallGrassFieldEffect(struct Sprite *sprite);
+u8 FindPrairieTallGrassFieldEffectSpriteId(u8 localId, u8 mapNum, u8 mapGroup, s16 x, s16 y);
 void UpdateSandPileFieldEffect(struct Sprite *sprite);
 void UpdateDisguiseFieldEffect(struct Sprite *sprite);
 void UpdateShortGrassFieldEffect(struct Sprite *sprite);
