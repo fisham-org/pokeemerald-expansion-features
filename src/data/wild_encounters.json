@@ -36646,6 +36646,174 @@
               }
             ]
           }
+        },
+        {
+          "map": "MAP_PRAIRIE2",
+          "base_label": "gPrairie2",
+          "land_mons": {
+            "encounter_rate": 7,
+            "mons": [
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_SANDSHREW"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_BRAMBLIN"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_GIRAFARIG"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_BRAMBLIN"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_SANDSHREW"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_GIRAFARIG"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_BRAMBLEGHAST"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_BRAMBLEGHAST"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_BRAMBLEGHAST"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_BRAMBLEGHAST"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_BRAMBLEGHAST"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_BRAMBLEGHAST"
+              }
+            ]
+          }
+        },
+        {
+          "map": "MAP_PRAIRIE",
+          "base_label": "gPrairie",
+          "land_mons": {
+            "encounter_rate": 7,
+            "mons": [
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_SANDSHREW"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_SILICOBRA"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_ROCKRUFF"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_ROCKRUFF"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_CACNEA"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_CACNEA"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_HIPPOPOTAS"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_HIPPOPOTAS"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_HIPPOPOTAS"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_HIPPOPOTAS"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_HIPPOPOTAS"
+              },
+              {
+                "min_level": 1,
+                "max_level": 3,
+                "species": "SPECIES_HIPPOPOTAS"
+              }
+            ]
+          },
+          "rock_smash_mons": {
+            "encounter_rate": 50,
+            "mons": [
+              {
+                "min_level": 5,
+                "max_level": 5,
+                "species": "SPECIES_NONE"
+              },
+              {
+                "min_level": 5,
+                "max_level": 5,
+                "species": "SPECIES_NONE"
+              },
+              {
+                "min_level": 5,
+                "max_level": 5,
+                "species": "SPECIES_NONE"
+              },
+              {
+                "min_level": 5,
+                "max_level": 5,
+                "species": "SPECIES_NONE"
+              },
+              {
+                "min_level": 5,
+                "max_level": 5,
+                "species": "SPECIES_NONE"
+              }
+            ]
+          }
         }
       ]
     },

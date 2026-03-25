@@ -1225,7 +1225,7 @@
 #define FLAG_ITEM_SAFARI_ZONE_NORTH_EAST_NUGGET                     0x491
 #define FLAG_ITEM_SAFARI_ZONE_SOUTH_EAST_BIG_PEARL                  0x492
 #define FLAG_ITEM_PRAIRIE_2_FULL_HEAL                               0x493
-#define FLAG_ITEM_PRAIRIE_2_TM_SUNNY_DAY_1                          0x494
+#define FLAG_ITEM_PRAIRIE_2_TM_SUNNY_DAY                            0x494
 #define FLAG_ITEM_PRAIRIE_2_REVIVE                                  0x495
 #define FLAG_UNUSED_0x496                                           0x496 // Unused Flag
 #define FLAG_UNUSED_0x497                                           0x497 // Unused Flag
