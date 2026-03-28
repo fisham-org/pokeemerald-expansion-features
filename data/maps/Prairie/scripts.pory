@@ -1,0 +1,29 @@
+mapscripts Prairie_MapScripts {
+}
+
+// Trainer Scripts
+
+script Prairie_EventScript_Cody {
+    trainerbattle_single(TRAINER_PRAIRIE_CODY, "You're crossing through the mesa?\nLet's see if your team can fly!", "Your team really soared above mine!")
+    msgbox(format("My birds love riding the thermals that rise off the desert floor."), MSGBOX_AUTOCLOSE)
+}
+
+script Prairie_EventScript_Tyro {
+    trainerbattle_single(TRAINER_PRAIRIE_TYRO, "This desert is the perfect place\nto toughen up! Ready to spar?", "You hit even harder than I do!")
+    msgbox(format("Training in this heat builds real endurance."), MSGBOX_AUTOCLOSE)
+}
+
+script Prairie_EventScript_Jasper {
+    trainerbattle_single(TRAINER_PRAIRIE_JASPER, "The treasures buried in this desert\nare mine! Hands off!", "Unbelievable…")
+    msgbox(format("I've been digging around here for weeks. You wouldn't believe what's buried under all this sand."), MSGBOX_AUTOCLOSE)
+}
+
+// NPC Scripts
+
+script Prairie_EventScript_SupplyMan {
+    msgbox(format("Make sure you're stocked up on supplies before heading further in. There's no PokéMart for miles out here."), MSGBOX_NPC)
+}
+
+script Prairie_EventScript_ExplorerNPC {
+    msgbox(format("I almost made it through the whole desert. I found a cavern up ahead, but rocks are blocking the entrance."), MSGBOX_NPC)
+}

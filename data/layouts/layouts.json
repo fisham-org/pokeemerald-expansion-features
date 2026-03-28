@@ -9330,9 +9330,29 @@
       "width": 30,
       "height": 30,
       "primary_tileset": "gTileset_General",
-      "secondary_tileset": "gTileset_Petalburg",
+      "secondary_tileset": "gTileset_Prairie",
       "border_filepath": "data/layouts/MapTest/border.bin",
       "blockdata_filepath": "data/layouts/MapTest/map.bin"
+    },
+    {
+      "id": "LAYOUT_PRAIRIE",
+      "name": "Prairie_Layout",
+      "width": 36,
+      "height": 34,
+      "primary_tileset": "gTileset_General",
+      "secondary_tileset": "gTileset_Prairie",
+      "border_filepath": "data/layouts/Prairie/border.bin",
+      "blockdata_filepath": "data/layouts/Prairie/map.bin"
+    },
+    {
+      "id": "LAYOUT_PRAIRIE2",
+      "name": "Prairie2_Layout",
+      "width": 45,
+      "height": 25,
+      "primary_tileset": "gTileset_General",
+      "secondary_tileset": "gTileset_Prairie",
+      "border_filepath": "data/layouts/Prairie2/border.bin",
+      "blockdata_filepath": "data/layouts/Prairie2/map.bin"
     }
   ]
 }

@@ -1,0 +1,41 @@
+mapscripts Prairie2_MapScripts {
+}
+
+// NPC Scripts
+
+script Prairie2_EventScript_Hiker {
+    msgbox(format("These wide-open prairies are great for hiking! Just watch your step in the sandstorm."), MSGBOX_NPC)
+}
+
+script Prairie2_EventScript_TerrainBoy {
+    msgbox(format("The terrain out here changes a lot. You've got tall grass, deep sand, and rocky patches all over."), MSGBOX_NPC)
+}
+
+script Prairie2_EventScript_WanderWoman {
+    msgbox(format("I like to come out here and watch the wild POKéMON play in the grass. It's so peaceful, even with the sandstorm."), MSGBOX_NPC)
+}
+
+script Prairie2_EventScript_BramblinBoy {
+    msgbox(format("Have you seen a BRAMBLIN rolling around here? I heard they tumble across prairies like this one!"), MSGBOX_NPC)
+}
+
+script Prairie2_EventScript_RuinManiac {
+    msgbox(format("I've been studying this region for years.\pThere are reports of hidden ruins further onwards.\pI intend to find them!"), MSGBOX_NPC)
+}
+
+// Trainer Scripts
+
+script Prairie2_EventScript_Derek {
+    trainerbattle_single(TRAINER_PRAIRIE2_DEREK, "Hey, you look like a trainer!\nLet's see what you've got!", "Whoa, you're pretty strong!")
+    msgbox(format("My GIRAFARIG and LINOONE are well suited to these open plains."), MSGBOX_AUTOCLOSE)
+}
+
+script Prairie2_EventScript_Flora {
+    trainerbattle_single(TRAINER_PRAIRIE2_FLORA, "The grass-type POKéMON out here\nare amazing! Want to battle?", "Oh no! My grass POKéMON…")
+    msgbox(format("The plants growing in this prairie are so resilient."), MSGBOX_AUTOCLOSE)
+}
+
+script Prairie2_EventScript_Kent {
+    trainerbattle_single(TRAINER_PRAIRIE2_KENT, "The bugs in this prairie are\nreally something else!", "My bugs got squashed…")
+    msgbox(format("I've been finding all sorts of rare bug POKéMON out in this tall grass."), MSGBOX_AUTOCLOSE)
+}

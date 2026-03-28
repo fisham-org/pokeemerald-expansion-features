@@ -1066,6 +1066,9 @@ $(FLDEFFGFXDIR)/jump_small_splash.4bpp: %.4bpp: %.png
 $(FLDEFFGFXDIR)/jump_tall_grass.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -mwidth 2 -mheight 1
 
+$(FLDEFFGFXDIR)/jump_prairie_tall_grass.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -mwidth 2 -mheight 1
+
 $(FLDEFFGFXDIR)/bike_tire_tracks.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -mwidth 2 -mheight 2
 
@@ -1095,6 +1098,9 @@ $(FLDEFFGFXDIR)/ash_puff.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -mwidth 2 -mheight 2
 
 $(FLDEFFGFXDIR)/long_grass.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -mwidth 2 -mheight 2
+
+$(FLDEFFGFXDIR)/prairie_long_grass.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -mwidth 2 -mheight 2
 
 $(FLDEFFGFXDIR)/mountain_disguise.4bpp: %.4bpp: %.png
@@ -1127,10 +1133,16 @@ $(FLDEFFGFXDIR)/oras_dowsing_may.4bpp: %.4bpp: %.png
 $(FLDEFFGFXDIR)/tall_grass.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -mwidth 2 -mheight 2
 
+$(FLDEFFGFXDIR)/prairie_tall_grass.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -mwidth 2 -mheight 2
+
 $(FLDEFFGFXDIR)/tree_disguise.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -mwidth 2 -mheight 4
 
 $(FLDEFFGFXDIR)/jump_long_grass.4bpp: %.4bpp: %.png
+	$(GFX) $< $@ -mwidth 2 -mheight 2
+
+$(FLDEFFGFXDIR)/jump_prairie_long_grass.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -mwidth 2 -mheight 2
 
 $(FLDEFFGFXDIR)/unknown_17.4bpp: %.4bpp: %.png

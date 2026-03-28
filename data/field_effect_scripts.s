@@ -87,6 +87,10 @@ gFieldEffectScriptPointers::
 	.4byte gFldEffScript_SmileyFaceIcon    		        @ FLDEFF_SMILEY_FACE_ICON
 	.4byte gFieldEffectScript_HallOfFameRecordFrlg      @ FLDEFF_HALL_OF_FAME_RECORD_FRLG
 	.4byte gFldEffScript_PhotoFlash      		        @ FLDEFF_PHOTO_FLASH
+	.4byte gFieldEffectScript_PrairieLongGrass          @ FLDEFF_PRAIRIE_LONG_GRASS
+	.4byte gFieldEffectScript_JumpPrairieLongGrass      @ FLDEFF_JUMP_PRAIRIE_LONG_GRASS
+	.4byte gFieldEffectScript_PrairieTallGrass          @ FLDEFF_PRAIRIE_TALL_GRASS
+	.4byte gFieldEffectScript_JumpPrairieTallGrass      @ FLDEFF_JUMP_PRAIRIE_TALL_GRASS
 
 gFieldEffectScript_ExclamationMarkIcon1::
 	field_eff_callnative FldEff_ExclamationMarkIcon
@@ -414,4 +418,20 @@ gFieldEffectScript_HallOfFameRecordFrlg::
 
 gFldEffScript_PhotoFlash::
 	field_eff_callnative FldEff_PhotoFlash
+	field_eff_end
+
+gFieldEffectScript_PrairieLongGrass::
+	field_eff_loadfadedpal_callnative gSpritePalette_PrairieLongGrass, FldEff_PrairieLongGrass
+	field_eff_end
+
+gFieldEffectScript_JumpPrairieLongGrass::
+	field_eff_loadfadedpal_callnative gSpritePalette_PrairieLongGrass, FldEff_JumpLongGrass
+	field_eff_end
+
+gFieldEffectScript_PrairieTallGrass::
+	field_eff_loadfadedpal_callnative gSpritePalette_PrairieLongGrass, FldEff_PrairieTallGrass
+	field_eff_end
+
+gFieldEffectScript_JumpPrairieTallGrass::
+	field_eff_loadfadedpal_callnative gSpritePalette_PrairieLongGrass, FldEff_JumpPrairieTallGrass
 	field_eff_end

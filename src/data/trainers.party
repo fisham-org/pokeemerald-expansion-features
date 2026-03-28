@@ -16873,3 +16873,125 @@ Double Battle: No
 Kyogre
 Level: 5
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PRAIRIE2_DEREK ===
+Name: DEREK
+Class: Youngster
+Pic: Youngster
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+Girafarig
+Level: 18
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Linoone
+Level: 18
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PRAIRIE2_FLORA ===
+Name: FLORA
+Class: Picnicker
+Pic: Picnicker
+Gender: Female
+Music: Girl
+Double Battle: No
+AI: Check Bad Move
+
+Cacnea
+Level: 20
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Maractus
+Level: 20
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Cottonee
+Level: 21
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PRAIRIE2_KENT ===
+Name: KENT
+Class: Bug Catcher
+Pic: Bug Catcher
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+Volbeat
+Level: 22
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Lokix
+Level: 22
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Beedrill
+Level: 23
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PRAIRIE_CODY ===
+Name: CODY
+Class: Bird Keeper
+Pic: Bird Keeper
+Gender: Male
+Music: Cool
+Double Battle: No
+AI: Check Bad Move
+
+Swellow
+Level: 28
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Pidgeotto
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Murkrow
+Level: 30
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PRAIRIE_TYRO ===
+Name: TYRO
+Class: Black Belt
+Pic: Black Belt
+Gender: Female
+Music: Intense
+Double Battle: No
+AI: Check Bad Move
+
+Breloom
+Level: 28
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Medicham
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Machoke
+Level: 30
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PRAIRIE_JASPER ===
+Name: JASPER
+Class: Ruin Maniac
+Pic: Ruin Maniac
+Gender: Male
+Music: Hiker
+Double Battle: No
+AI: Check Bad Move
+
+Sandslash
+Level: 28
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Krokorok
+Level: 29
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Claydol
+Level: 30
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
