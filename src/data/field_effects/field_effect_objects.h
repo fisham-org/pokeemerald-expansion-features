@@ -1398,3 +1398,38 @@ const struct SpriteTemplate gFieldEffectObjectTemplate_RockClimbDust = {
 };
 
 const struct SpritePalette gSpritePalette_BigDust = {gFieldEffectPal_DustCloud, FLDEFF_PAL_TAG_DUST_CLOUD};
+
+const struct SpritePalette gSpritePalette_SwampTallGrass = {gFieldEffectObjectPalette_SwampTallGrass, FLDEFF_PAL_TAG_SWAMP_TALL_GRASS};
+
+static const struct SpriteFrameImage sPicTable_SwampTallGrass[] = {
+    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 0),
+    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 1),
+    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 2),
+    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 3),
+    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 4),
+};
+
+const struct SpriteTemplate gFieldEffectObjectTemplate_SwampTallGrass = {
+    .tileTag = TAG_NONE,
+    .paletteTag = FLDEFF_PAL_TAG_SWAMP_TALL_GRASS,
+    .oam = &gObjectEventBaseOam_16x16,
+    .anims = sAnimTable_TallGrass,
+    .images = sPicTable_SwampTallGrass,
+    .callback = UpdateSwampTallGrassFieldEffect,
+};
+
+static const struct SpriteFrameImage sPicTable_JumpSwampTallGrass[] = {
+    overworld_frame(gFieldEffectObjectPic_JumpTallGrass, 2, 1, 0),
+    overworld_frame(gFieldEffectObjectPic_JumpTallGrass, 2, 1, 1),
+    overworld_frame(gFieldEffectObjectPic_JumpTallGrass, 2, 1, 2),
+    overworld_frame(gFieldEffectObjectPic_JumpTallGrass, 2, 1, 3),
+};
+
+const struct SpriteTemplate gFieldEffectObjectTemplate_JumpSwampTallGrass = {
+    .tileTag = TAG_NONE,
+    .paletteTag = FLDEFF_PAL_TAG_SWAMP_TALL_GRASS,
+    .oam = &gObjectEventBaseOam_16x8,
+    .anims = sAnimTable_JumpTallGrass,
+    .images = sPicTable_JumpSwampTallGrass,
+    .callback = UpdateJumpImpactEffect,
+};
