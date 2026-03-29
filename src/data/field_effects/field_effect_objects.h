@@ -1433,3 +1433,51 @@ const struct SpriteTemplate gFieldEffectObjectTemplate_JumpSwampTallGrass = {
     .images = sPicTable_JumpSwampTallGrass,
     .callback = UpdateJumpImpactEffect,
 };
+
+const struct SpritePalette gSpritePalette_SwampPlants = {gFieldEffectObjectPalette_SwampPlants, FLDEFF_PAL_TAG_SWAMP_PLANTS};
+
+static const union AnimCmd sAnim_SwampPlants[] =
+{
+    ANIMCMD_FRAME(1, 10),
+    ANIMCMD_FRAME(2, 10),
+    ANIMCMD_FRAME(3, 10),
+    ANIMCMD_FRAME(0, 10),
+    ANIMCMD_END,
+};
+
+static const union AnimCmd *const sAnimTable_SwampPlants[] =
+{
+    sAnim_SwampPlants,
+};
+
+static const struct SpriteFrameImage sPicTable_SwampPlants[] = {
+    overworld_frame(gFieldEffectObjectPic_SwampPlants, 2, 2, 0),
+    overworld_frame(gFieldEffectObjectPic_SwampPlants, 2, 2, 1),
+    overworld_frame(gFieldEffectObjectPic_SwampPlants, 2, 2, 2),
+    overworld_frame(gFieldEffectObjectPic_SwampPlants, 2, 2, 3),
+};
+
+const struct SpriteTemplate gFieldEffectObjectTemplate_SwampPlants = {
+    .tileTag = TAG_NONE,
+    .paletteTag = FLDEFF_PAL_TAG_SWAMP_PLANTS,
+    .oam = &gObjectEventBaseOam_16x16,
+    .anims = sAnimTable_SwampPlants,
+    .images = sPicTable_SwampPlants,
+    .callback = UpdateSwampPlantsFieldEffect,
+};
+
+static const struct SpriteFrameImage sPicTable_JumpSwampPlants[] = {
+    overworld_frame(gFieldEffectObjectPic_JumpSwampPlants, 2, 1, 0),
+    overworld_frame(gFieldEffectObjectPic_JumpSwampPlants, 2, 1, 1),
+    overworld_frame(gFieldEffectObjectPic_JumpSwampPlants, 2, 1, 2),
+    overworld_frame(gFieldEffectObjectPic_JumpSwampPlants, 2, 1, 3),
+};
+
+const struct SpriteTemplate gFieldEffectObjectTemplate_JumpSwampPlants = {
+    .tileTag = TAG_NONE,
+    .paletteTag = FLDEFF_PAL_TAG_SWAMP_PLANTS,
+    .oam = &gObjectEventBaseOam_16x8,
+    .anims = sAnimTable_JumpTallGrass,
+    .images = sPicTable_JumpSwampPlants,
+    .callback = UpdateJumpImpactEffect,
+};

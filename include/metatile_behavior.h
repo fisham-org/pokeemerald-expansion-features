@@ -75,6 +75,7 @@ bool8 MetatileBehavior_IsSecretBaseShieldOrToyTV(u8 metatileBehavior);
 bool8 MetatileBehavior_IsPlayerRoomPCOn(u8 metatileBehavior);
 bool8 MetatileBehavior_HasRipples(u8 metatileBehavior);
 bool8 MetatileBehavior_IsPuddle(u8 metatileBehavior);
+bool8 MetatileBehavior_IsSwampPlants(u8 metatileBehavior);
 bool8 MetatileBehavior_IsTallGrass(u8 metatileBehavior);
 bool8 MetatileBehavior_IsLongGrass(u8 metatileBehavior);
 bool8 MetatileBehavior_IsBerryTreeSoil(u8 metatileBehavior);

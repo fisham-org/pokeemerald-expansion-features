@@ -155,6 +155,8 @@ static void GetGroundEffectFlags_Ripple(struct ObjectEvent *, u32 *);
 static void GetGroundEffectFlags_Seaweed(struct ObjectEvent *, u32 *);
 static void GetGroundEffectFlags_SwampTallGrassOnSpawn(struct ObjectEvent *, u32 *);
 static void GetGroundEffectFlags_SwampTallGrassOnBeginStep(struct ObjectEvent *, u32 *);
+static void GetGroundEffectFlags_SwampPlantsOnSpawn(struct ObjectEvent *, u32 *);
+static void GetGroundEffectFlags_SwampPlantsOnBeginStep(struct ObjectEvent *, u32 *);
 static void GetGroundEffectFlags_JumpLanding(struct ObjectEvent *, u32 *);
 static u8 ObjectEventGetNearbyReflectionType(struct ObjectEvent *);
 static u8 GetReflectionTypeByMetatileBehavior(u32);
@@ -9667,6 +9669,7 @@ static void GetAllGroundEffectFlags_OnSpawn(struct ObjectEvent *objEvent, u32 *f
     GetGroundEffectFlags_TallGrassOnSpawn(objEvent, flags);
     GetGroundEffectFlags_LongGrassOnSpawn(objEvent, flags);
     GetGroundEffectFlags_SwampTallGrassOnSpawn(objEvent, flags);
+    GetGroundEffectFlags_SwampPlantsOnSpawn(objEvent, flags);
     GetGroundEffectFlags_SandHeap(objEvent, flags);
     GetGroundEffectFlags_ShallowFlowingWater(objEvent, flags);
     GetGroundEffectFlags_ShortGrass(objEvent, flags);
@@ -9680,6 +9683,7 @@ static void GetAllGroundEffectFlags_OnBeginStep(struct ObjectEvent *objEvent, u3
     GetGroundEffectFlags_TallGrassOnBeginStep(objEvent, flags);
     GetGroundEffectFlags_LongGrassOnBeginStep(objEvent, flags);
     GetGroundEffectFlags_SwampTallGrassOnBeginStep(objEvent, flags);
+    GetGroundEffectFlags_SwampPlantsOnBeginStep(objEvent, flags);
     GetGroundEffectFlags_Tracks(objEvent, flags);
     GetGroundEffectFlags_SandHeap(objEvent, flags);
     GetGroundEffectFlags_ShallowFlowingWater(objEvent, flags);
@@ -9751,6 +9755,18 @@ static void GetGroundEffectFlags_SwampTallGrassOnBeginStep(struct ObjectEvent *o
 {
     if (MetatileBehavior_IsSwampTallGrass(objEvent->currentMetatileBehavior))
         *flags |= GROUND_EFFECT_FLAG_SWAMP_TALL_GRASS_ON_MOVE;
+}
+
+static void GetGroundEffectFlags_SwampPlantsOnSpawn(struct ObjectEvent *objEvent, u32 *flags)
+{
+    if (MetatileBehavior_IsSwampPlants(objEvent->currentMetatileBehavior))
+        *flags |= GROUND_EFFECT_FLAG_SWAMP_PLANTS_ON_SPAWN;
+}
+
+static void GetGroundEffectFlags_SwampPlantsOnBeginStep(struct ObjectEvent *objEvent, u32 *flags)
+{
+    if (MetatileBehavior_IsSwampPlants(objEvent->currentMetatileBehavior))
+        *flags |= GROUND_EFFECT_FLAG_SWAMP_PLANTS_ON_MOVE;
 }
 
 static void GetGroundEffectFlags_LongGrassOnSpawn(struct ObjectEvent *objEvent, u32 *flags)
@@ -9878,6 +9894,7 @@ static void GetGroundEffectFlags_JumpLanding(struct ObjectEvent *objEvent, u32 *
         MetatileBehavior_IsTallGrass,
         MetatileBehavior_IsLongGrass,
         MetatileBehavior_IsSwampTallGrass,
+        MetatileBehavior_IsSwampPlants,
         MetatileBehavior_IsPuddle,
         MetatileBehavior_IsSurfableWaterOrUnderwater,
         MetatileBehavior_IsShallowFlowingWater,
@@ -9888,6 +9905,7 @@ static void GetGroundEffectFlags_JumpLanding(struct ObjectEvent *objEvent, u32 *
         GROUND_EFFECT_FLAG_LAND_IN_TALL_GRASS,
         GROUND_EFFECT_FLAG_LAND_IN_LONG_GRASS,
         GROUND_EFFECT_FLAG_LAND_IN_SWAMP_TALL_GRASS,
+        GROUND_EFFECT_FLAG_LAND_IN_SWAMP_PLANTS,
         GROUND_EFFECT_FLAG_LAND_IN_SHALLOW_WATER,
         GROUND_EFFECT_FLAG_LAND_IN_DEEP_WATER,
         GROUND_EFFECT_FLAG_LAND_IN_SHALLOW_WATER,
@@ -10165,6 +10183,32 @@ void GroundEffect_StepOnSwampTallGrass(struct ObjectEvent *objEvent, struct Spri
     FieldEffectStart(FLDEFF_SWAMP_TALL_GRASS);
 }
 
+void GroundEffect_SpawnOnSwampPlants(struct ObjectEvent *objEvent, struct Sprite *sprite)
+{
+    gFieldEffectArguments[0] = objEvent->currentCoords.x;
+    gFieldEffectArguments[1] = objEvent->currentCoords.y;
+    gFieldEffectArguments[2] = objEvent->previousElevation;
+    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[4] = objEvent->localId << 8 | objEvent->mapNum;
+    gFieldEffectArguments[5] = objEvent->mapGroup;
+    gFieldEffectArguments[6] = (u8)gSaveBlock1Ptr->location.mapNum << 8 | (u8)gSaveBlock1Ptr->location.mapGroup;
+    gFieldEffectArguments[7] = TRUE;
+    FieldEffectStart(FLDEFF_SWAMP_PLANTS);
+}
+
+void GroundEffect_StepOnSwampPlants(struct ObjectEvent *objEvent, struct Sprite *sprite)
+{
+    gFieldEffectArguments[0] = objEvent->currentCoords.x;
+    gFieldEffectArguments[1] = objEvent->currentCoords.y;
+    gFieldEffectArguments[2] = objEvent->previousElevation;
+    gFieldEffectArguments[3] = 2;
+    gFieldEffectArguments[4] = objEvent->localId << 8 | objEvent->mapNum;
+    gFieldEffectArguments[5] = objEvent->mapGroup;
+    gFieldEffectArguments[6] = (u8)gSaveBlock1Ptr->location.mapNum << 8 | (u8)gSaveBlock1Ptr->location.mapGroup;
+    gFieldEffectArguments[7] = FALSE;
+    FieldEffectStart(FLDEFF_SWAMP_PLANTS);
+}
+
 void GroundEffect_SpawnOnLongGrass(struct ObjectEvent *objEvent, struct Sprite *sprite)
 {
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
@@ -10403,6 +10447,27 @@ void GroundEffect_JumpOnSwampTallGrass(struct ObjectEvent *objEvent, struct Spri
         GroundEffect_SpawnOnSwampTallGrass(objEvent, sprite);
 }
 
+void GroundEffect_JumpOnSwampPlants(struct ObjectEvent *objEvent, struct Sprite *sprite)
+{
+    u8 spriteId;
+
+    gFieldEffectArguments[0] = objEvent->currentCoords.x;
+    gFieldEffectArguments[1] = objEvent->currentCoords.y;
+    gFieldEffectArguments[2] = objEvent->previousElevation;
+    gFieldEffectArguments[3] = 2;
+    FieldEffectStart(FLDEFF_JUMP_SWAMP_PLANTS);
+
+    spriteId = FindSwampPlantsFieldEffectSpriteId(
+        objEvent->localId,
+        objEvent->mapNum,
+        objEvent->mapGroup,
+        objEvent->currentCoords.x,
+        objEvent->currentCoords.y);
+
+    if (spriteId == MAX_SPRITES)
+        GroundEffect_SpawnOnSwampPlants(objEvent, sprite);
+}
+
 void GroundEffect_JumpOnShallowWater(struct ObjectEvent *objEvent, struct Sprite *sprite)
 {
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
@@ -10471,6 +10536,9 @@ static void (*const sGroundEffectFuncs[])(struct ObjectEvent *objEvent, struct S
     GroundEffect_SpawnOnSwampTallGrass,  // GROUND_EFFECT_FLAG_SWAMP_TALL_GRASS_ON_SPAWN
     GroundEffect_StepOnSwampTallGrass,   // GROUND_EFFECT_FLAG_SWAMP_TALL_GRASS_ON_MOVE
     GroundEffect_JumpOnSwampTallGrass,   // GROUND_EFFECT_FLAG_LAND_IN_SWAMP_TALL_GRASS
+    GroundEffect_SpawnOnSwampPlants,     // GROUND_EFFECT_FLAG_SWAMP_PLANTS_ON_SPAWN
+    GroundEffect_StepOnSwampPlants,      // GROUND_EFFECT_FLAG_SWAMP_PLANTS_ON_MOVE
+    GroundEffect_JumpOnSwampPlants,      // GROUND_EFFECT_FLAG_LAND_IN_SWAMP_PLANTS
 };
 
 static void DoFlaggedGroundEffects(struct ObjectEvent *objEvent, struct Sprite *sprite, u32 flags)

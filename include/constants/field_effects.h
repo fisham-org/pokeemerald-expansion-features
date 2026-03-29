@@ -85,6 +85,8 @@
 #define FLDEFF_PHOTO_FLASH               80
 #define FLDEFF_SWAMP_TALL_GRASS          81
 #define FLDEFF_JUMP_SWAMP_TALL_GRASS     82
+#define FLDEFF_SWAMP_PLANTS              83
+#define FLDEFF_JUMP_SWAMP_PLANTS         84
 
 #define FLDEFFOBJ_SHADOW_S              0
 #define FLDEFFOBJ_SHADOW_M              1
@@ -133,6 +135,8 @@
 #define FLDEFFOBJ_ORAS_DOWSE_MAY        44
 #define FLDEFFOBJ_SWAMP_TALL_GRASS      45
 #define FLDEFFOBJ_JUMP_SWAMP_TALL_GRASS 46
+#define FLDEFFOBJ_SWAMP_PLANTS          47
+#define FLDEFFOBJ_JUMP_SWAMP_PLANTS     48
 
 #define FLDEFF_PAL_TAG_CUT_GRASS          0x1000
 #define FLDEFF_PAL_TAG_SECRET_POWER_TREE  0x1003
@@ -150,6 +154,7 @@
 #define FLDEFF_PAL_TAG_DUST_CLOUD         0x1013
 #define FLDEFF_PAL_TAG_ORAS_DOWSE         0x1014
 #define FLDEFF_PAL_TAG_SWAMP_TALL_GRASS   0x1015
+#define FLDEFF_PAL_TAG_SWAMP_PLANTS       0x1016
 #define FLDEFF_PAL_TAG_FIELD_MOVE_MON     0x8400
 
 // tile tags, for field effects that may have many copies on screen at once
