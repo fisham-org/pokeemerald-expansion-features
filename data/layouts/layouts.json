@@ -9333,6 +9333,16 @@
       "secondary_tileset": "gTileset_Swamp",
       "border_filepath": "data/layouts/MapTest/border.bin",
       "blockdata_filepath": "data/layouts/MapTest/map.bin"
+    },
+    {
+      "id": "LAYOUT_SWAMP1",
+      "name": "Swamp1_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_General",
+      "secondary_tileset": "gTileset_Swamp",
+      "border_filepath": "data/layouts/Swamp1/border.bin",
+      "blockdata_filepath": "data/layouts/Swamp1/map.bin"
     }
   ]
 }

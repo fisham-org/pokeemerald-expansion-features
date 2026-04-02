@@ -76,6 +76,7 @@ static void QueueAnimTiles_EliteFour_WallLights(u16);
 static void TilesetAnim_Swamp(u16);
 static void QueueAnimTiles_Swamp_Puddle1(u16);
 
+
 const u16 gTilesetAnims_General_Flower_Frame1[] = INCBIN_U16("data/tilesets/primary/general/anim/flower/1.4bpp");
 const u16 gTilesetAnims_General_Flower_Frame0[] = INCBIN_U16("data/tilesets/primary/general/anim/flower/0.4bpp");
 const u16 gTilesetAnims_General_Flower_Frame2[] = INCBIN_U16("data/tilesets/primary/general/anim/flower/2.4bpp");
@@ -1473,13 +1474,13 @@ const u16 *const gTilesetAnims_Swamp_Lilypad1[] = {
 static void QueueAnimTiles_Swamp_Puddle1(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Swamp_Puddle1);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Swamp_Puddle1[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(520)), 4 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Swamp_Puddle1[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(578)), 4 * TILE_SIZE_4BPP);
 }
 
 static void QueueAnimTiles_Swamp_Lilypad1(u16 timer)
 {
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_Swamp_Lilypad1);
-    AppendTilesetAnimToBuffer(gTilesetAnims_Swamp_Lilypad1[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(512)), 4 * TILE_SIZE_4BPP);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Swamp_Lilypad1[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(596)), 4 * TILE_SIZE_4BPP);
 }
 
 static void TilesetAnim_Swamp(u16 timer)
