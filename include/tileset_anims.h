@@ -40,4 +40,6 @@ void InitTilesetAnim_CeladonGym(void);
 void InitTilesetAnim_SilphCo(void);
 void InitTilesetAnim_MtEmber(void);
 
+void InitTilesetAnim_Swamp(void);
+
 #endif // GUARD_TILESET_ANIMS_H

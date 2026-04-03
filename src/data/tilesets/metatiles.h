@@ -411,3 +411,5 @@ const u16 gMetatileAttributes_HallOfFame[] = INCBIN_U16("data/tilesets/secondary
 
 const u16 gMetatiles_Prairie[] = INCBIN_U16("data/tilesets/secondary/prairie/metatiles.bin");
 const u16 gMetatileAttributes_Prairie[] = INCBIN_U16("data/tilesets/secondary/prairie/metatile_attributes.bin");
+const u16 gMetatiles_Swamp[] = INCBIN_U16("data/tilesets/secondary/swamp/metatiles.bin");
+const u16 gMetatileAttributes_Swamp[] = INCBIN_U16("data/tilesets/secondary/swamp/metatile_attributes.bin");

@@ -3067,3 +3067,21 @@ const u16 gTilesetPalettes_Prairie[][16] =
 };
 
 const u32 gTilesetTiles_Prairie[] = INCBIN_U32("data/tilesets/secondary/prairie/tiles.4bpp.lz");
+const u16 gTilesetPalettes_Swamp[][16] =
+{
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/00.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/01.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/02.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/03.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/04.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/05.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/06.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/07.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/08.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/09.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/10.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/11.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/swamp/palettes/12.gbapal"),
+};
+
+const u32 gTilesetTiles_Swamp[] = INCBIN_U32("data/tilesets/secondary/swamp/tiles.4bpp.lz");

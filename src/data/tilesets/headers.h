@@ -1552,3 +1552,14 @@ const struct Tileset gTileset_Prairie =
     .metatileAttributes = gMetatileAttributes_Prairie,
     .callback = NULL,
 };
+
+const struct Tileset gTileset_Swamp =
+{
+    .isCompressed = TRUE,
+    .isSecondary = TRUE,
+    .tiles = gTilesetTiles_Swamp,
+    .palettes = gTilesetPalettes_Swamp,
+    .metatiles = gMetatiles_Swamp,
+    .metatileAttributes = gMetatileAttributes_Swamp,
+    .callback = InitTilesetAnim_Swamp,
+};

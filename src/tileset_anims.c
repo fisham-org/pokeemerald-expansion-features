@@ -73,6 +73,9 @@ static void QueueAnimTiles_MauvilleGym_ElectricGates(u16);
 static void QueueAnimTiles_SootopolisGym_Waterfalls(u16);
 static void QueueAnimTiles_EliteFour_GroundLights(u16);
 static void QueueAnimTiles_EliteFour_WallLights(u16);
+static void TilesetAnim_Swamp(u16);
+static void QueueAnimTiles_Swamp_Puddle1(u16);
+
 
 const u16 gTilesetAnims_General_Flower_Frame1[] = INCBIN_U16("data/tilesets/primary/general/anim/flower/1.4bpp");
 const u16 gTilesetAnims_General_Flower_Frame0[] = INCBIN_U16("data/tilesets/primary/general/anim/flower/0.4bpp");
@@ -1430,5 +1433,68 @@ void InitTilesetAnim_CeladonGym(void)
     sSecondaryTilesetAnimCounter = 0;
     sSecondaryTilesetAnimCounterMax = 256;
     sSecondaryTilesetAnimCallback = TilesetAnim_CeladonGym;
+}
+
+// Swamp tileset animations
+
+const u16 gTilesetAnims_Swamp_Puddle1_Frame0[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/puddle1/00.4bpp");
+const u16 gTilesetAnims_Swamp_Puddle1_Frame1[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/puddle1/01.4bpp");
+const u16 gTilesetAnims_Swamp_Puddle1_Frame2[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/puddle1/02.4bpp");
+const u16 gTilesetAnims_Swamp_Puddle1_Frame3[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/puddle1/03.4bpp");
+const u16 gTilesetAnims_Swamp_Puddle1_Frame4[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/puddle1/04.4bpp");
+const u16 gTilesetAnims_Swamp_Puddle1_Frame5[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/puddle1/05.4bpp");
+const u16 gTilesetAnims_Swamp_Puddle1_Frame6[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/puddle1/06.4bpp");
+const u16 gTilesetAnims_Swamp_Puddle1_Frame7[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/puddle1/07.4bpp");
+
+const u16 *const gTilesetAnims_Swamp_Puddle1[] = {
+    gTilesetAnims_Swamp_Puddle1_Frame0,
+    gTilesetAnims_Swamp_Puddle1_Frame1,
+    gTilesetAnims_Swamp_Puddle1_Frame2,
+    gTilesetAnims_Swamp_Puddle1_Frame3,
+    gTilesetAnims_Swamp_Puddle1_Frame4,
+    gTilesetAnims_Swamp_Puddle1_Frame5,
+    gTilesetAnims_Swamp_Puddle1_Frame6,
+    gTilesetAnims_Swamp_Puddle1_Frame7,
+};
+
+
+const u16 gTilesetAnims_Swamp_Lilypad1_Frame0[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/lilypad1/00.4bpp");
+const u16 gTilesetAnims_Swamp_Lilypad1_Frame1[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/lilypad1/01.4bpp");
+const u16 gTilesetAnims_Swamp_Lilypad1_Frame2[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/lilypad1/02.4bpp");
+const u16 gTilesetAnims_Swamp_Lilypad1_Frame3[] = INCBIN_U16("data/tilesets/secondary/swamp/anim/lilypad1/03.4bpp");
+
+const u16 *const gTilesetAnims_Swamp_Lilypad1[] = {
+    gTilesetAnims_Swamp_Lilypad1_Frame0,
+    gTilesetAnims_Swamp_Lilypad1_Frame1,
+    gTilesetAnims_Swamp_Lilypad1_Frame2,
+    gTilesetAnims_Swamp_Lilypad1_Frame3,
+};
+
+
+static void QueueAnimTiles_Swamp_Puddle1(u16 timer)
+{
+    u16 i = timer % ARRAY_COUNT(gTilesetAnims_Swamp_Puddle1);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Swamp_Puddle1[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(579)), 4 * TILE_SIZE_4BPP);
+}
+
+static void QueueAnimTiles_Swamp_Lilypad1(u16 timer)
+{
+    u16 i = timer % ARRAY_COUNT(gTilesetAnims_Swamp_Lilypad1);
+    AppendTilesetAnimToBuffer(gTilesetAnims_Swamp_Lilypad1[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(596)), 4 * TILE_SIZE_4BPP);
+}
+
+static void TilesetAnim_Swamp(u16 timer)
+{
+    if (timer % 16 == 0)
+        QueueAnimTiles_Swamp_Puddle1(timer / 16);
+    if (timer % 64 == 0)
+        QueueAnimTiles_Swamp_Lilypad1(timer / 64);
+}
+
+void InitTilesetAnim_Swamp(void)
+{
+    sSecondaryTilesetAnimCounter = 0;
+    sSecondaryTilesetAnimCounterMax = 256;
+    sSecondaryTilesetAnimCallback = TilesetAnim_Swamp;
 }
 
