@@ -1402,11 +1402,11 @@ const struct SpritePalette gSpritePalette_BigDust = {gFieldEffectPal_DustCloud, 
 const struct SpritePalette gSpritePalette_SwampTallGrass = {gFieldEffectObjectPalette_SwampTallGrass, FLDEFF_PAL_TAG_SWAMP_TALL_GRASS};
 
 static const struct SpriteFrameImage sPicTable_SwampTallGrass[] = {
-    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 0),
-    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 1),
-    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 2),
-    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 3),
-    overworld_frame(gFieldEffectObjectPic_TallGrass, 2, 2, 4),
+    overworld_frame(gFieldEffectObjectPic_SwampTallGrass, 2, 2, 0),
+    overworld_frame(gFieldEffectObjectPic_SwampTallGrass, 2, 2, 1),
+    overworld_frame(gFieldEffectObjectPic_SwampTallGrass, 2, 2, 2),
+    overworld_frame(gFieldEffectObjectPic_SwampTallGrass, 2, 2, 3),
+    overworld_frame(gFieldEffectObjectPic_SwampTallGrass, 2, 2, 4),
 };
 
 const struct SpriteTemplate gFieldEffectObjectTemplate_SwampTallGrass = {

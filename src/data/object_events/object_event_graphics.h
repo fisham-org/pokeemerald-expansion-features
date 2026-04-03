@@ -469,6 +469,7 @@ const u16 gFieldEffectObjectPalette_SwampTallGrass[] = INCBIN_U16("graphics/fiel
 const u32 gFieldEffectObjectPic_SwampPlants[] = INCBIN_U32("graphics/field_effects/pics/swamp_plants.4bpp");
 const u32 gFieldEffectObjectPic_JumpSwampPlants[] = INCBIN_U32("graphics/field_effects/pics/jump_swamp_plants.4bpp");
 const u16 gFieldEffectObjectPalette_SwampPlants[] = INCBIN_U16("graphics/field_effects/palettes/swamp_plants.gbapal");
+const u32 gFieldEffectObjectPic_SwampTallGrass[] = INCBIN_U32("graphics/field_effects/pics/swamp_tall_grass.4bpp");
 
 const u32 gObjectEventPic_ApricornTree[] = INCBIN_U32("graphics/object_events/pics/misc/apricorn_tree.4bpp");
 
