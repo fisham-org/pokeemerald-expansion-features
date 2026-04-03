@@ -1740,3 +1740,5 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/maps/MapTest/scripts.inc"
 
 	.include "data/maps/Swamp1/scripts.inc"
+
+	.include "data/maps/Swamp2/scripts.inc"

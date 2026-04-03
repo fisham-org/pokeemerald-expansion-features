@@ -9337,12 +9337,22 @@
     {
       "id": "LAYOUT_SWAMP1",
       "name": "Swamp1_Layout",
-      "width": 20,
-      "height": 20,
+      "width": 48,
+      "height": 40,
       "primary_tileset": "gTileset_General",
       "secondary_tileset": "gTileset_Swamp",
       "border_filepath": "data/layouts/Swamp1/border.bin",
       "blockdata_filepath": "data/layouts/Swamp1/map.bin"
+    },
+    {
+      "id": "LAYOUT_SWAMP2",
+      "name": "Swamp2_Layout",
+      "width": 30,
+      "height": 32,
+      "primary_tileset": "gTileset_General",
+      "secondary_tileset": "gTileset_Swamp",
+      "border_filepath": "data/layouts/Swamp2/border.bin",
+      "blockdata_filepath": "data/layouts/Swamp2/map.bin"
     }
   ]
 }
