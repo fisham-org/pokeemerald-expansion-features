@@ -62,7 +62,7 @@ A murky swamp featuring custom tiles with animated water, lilypads, and swaying 
 
 **Tileset:**
 
-![Swamp Tileset](raw-tilesets/swamp/tilesetase.png)
+![Swamp Tileset](raw_tilesets/swamp/tilesetase.png)
 
 **Swamp Map:**
 
