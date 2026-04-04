@@ -139,27 +139,6 @@ static u8 ClampLevel(u8 level, u8 minLevel, u8 maxLevel)
 // Internal Helper Functions - Evolution Management
 // ============================================================================
 
-static u16 GetPreEvolution(u16 species)
-{
-    u32 i, j;
-
-    // Search all species to find what evolves into this species
-    for (i = 1; i < NUM_SPECIES; i++)
-    {
-        const struct Evolution *evolutions = GetSpeciesEvolutions(i);
-        if (evolutions == NULL)
-            continue;
-
-        for (j = 0; evolutions[j].method != EVOLUTIONS_END; j++)
-        {
-            if (evolutions[j].targetSpecies == species)
-                return i;
-        }
-    }
-
-    return SPECIES_NONE;
-}
-
 // Get the level required to evolve INTO this species (from its pre-evolution)
 static u8 GetEvolutionLevelForSpecies(u16 species)
 {
@@ -168,6 +147,9 @@ static u8 GetEvolutionLevelForSpecies(u16 species)
     // Find what evolves into this species
     for (i = 1; i < NUM_SPECIES; i++)
     {
+        if (!IsSpeciesEnabled(i))
+            continue;
+
         const struct Evolution *evolutions = GetSpeciesEvolutions(i);
         if (evolutions == NULL)
             continue;
@@ -203,7 +185,7 @@ static bool8 IsSpeciesLegalAtLevel(u16 species, u8 level)
     #endif
 
     // Check if this species is an evolved form
-    u16 preEvo = GetPreEvolution(species);
+    u16 preEvo = GetSpeciesPreEvolution(species);
     if (preEvo == SPECIES_NONE)
     {
         // This is a base form, always legal
@@ -256,7 +238,7 @@ u16 ValidateSpeciesForLevel(u16 species, u8 targetLevel, bool8 manageEvolutions)
 
     while (maxIterations-- > 0)
     {
-        preEvo = GetPreEvolution(currentSpecies);
+        preEvo = GetSpeciesPreEvolution(currentSpecies);
 
         if (preEvo == SPECIES_NONE)
         {
