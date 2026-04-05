@@ -494,6 +494,9 @@ gSpecials::
 	def_special CloseBattleFrontierTutorWindow
 	def_special ScrollableMultichoice_RedrawPersistentMenu
 	def_special ChooseMonForMoveTutor
+	def_special CountPartyMonsWithMoveProperty
+	def_special CountPartyMonsWithMoveType
+	def_special CountPartyMonsWithMovePower
 	def_special ScrollableMultichoice_ClosePersistentMenu
 	def_special DoDeoxysRockInteraction
 	def_special SetDeoxysRockPalette
