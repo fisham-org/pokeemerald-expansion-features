@@ -87,9 +87,14 @@ gFieldEffectScriptPointers::
 	.4byte gFldEffScript_SmileyFaceIcon    		        @ FLDEFF_SMILEY_FACE_ICON
 	.4byte gFieldEffectScript_HallOfFameRecordFrlg      @ FLDEFF_HALL_OF_FAME_RECORD_FRLG
 	.4byte gFldEffScript_PhotoFlash      		        @ FLDEFF_PHOTO_FLASH
+	.4byte gFieldEffectScript_QuestIcon					@ FLDEFF_QUEST_ICON
 
 gFieldEffectScript_ExclamationMarkIcon1::
 	field_eff_callnative FldEff_ExclamationMarkIcon
+	field_eff_end
+
+gFieldEffectScript_QuestIcon::
+	field_eff_callnative FldEff_QuestIcon
 	field_eff_end
 
 gFieldEffectScript_UseCutOnTallGrass::
