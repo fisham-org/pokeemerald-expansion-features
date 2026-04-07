@@ -18,6 +18,14 @@ extern const u8 gText_ExpandedPlaceholder_Kyogre[];
 extern const u8 gText_NuzlockeFirstEncounter[];
 extern const u8 gText_NuzlockeDuplicate[];
 extern const u8 gText_NuzlockeShiny[];
+// Nuzlocke - nurse removes fainted party start
+extern const u8 gText_NurseDetectsDeadMons[];
+extern const u8 gText_NurseOffersPCTransfer[];
+extern const u8 gText_NurseTransferredMon[];
+extern const u8 gText_NurseFinishedTransfers[];
+extern const u8 gText_NurseCannotDepositLastMon[];
+extern const u8 gText_NursePCFull[];
+// Nuzlocke - nurse removes fainted party end
 extern const u8 gText_ExpandedPlaceholder_Groudon[];
 extern const u8 gText_ExpandedPlaceholder_Brendan[];
 extern const u8 gText_ExpandedPlaceholder_May[];

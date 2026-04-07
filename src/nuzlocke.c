@@ -12,6 +12,7 @@
 #include "overworld.h"
 #include "config/battle.h"
 #include "save.h"
+#include "string_util.h"
 
 // Check if Nuzlocke mode is active
 bool8 IsNuzlockeActive(void)
@@ -480,4 +481,166 @@ u8 GetNuzlockeEncounterStatus(u16 species, u32 personality, u32 otId)
 void NuzlockeSilentSave(void)
 {
     TrySavingData(SAVE_LINK);
+}
+
+// ==========================================
+// Nurse Joy PC Transfer Functions
+// ==========================================
+
+// Count how many dead Pokemon are in the party
+static u8 CountDeadPartyMons(void)
+{
+    u8 count = 0;
+
+    if (!IsNuzlockeActive() || !I_NUZLOCKE_PERMADEATH)
+        return 0;
+
+    for (u8 i = 0; i < PARTY_SIZE; i++)
+    {
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) != SPECIES_NONE
+            && !GetMonData(&gPlayerParty[i], MON_DATA_SANITY_IS_EGG)
+            && GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0
+            && GetMonData(&gPlayerParty[i], MON_DATA_IS_DEAD, NULL))
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+// Check if we can deposit a specific party mon to PC
+// Returns FALSE if depositing would leave party with 0 alive non-egg mons
+static bool8 CanDepositDeadMonToPC(u8 partySlot)
+{
+    if (partySlot >= PARTY_SIZE)
+        return FALSE;
+
+    // Check if depositing this mon would leave us with at least 1 alive non-egg mon
+    u8 aliveCount = CountPartyAliveNonEggMonsExcept(partySlot);
+
+    return (aliveCount > 0);
+}
+
+// Special function: Count dead party mons and return result
+u16 CountDeadPartyMonsSpecial(void)
+{
+    if (!I_NUZLOCKE_NURSE_PC_TRANSFER)
+        return 0;
+
+    if (!IsNuzlockeActive() || !I_NUZLOCKE_PERMADEATH)
+        return 0;
+
+    return CountDeadPartyMons();
+}
+
+// Special function: Check if we can deposit a dead mon
+// Uses gSpecialVar_0x8004 as party slot index
+// Returns TRUE if can deposit, FALSE otherwise
+bool8 CanDepositDeadMonSpecial(void)
+{
+    if (!I_NUZLOCKE_NURSE_PC_TRANSFER)
+        return FALSE;
+
+    if (!IsNuzlockeActive() || !I_NUZLOCKE_PERMADEATH)
+        return FALSE;
+
+    u8 slot = gSpecialVar_0x8004;
+    return CanDepositDeadMonToPC(slot);
+}
+
+// Special function: Prepare info for the next dead mon
+// Finds the first dead Pokemon in party and buffers its info
+// Sets gSpecialVar_0x8004 to party slot index
+// Buffers nickname to gStringVar1
+void PrepareNextDeadMonInfo(void)
+{
+    // Always initialize to invalid slot first
+    gSpecialVar_0x8004 = PARTY_SIZE;
+    gStringVar1[0] = 0; // Empty string
+
+    if (!I_NUZLOCKE_NURSE_PC_TRANSFER)
+    {
+        return;
+    }
+
+    if (!IsNuzlockeActive() || !I_NUZLOCKE_PERMADEATH)
+    {
+        return;
+    }
+
+    // Find first dead party mon
+    for (u8 i = 0; i < PARTY_SIZE; i++)
+    {
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) != SPECIES_NONE
+            && !GetMonData(&gPlayerParty[i], MON_DATA_SANITY_IS_EGG)
+            && GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0
+            && GetMonData(&gPlayerParty[i], MON_DATA_IS_DEAD, NULL))
+        {
+            gSpecialVar_0x8004 = i;
+            GetMonData(&gPlayerParty[i], MON_DATA_NICKNAME, gStringVar1);
+            return;
+        }
+    }
+}
+
+// Special function: Deposit a dead party mon to the PC
+// Uses gSpecialVar_0x8004 as party slot index
+// Sets gSpecialVar_0x8005 to destination box number
+// Returns gSpecialVar_0x8005 = TOTAL_BOXES_COUNT if PC is full
+void DepositDeadPartyMonToPC(void)
+{
+    // Always initialize to failure value first
+    gSpecialVar_0x8005 = TOTAL_BOXES_COUNT;
+
+    if (!I_NUZLOCKE_NURSE_PC_TRANSFER)
+    {
+        return;
+    }
+
+    if (!IsNuzlockeActive() || !I_NUZLOCKE_PERMADEATH)
+    {
+        return;
+    }
+
+    u8 partySlot = gSpecialVar_0x8004;
+
+    // Validate party slot
+    if (partySlot >= PARTY_SIZE)
+    {
+        gSpecialVar_0x8005 = TOTAL_BOXES_COUNT;
+        return;
+    }
+
+    // Validate that this mon is actually dead (HP = 0 AND dead flag set)
+    if (GetMonData(&gPlayerParty[partySlot], MON_DATA_HP) != 0
+        || !GetMonData(&gPlayerParty[partySlot], MON_DATA_IS_DEAD, NULL))
+    {
+        gSpecialVar_0x8005 = TOTAL_BOXES_COUNT;
+        return;
+    }
+
+    // Find first free box slot across all boxes
+    for (u8 box = 0; box < TOTAL_BOXES_COUNT; box++)
+    {
+        s16 position = GetFirstFreeBoxSpot(box);
+        if (position >= 0)
+        {
+            // Copy mon to PC box
+            SetBoxMonAt(box, position, &gPlayerParty[partySlot].box);
+
+            // Zero out party slot
+            ZeroMonData(&gPlayerParty[partySlot]);
+
+            // Compact party to remove gaps
+            CompactPartySlots();
+
+            // Store box number for messaging
+            gSpecialVar_0x8005 = box;
+            return;
+        }
+    }
+
+    // No space found in any box
+    gSpecialVar_0x8005 = TOTAL_BOXES_COUNT;
 }

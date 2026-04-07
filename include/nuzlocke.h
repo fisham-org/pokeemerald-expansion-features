@@ -46,4 +46,10 @@ u8 GetNuzlockeEncounterStatus(u16 species, u32 personality, u32 otId);
 // Silent save function
 void NuzlockeSilentSave(void);
 
+// Nurse Joy PC Transfer special functions
+u16 CountDeadPartyMonsSpecial(void);
+bool8 CanDepositDeadMonSpecial(void);
+void PrepareNextDeadMonInfo(void);
+void DepositDeadPartyMonToPC(void);
+
 #endif // GUARD_NUZLOCKE_H

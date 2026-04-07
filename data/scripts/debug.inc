@@ -203,11 +203,13 @@ Debug_EventScript_Text_DefensiveIVs:
 	.string "HP IVs: {STR_VAR_1}, DEF IVs: {STR_VAR_2}, SPDEF IVs: {STR_VAR_3}$"
 
 @ ============================================================================
-@ QUICK PARTY SETUP FOR LEVEL SCALING TESTS
+@ NUZLOCKE NURSE JOY PC TRANSFER TEST SCRIPTS
 @ ============================================================================
 
 Debug_EventScript_Script_1::
-	msgbox Debug_LevelScaling_PartySetup_Intro, MSGBOX_DEFAULT
+	msgbox Debug_Nuzlocke_Test_Setup_Intro, MSGBOX_DEFAULT
+	@ Enable Nuzlocke mode
+	setflag FLAG_NUZLOCKE
 	@ Clear existing party
 	special HealPlayerParty
 	@ Give test party with strong Pokemon at varied levels
@@ -239,12 +241,14 @@ Debug_EventScript_Script_9::
 	trainerbattle_selectmons TRAINER_ROXANNE_1, RustboroCity_Gym_Text_RoxanneIntro, RustboroCity_Gym_Text_RoxanneDefeat, RustboroCity_Gym_EventScript_PostBattleHandler, 3
 	end
 
-Debug_LevelScaling_PartySetup_Intro:
-	.string "LEVEL SCALING TEST SETUP\p"
-	.string "Creating test party with:\n"
-	.string "Level 10, 20, 30, 40, 50, 60\p"
-	.string "All with perfect IVs and competitive\n"
-	.string "movesets. Setting all 8 badges.$"
+Debug_Nuzlocke_Test_Setup_Intro:
+	.string "NUZLOCKE PC TRANSFER TEST\p"
+	.string "Setting up:\n"
+	.string "- Nuzlocke mode ON\l"
+	.string "- 5 Pokémon party\l"
+	.string "- 2 marked as DEAD\l"
+	.string "- 3 alive\p"
+	.string "Visit Pokémon Center to test!$"
 
 Debug_LevelScaling_PartySetup_Complete:
 	.string "Party created!\p"
@@ -369,7 +373,6 @@ Debug_LevelScaling_Test6_Intro:
 Debug_LevelScaling_Test6_Result:
 	.string "Did you see any pre-evolutions?\n"
 	.string "That means it worked correctly!$"
-
 
 Debug_EventScript_Script_8::
 	release

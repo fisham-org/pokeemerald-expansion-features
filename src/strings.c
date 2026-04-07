@@ -25,6 +25,14 @@ const u8 gText_ExpandedPlaceholder_Green[] = _("GREEN");
 const u8 gText_NuzlockeFirstEncounter[] = _("Alright, here's the first POKéMON\nof the area. Better make it count!\p");
 const u8 gText_NuzlockeDuplicate[] = _("We've already caught this POKéMON.\pThe Duplicate Clause lets us try\nfor another after this battle.\p");
 const u8 gText_NuzlockeShiny[] = _("Oh wow, a Shiny!\pThe Shiny Clause lets us try to\ncatch this no matter what!\p");
+// Nuzlocke - nurse removes fainted party start
+const u8 gText_NurseDetectsDeadMons[] = _("Oh my! I notice you have some\nfainted POKéMON in your party.");
+const u8 gText_NurseOffersPCTransfer[] = _("In NUZLOCKE mode, they can't be\nrevived. Would you like me to\ltransfer them to your PC?");
+const u8 gText_NurseTransferredMon[] = _("{STR_VAR_1} was transferred to\n{STR_VAR_2}.");
+const u8 gText_NurseFinishedTransfers[] = _("All done! Now, let me heal your\nother POKéMON.");
+const u8 gText_NurseCannotDepositLastMon[] = _("I'm sorry, but I can't transfer that\nPOKéMON. It's your only one left!");
+const u8 gText_NursePCFull[] = _("Oh dear! Your PC BOXES are full.\nI can't transfer any POKéMON.");
+// Nuzlocke - nurse removes fainted party end
 const u8 gText_EggNickname[POKEMON_NAME_LENGTH + 1] = _("EGG");
 const u8 gText_Pokemon[POKEMON_NAME_LENGTH + 1] = _("POKéMON");
 const u8 gText_Player[] = _("PLAYER"); // Unused

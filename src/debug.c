@@ -4937,3 +4937,59 @@ void CheckEWRAMCounters(struct ScriptContext *ctx)
     ConvertIntToDecimalStringN(gStringVar1, gFollowerSteps, STR_CONV_MODE_LEFT_ALIGN, 5);
     ConvertIntToDecimalStringN(gStringVar2, gChainFishingDexNavStreak, STR_CONV_MODE_LEFT_ALIGN, 5);
 }
+
+// ============================================================================
+// Nuzlocke Test Helper Functions
+// ============================================================================
+
+void Debug_HealPartyMon(struct ScriptContext *ctx)
+{
+    u8 slot = gSpecialVar_0x8004;
+
+    if (slot >= PARTY_SIZE)
+        return;
+
+    if (GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES) == SPECIES_NONE)
+        return;
+
+    // Heal the mon
+    HealPokemon(&gPlayerParty[slot]);
+}
+
+void Debug_MarkPartyMonAsDead(struct ScriptContext *ctx)
+{
+    u8 slot = gSpecialVar_0x8004;
+
+    if (slot >= PARTY_SIZE)
+        return;
+
+    if (GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES) == SPECIES_NONE)
+        return;
+
+    // Set HP to 0
+    u16 hp = 0;
+    SetMonData(&gPlayerParty[slot], MON_DATA_HP, &hp);
+
+    // Mark as dead (if Nuzlocke is active)
+    if (FlagGet(FLAG_NUZLOCKE))
+    {
+        u32 deadFlag = 1;
+        SetMonData(&gPlayerParty[slot], MON_DATA_IS_DEAD, &deadFlag);
+    }
+}
+
+void Debug_FillCurrentPCBox(struct ScriptContext *ctx)
+{
+    u8 currentBox = StorageGetCurrentBox();
+
+    // Fill all 30 slots in the current box
+    for (u8 i = 0; i < IN_BOX_COUNT; i++)
+    {
+        // Skip if slot is already occupied
+        if (GetBoxMonDataAt(currentBox, i, MON_DATA_SPECIES) != SPECIES_NONE)
+            continue;
+
+        // Create a random test mon (Magikarp for simplicity)
+        CreateBoxMonAt(currentBox, i, SPECIES_MAGIKARP, 5, 0, FALSE, 0, OT_ID_PLAYER_ID, 0);
+    }
+}

@@ -116,6 +116,12 @@ gSpecials::
 	def_special TryContestGModeLinkup
 	def_special SaveGame
 	def_special NuzlockeSilentSave
+	def_special NuzlockeShowWhiteoutOption
+	def_special IsSelectedPartyMonDead
+	def_special CountDeadPartyMonsSpecial
+	def_special CanDepositDeadMonSpecial
+	def_special PrepareNextDeadMonInfo
+	def_special DepositDeadPartyMonToPC
 	def_special DoWateringBerryTreeAnim
 	def_special ShowEasyChatScreen
 	def_special ShowEasyChatProfile
