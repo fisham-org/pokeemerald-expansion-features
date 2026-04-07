@@ -228,6 +228,15 @@ Debug_EventScript_Script_1::
 	setflag FLAG_BADGE08_GET
 	msgbox Debug_LevelScaling_PartySetup_Complete, MSGBOX_DEFAULT
 	release
+
+@ ============================================================================
+@ EXAMPLE: SELECT MONS GYM BATTLE
+@ ============================================================================
+
+Debug_EventScript_Script_2::
+	lock
+	faceplayer
+	trainerbattle_selectmons TRAINER_ROXANNE_1, RustboroCity_Gym_Text_RoxanneIntro, RustboroCity_Gym_Text_RoxanneDefeat, RustboroCity_Gym_EventScript_PostBattleHandler, 3
 	end
 
 Debug_LevelScaling_PartySetup_Intro:
