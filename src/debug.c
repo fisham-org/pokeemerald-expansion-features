@@ -4990,6 +4990,10 @@ void Debug_FillCurrentPCBox(struct ScriptContext *ctx)
             continue;
 
         // Create a random test mon (Magikarp for simplicity)
-        CreateBoxMonAt(currentBox, i, SPECIES_MAGIKARP, 5, 0, FALSE, 0, OT_ID_PLAYER_ID, 0);
+        {
+            struct Pokemon tempMon;
+            CreateMon(&tempMon, SPECIES_MAGIKARP, 5, USE_RANDOM_IVS, OTID_STRUCT_PLAYER_ID);
+            SetBoxMonAt(currentBox, i, &tempMon.box);
+        }
     }
 }

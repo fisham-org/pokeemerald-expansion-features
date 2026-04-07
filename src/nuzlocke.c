@@ -11,6 +11,7 @@
 #include "battle_interface.h"
 #include "overworld.h"
 #include "config/battle.h"
+#include "config/nuzlocke.h"
 #include "save.h"
 #include "string_util.h"
 
@@ -643,4 +644,28 @@ void DepositDeadPartyMonToPC(void)
 
     // No space found in any box
     gSpecialVar_0x8005 = TOTAL_BOXES_COUNT;
+}
+
+// Show whiteout options for Nuzlocke (disable nuzlocke or continue)
+void NuzlockeShowWhiteoutOption(void)
+{
+    // TODO: implement whiteout option UI
+    gSpecialVar_Result = 0;
+}
+
+// Check if the selected party mon (gSpecialVar_0x8004) is dead
+void IsSelectedPartyMonDead(void)
+{
+    u8 slot = gSpecialVar_0x8004;
+    if (slot < PARTY_SIZE
+        && GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES) != SPECIES_NONE
+        && !GetMonData(&gPlayerParty[slot], MON_DATA_SANITY_IS_EGG)
+        && GetMonData(&gPlayerParty[slot], MON_DATA_HP) == 0)
+    {
+        gSpecialVar_Result = TRUE;
+    }
+    else
+    {
+        gSpecialVar_Result = FALSE;
+    }
 }
