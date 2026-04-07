@@ -20,6 +20,11 @@ const u8 gText_ExpandedPlaceholder_Brendan[] = _("BRENDAN");
 const u8 gText_ExpandedPlaceholder_May[] = _("MAY");
 const u8 gText_ExpandedPlaceholder_Red[] = _("RED");
 const u8 gText_ExpandedPlaceholder_Green[] = _("GREEN");
+
+// Nuzlocke strings
+const u8 gText_NuzlockeFirstEncounter[] = _("Alright, here's the first POKéMON\nof the area. Better make it count!\p");
+const u8 gText_NuzlockeDuplicate[] = _("We've already caught this POKéMON.\pThe Duplicate Clause lets us try\nfor another after this battle.\p");
+const u8 gText_NuzlockeShiny[] = _("Oh wow, a Shiny!\pThe Shiny Clause lets us try to\ncatch this no matter what!\p");
 const u8 gText_EggNickname[POKEMON_NAME_LENGTH + 1] = _("EGG");
 const u8 gText_Pokemon[POKEMON_NAME_LENGTH + 1] = _("POKéMON");
 const u8 gText_Player[] = _("PLAYER"); // Unused
@@ -706,6 +711,7 @@ const u8 gText_TrainerCardIDNo[] = _("IDNo.");
 const u8 gText_TrainerCardMoney[] = _("MONEY");
 const u8 gText_PokeDollar[] = _("¥"); // Unused
 const u8 gText_TrainerCardPokedex[] = _("POKéDEX");
+const u8 gText_TrainerCardNuzlockePokedex[] = _("NUZLOCKE POKéDEX");
 const u8 gText_EmptyString6[] = _("");
 const u8 gText_Colon2[] = _(":");
 const u8 gText_Points[] = _(" points"); // Unused

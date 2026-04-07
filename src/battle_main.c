@@ -61,6 +61,7 @@
 #include "trainer_pools.h"
 #include "trig.h"
 #include "tv.h"
+#include "nuzlocke.h"
 #include "util.h"
 #include "wild_encounter.h"
 #include "window.h"
@@ -3796,6 +3797,43 @@ static void DoBattleIntro(void)
             gBattleStruct->eventState.battleIntro++;
         }
         break;
+    case BATTLE_INTRO_STATE_NUZLOCKE_MESSAGE:
+        // Show Nuzlocke encounter message for wild battles
+        if (!(gBattleTypeFlags & BATTLE_TYPE_TRAINER) && IsNuzlockeActive() && FlagGet(FLAG_SYS_POKEDEX_GET))
+        {
+            u16 species = GetMonData(&gEnemyParty[0], MON_DATA_SPECIES);
+            u32 personality = GetMonData(&gEnemyParty[0], MON_DATA_PERSONALITY);
+            u32 otId = gSaveBlock2Ptr->playerTrainerId[0] | (gSaveBlock2Ptr->playerTrainerId[1] << 8) | 
+                      (gSaveBlock2Ptr->playerTrainerId[2] << 16) | (gSaveBlock2Ptr->playerTrainerId[3] << 24);
+            
+            u8 encounterStatus = GetNuzlockeEncounterStatus(species, personality, otId);
+            
+            if (encounterStatus == NUZLOCKE_ENCOUNTER_CATCHABLE)
+            {
+                PrepareStringBattle(STRINGID_NUZLOCKE_FIRST_ENCOUNTER, GetBattlerAtPosition(B_POSITION_PLAYER_LEFT));
+                gBattleStruct->introState++;
+                break;
+            }
+            else if (encounterStatus == NUZLOCKE_ENCOUNTER_DUPLICATE)
+            {
+                PrepareStringBattle(STRINGID_NUZLOCKE_DUPLICATE, GetBattlerAtPosition(B_POSITION_PLAYER_LEFT));
+                gBattleStruct->introState++;
+                break;
+            }
+            else if (encounterStatus == NUZLOCKE_ENCOUNTER_SHINY)
+            {
+                PrepareStringBattle(STRINGID_NUZLOCKE_SHINY, GetBattlerAtPosition(B_POSITION_PLAYER_LEFT));
+                gBattleStruct->introState++;
+                break;
+            }
+        }
+        // Skip to next state if not Nuzlocke or no message to show
+        gBattleStruct->introState++;
+        break;
+    case BATTLE_INTRO_STATE_WAIT_FOR_NUZLOCKE_MESSAGE:
+        if (!IsBattlerMarkedForControllerExec(GetBattlerAtPosition(B_POSITION_PLAYER_LEFT)))
+            gBattleStruct->introState++;
+        break;
     case BATTLE_INTRO_STATE_PRINT_PLAYER_SEND_OUT_TEXT:
         if (!(gBattleTypeFlags & BATTLE_TYPE_SAFARI))
         {
@@ -5865,6 +5903,7 @@ static void ReturnFromBattleToOverworld(void)
     }
 
     m4aSongNumStop(SE_LOW_HEALTH);
+    NuzlockeOnBattleEnd();
     SetMainCallback2(gMain.savedCallback);
 }
 

@@ -50,6 +50,8 @@
 #include "quests.h"
 #include "constants/items.h"
 #include "difficulty.h"
+#include "main_menu.h"
+#include "constants/flags.h"
 #include "follower_npc.h"
 #include "constants/battle_mode.h"
 
@@ -244,6 +246,13 @@ void NewGameInitData(void)
     ClearFollowerNPCData();
     QuestMenu_ResetMenuSaveData();
     FlagSet(FLAG_SYS_QUEST_MENU_GET);
+
+    // Set Nuzlocke flag if it was selected during Birch's speech
+    if (WasNuzlockeModeSelected())
+    {
+        FlagSet(FLAG_NUZLOCKE);
+        ClearNuzlockeModeSelection();
+    }
 }
 
 static void ResetMiniGamesRecords(void)

@@ -13,6 +13,11 @@ extern const u8 gText_ExpandedPlaceholder_Magma[];
 extern const u8 gText_ExpandedPlaceholder_Archie[];
 extern const u8 gText_ExpandedPlaceholder_Maxie[];
 extern const u8 gText_ExpandedPlaceholder_Kyogre[];
+
+// Nuzlocke strings
+extern const u8 gText_NuzlockeFirstEncounter[];
+extern const u8 gText_NuzlockeDuplicate[];
+extern const u8 gText_NuzlockeShiny[];
 extern const u8 gText_ExpandedPlaceholder_Groudon[];
 extern const u8 gText_ExpandedPlaceholder_Brendan[];
 extern const u8 gText_ExpandedPlaceholder_May[];
@@ -271,7 +276,10 @@ extern const u8 gText_Birch_WhatsYourName[];
 extern const u8 gText_Birch_SoItsPlayer[];
 extern const u8 gText_Birch_YourePlayer[];
 extern const u8 gText_Birch_AreYouReady[];
-
+extern const u8 gText_Birch_NuzlockeChallenge[];
+extern const u8 gText_Birch_NoNuzlocke[];
+extern const u8 gText_Birch_YesNuzlocke[];
+extern const u8 gText_Birch_Farewell[];
 extern const u8 gText_BirchInTrouble[];
 extern const u8 gText_ConfirmStarterChoice[];
 
@@ -644,6 +652,7 @@ extern const u8 gText_PlayerUsedVar2[];
 extern const u8 gText_RepelEffectsLingered[];
 extern const u8 gText_LureEffectsLingered[];
 extern const u8 gText_BoxFull[];
+extern const u8 gText_BallsCannotBeUsedNuz[];
 extern const u8 gText_WontHaveEffect[];
 extern const u8 gText_NextFusionMon[];
 
@@ -1808,6 +1817,7 @@ extern const u8 gText_TrainerCardMoney[];
 extern const u8 gText_PokedollarVar1[];
 extern const u8 gText_EmptyString6[];
 extern const u8 gText_TrainerCardPokedex[];
+extern const u8 gText_TrainerCardNuzlockePokedex[];
 extern const u8 gText_TrainerCardTime[];
 extern const u8 gText_Colon2[];
 extern const u8 gText_Var1sTrainerCard[];

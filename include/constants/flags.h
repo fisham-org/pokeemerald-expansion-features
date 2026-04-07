@@ -51,7 +51,7 @@
 
 #else
 
-#define FLAG_UNUSED_0x020    0x20 // Unused Flag
+#define FLAG_NUZLOCKE        0x20 // Nuzlocke Challenge flag
 #define FLAG_POKEMON_FOLLOWERS    0x21
 #define FLAG_UNUSED_0x022    0x22 // Unused Flag
 #define FLAG_UNUSED_0x023    0x23 // Unused Flag

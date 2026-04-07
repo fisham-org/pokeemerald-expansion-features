@@ -266,14 +266,14 @@
 #define VAR_ROXANNE_CALL_STEP_COUNTER                    0x40F4
 #define VAR_SCOTT_BF_CALL_STEP_COUNTER                   0x40F5
 #define VAR_RIVAL_RAYQUAZA_CALL_STEP_COUNTER             0x40F6
-#define VAR_UNUSED_0x40F7                                0x40F7 // Unused Var
-#define VAR_UNUSED_0x40F8                                0x40F8 // Unused Var
-#define VAR_UNUSED_0x40F9                                0x40F9 // Unused Var
-#define VAR_UNUSED_0x40FA                                0x40FA // Unused Var
-#define VAR_UNUSED_0x40FB                                0x40FB // Unused Var
-#define VAR_UNUSED_0x40FC                                0x40FC // Unused Var
-#define VAR_UNUSED_0x40FD                                0x40FD // Unused Var
-#define VAR_UNUSED_0x40FE                                0x40FE // Unused Var
+#define VAR_NUZLOCKE_ENCOUNTERS_1                        0x40F7 // Nuzlocke: Track first encounters in routes/areas (32 bits)
+#define VAR_NUZLOCKE_ENCOUNTERS_2                        0x40F8 // Nuzlocke: Track first encounters in routes/areas (32 bits)
+#define VAR_NUZLOCKE_ENCOUNTERS_3                        0x40F9 // Nuzlocke: Track first encounters in routes/areas (32 bits)
+#define VAR_NUZLOCKE_ENCOUNTERS_4                        0x40FA // Nuzlocke: Track first encounters in routes/areas (32 bits)
+#define VAR_NUZLOCKE_CATCHES_1                           0x40FB // Nuzlocke: Track successful catches in routes/areas (32 bits)
+#define VAR_NUZLOCKE_CATCHES_2                           0x40FC // Nuzlocke: Track successful catches in routes/areas (32 bits)
+#define VAR_NUZLOCKE_CATCHES_3                           0x40FD // Nuzlocke: Track successful catches in routes/areas (32 bits)
+#define VAR_NUZLOCKE_CATCHES_4                           0x40FE // Nuzlocke: Track successful catches in routes/areas (32 bits)
 #define VAR_UNUSED_0x40FF                                0x40FF // Unused Var
 #define VAR_BATTLE_SPEED                                 0x4100 // Battle speed setting (0-3 for 1x/2x/3x/4x)
 

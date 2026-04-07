@@ -233,7 +233,7 @@ Debug_EventScript_Script_1::
 @ EXAMPLE: SELECT MONS GYM BATTLE
 @ ============================================================================
 
-Debug_EventScript_Script_2::
+Debug_EventScript_Script_9::
 	lock
 	faceplayer
 	trainerbattle_selectmons TRAINER_ROXANNE_1, RustboroCity_Gym_Text_RoxanneIntro, RustboroCity_Gym_Text_RoxanneDefeat, RustboroCity_Gym_EventScript_PostBattleHandler, 3
