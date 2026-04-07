@@ -3811,28 +3811,28 @@ static void DoBattleIntro(void)
             if (encounterStatus == NUZLOCKE_ENCOUNTER_CATCHABLE)
             {
                 PrepareStringBattle(STRINGID_NUZLOCKE_FIRST_ENCOUNTER, GetBattlerAtPosition(B_POSITION_PLAYER_LEFT));
-                gBattleStruct->introState++;
+                gBattleStruct->eventState.battleIntro++;
                 break;
             }
             else if (encounterStatus == NUZLOCKE_ENCOUNTER_DUPLICATE)
             {
                 PrepareStringBattle(STRINGID_NUZLOCKE_DUPLICATE, GetBattlerAtPosition(B_POSITION_PLAYER_LEFT));
-                gBattleStruct->introState++;
+                gBattleStruct->eventState.battleIntro++;
                 break;
             }
             else if (encounterStatus == NUZLOCKE_ENCOUNTER_SHINY)
             {
                 PrepareStringBattle(STRINGID_NUZLOCKE_SHINY, GetBattlerAtPosition(B_POSITION_PLAYER_LEFT));
-                gBattleStruct->introState++;
+                gBattleStruct->eventState.battleIntro++;
                 break;
             }
         }
         // Skip to next state if not Nuzlocke or no message to show
-        gBattleStruct->introState++;
+        gBattleStruct->eventState.battleIntro++;
         break;
     case BATTLE_INTRO_STATE_WAIT_FOR_NUZLOCKE_MESSAGE:
         if (!IsBattlerMarkedForControllerExec(GetBattlerAtPosition(B_POSITION_PLAYER_LEFT)))
-            gBattleStruct->introState++;
+            gBattleStruct->eventState.battleIntro++;
         break;
     case BATTLE_INTRO_STATE_PRINT_PLAYER_SEND_OUT_TEXT:
         if (!(gBattleTypeFlags & BATTLE_TYPE_SAFARI))
