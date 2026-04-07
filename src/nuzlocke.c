@@ -357,7 +357,11 @@ bool8 NuzlockeCanCatchPokemon(u16 species, u32 personality, u32 otId)
     {
         return TRUE; // Not in Nuzlocke mode - always allow catching
     }
-    
+
+    // Boss wild battles are outside Nuzlocke rules - catching unrestricted
+    if (FlagGet(FLAG_NUZLOCKE_SKIP_ENCOUNTER))
+        return TRUE;
+
     currentLocation = GetCurrentRegionMapSectionId();
     
     // Shiny clause: always allow shiny Pokemon regardless of other rules
@@ -388,6 +392,10 @@ bool8 NuzlockeCanCatchPokemon(u16 species, u32 personality, u32 otId)
 
 void NuzlockeOnBattleEnd(void)
 {
+    // Boss wild battles set this flag to opt out of encounter tracking
+    if (FlagGet(FLAG_NUZLOCKE_SKIP_ENCOUNTER))
+        return;
+
     // Mark the current location as encountered when certain wild battles end
     if (IsNuzlockeActive() && !(gBattleTypeFlags & BATTLE_TYPE_TRAINER))
     {
@@ -435,7 +443,11 @@ u8 GetNuzlockeEncounterStatus(u16 species, u32 personality, u32 otId)
     {
         return NUZLOCKE_ENCOUNTER_NORMAL;
     }
-    
+
+    // Boss wild battles opt out of Nuzlocke tracking entirely
+    if (FlagGet(FLAG_NUZLOCKE_SKIP_ENCOUNTER))
+        return NUZLOCKE_ENCOUNTER_NORMAL;
+
     currentLocation = GetCurrentRegionMapSectionId();
     
     // Check shiny clause first (highest priority)

@@ -499,7 +499,8 @@ void CreateWildMon(u16 species, u8 level)
     GiveMonInitialMoveset(&gEnemyParty[0]);
 
     // Check Nuzlocke indicator after Pokemon is created
-    if (IsNuzlockeActive() && FlagGet(FLAG_SYS_POKEDEX_GET))
+    // Skip if this is a boss wild battle opted out via FLAG_NUZLOCKE_SKIP_ENCOUNTER
+    if (IsNuzlockeActive() && FlagGet(FLAG_SYS_POKEDEX_GET) && !FlagGet(FLAG_NUZLOCKE_SKIP_ENCOUNTER))
     {
         u8 currentLocation = GetCurrentRegionMapSectionId();
         bool8 locationAlreadyUsed = HasWildPokemonBeenSeenInLocation(currentLocation, FALSE);

@@ -51,9 +51,9 @@
 
 #else
 
-#define FLAG_NUZLOCKE        0x20 // Nuzlocke Challenge flag
-#define FLAG_POKEMON_FOLLOWERS    0x21
-#define FLAG_UNUSED_0x022    0x22 // Unused Flag
+#define FLAG_NUZLOCKE                0x20 // Nuzlocke Challenge flag
+#define FLAG_POKEMON_FOLLOWERS       0x21
+#define FLAG_NUZLOCKE_SKIP_ENCOUNTER 0x22 // Set by scripts around boss wild battles to exclude them from Nuzlocke tracking
 #define FLAG_UNUSED_0x023    0x23 // Unused Flag
 #define FLAG_UNUSED_0x024    0x24 // Unused Flag
 #define FLAG_UNUSED_0x025    0x25 // Unused Flag
