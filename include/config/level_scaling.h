@@ -25,11 +25,11 @@
 // Set to any other mode for opt-out behavior (all trainers scaled unless explicitly disabled)
 
 #define B_TRAINER_SCALING_ENABLED           TRUE
-#define B_TRAINER_SCALING_DEFAULT_MODE      LEVEL_SCALING_PARTY_AVG
-#define B_TRAINER_SCALING_LEVEL_AUGMENT     2       // Add/subtract levels from base (-127 to +127)
+#define B_TRAINER_SCALING_DEFAULT_MODE      LEVEL_SCALING_TO_LEVEL_CAP
+#define B_TRAINER_SCALING_LEVEL_AUGMENT     1       // Add/subtract levels from base (-127 to +127)
                                                      // Example: -2 makes trainers 2 levels lower
                                                      //          +5 makes trainers 5 levels higher
-#define B_TRAINER_SCALING_LEVEL_VARIATION   4       // Random level reduction (0 to 255)
+#define B_TRAINER_SCALING_LEVEL_VARIATION   2       // Random level reduction (0 to 255)
                                                      // Example: 3 means random(0-3) levels lower
                                                      //          Creates variety in trainer teams
 #define B_TRAINER_SCALING_MIN_LEVEL         0       // Minimum level (0 = no minimum)
@@ -45,9 +45,9 @@
 
 #define B_WILD_SCALING_ENABLED              TRUE
 #define B_WILD_SCALING_DEFAULT_MODE         LEVEL_SCALING_PARTY_AVG
-#define B_WILD_SCALING_LEVEL_AUGMENT        -8       // Add/subtract levels from base (-127 to +127)
+#define B_WILD_SCALING_LEVEL_AUGMENT        -3       // Add/subtract levels from base (-127 to +127)
                                                      // Example: -5 makes wild Pokémon 5 levels lower
-#define B_WILD_SCALING_LEVEL_VARIATION      4       // Random level reduction (0 to 255)
+#define B_WILD_SCALING_LEVEL_VARIATION      3       // Random level reduction (0 to 255)
                                                      // Example: 3 means random(0-3) levels lower
                                                      //          Creates variety in wild encounters
 #define B_WILD_SCALING_MIN_LEVEL            0       // Minimum level (0 = no minimum)
