@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Region Map Editor</title>
+<link rel="stylesheet" href="css/editor.css">
+</head>
+<body>
+
+<div id="tooltip"></div>
+<div id="selection-popup">
+  <button class="btn btn-success btn-sm" onclick="hideSelectionPopup(); createLocation();">+ Create Location</button>
+  <button class="btn btn-primary btn-sm" onclick="hideSelectionPopup();">&times;</button>
+</div>
+
+<div id="sidebar">
+  <div id="sidebar-top">
+    <h2>Region Map Editor</h2>
+    <div class="row">
+      <input type="file" id="file-input" accept="image/*" style="font-size:11px; flex:1;">
+    </div>
+    <div class="row">
+      <button class="btn btn-primary btn-sm" onclick="setZoom(zoom-1)">-</button>
+      <span id="zoom-label" style="font-size:11px; color:#888; min-width:24px; text-align:center;">4x</span>
+      <button class="btn btn-primary btn-sm" onclick="setZoom(zoom+1)">+</button>
+      <label style="margin-left:6px; font-size:11px;"><input type="checkbox" id="toggle-grid" checked onchange="render()"> Grid</label>
+      <label style="font-size:11px;"><input type="checkbox" id="toggle-icons" checked onchange="render()"> Icons</label>
+      <label style="font-size:11px;"><input type="checkbox" id="toggle-colors" checked onchange="render()"> Colors</label>
+      <label style="font-size:11px;"><input type="checkbox" id="toggle-border" checked onchange="render()"> Border</label>
+    </div>
+    <div id="status">Load an image to begin.</div>
+    <div id="tile-counter" class="ok" style="display:none;"></div>
+    <div class="row-wrap">
+      <button class="btn btn-success btn-sm" onclick="saveConfig()">Save config.json</button>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('load-config-input').click()">Load config.json</button>
+      <input type="file" id="load-config-input" accept=".json" style="display:none" onchange="loadConfig(event)">
+    </div>
+  </div>
+
+  <div id="tab-bar">
+    <button class="active" onclick="switchTab('locations')">Locations</button>
+    <button onclick="switchTab('icons')">Icons</button>
+    <button onclick="switchTab('palettes')">Palettes</button>
+    <button onclick="switchTab('export')">Export</button>
+  </div>
+
+  <!-- LOCATIONS TAB -->
+  <div id="tab-locations" class="tab-content active">
+    <div class="instructions">
+      Click + drag on empty tiles to select. <b>Shift</b> = add to selection. Click a location to edit. Drag a location to move it. <b>Escape</b> = deselect.
+    </div>
+    <div class="section-header">
+      <h3>Locations</h3>
+      <button class="btn btn-primary btn-sm" onclick="createLocation()">+ New</button>
+    </div>
+    <div id="locations-list"></div>
+  </div>
+
+  <!-- ICONS TAB -->
+  <div id="tab-icons" class="tab-content">
+    <div class="instructions">Load icon PNGs (multiples of 8x8).</div>
+    <div class="section-header">
+      <h3>Icon Library</h3>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('icon-file-input').click()">+ Add Icon</button>
+      <input type="file" id="icon-file-input" accept="image/png" multiple style="display:none" onchange="loadIcons(event)">
+    </div>
+    <div id="icons-list"></div>
+    <div id="icon-edit-panel" class="panel hidden">
+      <div class="row">
+        <canvas id="icon-preview-canvas" class="icon-preview" width="64" height="64"></canvas>
+        <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+          <div class="field"><label>Label</label><input id="icon-label" oninput="updateIconField('label', this.value)"></div>
+          <div style="font-size:11px; color:#888;" id="icon-size-info"></div>
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteIcon()">Delete Icon</button>
+    </div>
+  </div>
+
+  <!-- PALETTES TAB -->
+  <div id="tab-palettes" class="tab-content">
+    <div class="instructions">
+      <b>Terrain layers:</b> Grass = default land (5 height shades). Route recolors grass + auto-recolors water to land-route palette. Water types use alternating 1px horizontal lines.
+    </div>
+    <div class="section-header"><h3>Grass (Source)</h3></div>
+    <div class="row" id="source-greens-display"></div>
+    <div class="row-wrap" style="margin-top:4px;">
+      <button class="btn btn-primary btn-sm" onclick="autoDetectGreens()">Auto-detect</button>
+      <button class="btn btn-primary btn-sm" onclick="pickSourceGreens()">Pick Manually</button>
+    </div>
+    <hr>
+    <div class="section-header">
+      <h3>Terrain Palettes</h3>
+      <button class="btn btn-primary btn-sm" onclick="createPalette()">+ New</button>
+    </div>
+    <div id="palettes-list"></div>
+    <div id="palette-edit-panel" class="panel hidden">
+      <div class="field"><label>Palette Name</label><input id="pal-name" oninput="updatePalField('name', this.value)"></div>
+      <div class="field">
+        <label>Color Mapping (source &rarr; target)</label>
+        <div id="pal-color-rows"></div>
+      </div>
+      <div class="row-wrap">
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('route')">Route</button>
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('water_surf')">Surf</button>
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('water_dive')">Dive</button>
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('water_noaccess')">No Access</button>
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('desert')">Desert</button>
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('snow')">Snow</button>
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('volcanic')">Volcanic</button>
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('purple')">Purple</button>
+        <button class="btn btn-primary btn-sm" onclick="loadPresetPalette('autumn')">Autumn</button>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deletePalette()">Delete Palette</button>
+    </div>
+  </div>
+
+  <!-- EXPORT TAB -->
+  <div id="tab-export" class="tab-content">
+    <div class="section-header"><h3>Data Export</h3></div>
+    <div class="row-wrap">
+      <button class="btn btn-success" onclick="exportYAML()">Export YAML</button>
+      <button class="btn btn-primary" onclick="exportJSON()">Export JSON</button>
+    </div>
+    <div class="row-wrap">
+      <button class="btn btn-primary" onclick="document.getElementById('import-input').click()">Import YAML</button>
+      <input type="file" id="import-input" accept=".yaml,.yml" style="display:none" onchange="importYAML(event)">
+      <button class="btn btn-primary" onclick="document.getElementById('import-json-input').click()">Import JSON</button>
+      <input type="file" id="import-json-input" accept=".json" style="display:none" onchange="importJSON(event)">
+    </div>
+
+    <hr>
+    <div class="section-header"><h3>Rendered Map</h3></div>
+    <div class="instructions">Exports a PNG with only the currently visible layers (Grid, Icons, Colors, Border toggles).</div>
+    <div class="row-wrap">
+      <button class="btn btn-success" onclick="exportRenderedPNG()">Export PNG</button>
+    </div>
+
+    <hr>
+    <div class="section-header">
+      <h3>Aseprite Integration</h3>
+      <span class="info-bubble">i
+        <span class="info-text">
+          <b>How it works:</b> This generates a Lua script that Aseprite can run to apply your terrain color replacements and icon overlays directly to an .ase/.aseprite file.<br><br>
+          <b>Steps:</b><br>
+          1. Enter the full path to your source .ase/.aseprite file below.<br>
+          2. Click "Export Aseprite Script" to download a .lua file.<br>
+          3. In Aseprite, go to <b>File &gt; Scripts &gt; Open Scripts Folder</b> and place the .lua file there.<br>
+          4. Run it via <b>File &gt; Scripts &gt; region_map_aseprite</b>.<br><br>
+          The script will open your source file, apply all terrain palette swaps (including route water recoloring), add icons on a new layer, and save the result. You can also run it headlessly:<br>
+          <code style="color:#7ec8e3;">aseprite -b --script region_map_aseprite.lua</code>
+        </span>
+      </span>
+    </div>
+    <div class="field"><label>Source .ase/.aseprite path</label><input id="ase-source-path" placeholder="/path/to/region_map.aseprite"></div>
+    <div class="row-wrap">
+      <button class="btn btn-warn" onclick="exportAsepriteScript()">Export Aseprite Script</button>
+    </div>
+
+    <hr>
+    <div class="section-header"><h3>Tile &amp; Color Analysis</h3></div>
+    <div class="instructions">GBA limit: 256 unique 8x8 tiles, 16 unique colors per tileset palette.</div>
+    <button class="btn btn-primary" onclick="analyzeTiles()">Analyze</button>
+    <div id="tile-analysis-result"></div>
+  </div>
+</div>
+
+<div id="canvas-area">
+  <div id="canvas-wrap">
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="render-canvas" style="position:absolute;top:0;left:0;"></canvas>
+    <canvas id="overlay-canvas" style="position:absolute;top:0;left:0;cursor:crosshair;"></canvas>
+  </div>
+</div>
+
+<!-- Floating edit panel (appears on map click) -->
+<div id="float-edit-container"></div>
+
+<!-- Edit panel template (gets reparented between list and float container) -->
+<div id="edit-panel" class="panel hidden">
+  <div class="field"><label>Name</label><input id="loc-name" oninput="updateLocField('name', this.value)"></div>
+  <div class="row">
+    <div class="field" style="flex:1"><label>Type</label>
+      <select id="loc-type" onchange="updateLocField('type', this.value); onTypeChanged();">
+        <option value="town">Town</option>
+        <option value="city">City</option>
+        <option value="route">Route</option>
+        <option value="landmark">Landmark</option>
+        <option value="dungeon">Dungeon</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field" style="flex:1"><label>Terrain</label>
+      <select id="loc-palette" onchange="updateLocField('palette', this.value); render();">
+        <option value="">(none - grass)</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="field" style="flex:1"><label>Biome</label>
+      <select id="loc-biome" onchange="updateLocField('biome', this.value)">
+        <option value="">(none)</option>
+      </select>
+    </div>
+    <div class="field" style="flex:1"><label>Icon</label>
+      <select id="loc-icon" onchange="updateLocField('icon', this.value); render();">
+        <option value="">(none)</option>
+      </select>
+    </div>
+  </div>
+  <div class="field"><label>Description</label><textarea id="loc-description" oninput="updateLocField('description', this.value)"></textarea></div>
+  <div class="field"><label>Notes</label><textarea id="loc-notes" oninput="updateLocField('notes', this.value)"></textarea></div>
+  <div class="row">
+    <div class="field" style="flex:1"><label>Position X (tile)</label><input type="number" id="loc-pos-x" min="0" onchange="moveLocation(+this.value, null)"></div>
+    <div class="field" style="flex:1"><label>Position Y (tile)</label><input type="number" id="loc-pos-y" min="0" onchange="moveLocation(null, +this.value)"></div>
+  </div>
+  <div class="row">
+    <div class="field" style="flex:1"><label>Width (tiles)</label><input type="number" id="loc-size-w" min="1" onchange="resizeLocation(+this.value, null)"></div>
+    <div class="field" style="flex:1"><label>Height (tiles)</label><input type="number" id="loc-size-h" min="1" onchange="resizeLocation(null, +this.value)"></div>
+  </div>
+  <div style="font-size:11px; color:#888;" id="tile-info"></div>
+  <div class="row-wrap">
+    <button class="btn btn-primary btn-sm" onclick="startReselect()">Re-select Tiles</button>
+    <button class="btn btn-danger btn-sm" onclick="deleteLocation()">Delete</button>
+  </div>
+</div>
+
+<!-- Scripts loaded in dependency order -->
+<script src="js/constants.js"></script>
+<script src="js/state.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/render.js"></script>
+<script src="js/panels.js"></script>
+<script src="js/palettes.js"></script>
+<script src="js/config.js"></script>
+<script src="js/export.js"></script>
+<script src="js/mouse.js"></script>
+<script src="js/init.js"></script>
+</body>
+</html>

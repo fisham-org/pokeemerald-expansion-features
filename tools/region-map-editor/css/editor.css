@@ -1,0 +1,94 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; height: 100vh; background: #1a1a2e; color: #e0e0e0; }
+
+#sidebar { width: 380px; min-width: 380px; background: #16213e; display: flex; flex-direction: column; border-right: 1px solid #0f3460; }
+#sidebar-top { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #0f3460; }
+#sidebar-top h2 { font-size: 14px; color: #7ec8e3; text-transform: uppercase; letter-spacing: 1px; }
+#tab-bar { display: flex; gap: 0; }
+#tab-bar button { flex: 1; padding: 8px 4px; border: none; background: #1a1a2e; color: #888; font-size: 12px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
+#tab-bar button.active { color: #7ec8e3; border-bottom-color: #7ec8e3; background: #16213e; }
+#tab-bar button:hover { color: #aaa; }
+.tab-content { display: none; flex: 1; overflow-y: auto; padding: 12px 16px; }
+.tab-content.active { display: flex; flex-direction: column; gap: 10px; }
+
+#canvas-area { flex: 1; overflow: auto; position: relative; display: flex; align-items: flex-start; justify-content: flex-start; padding: 20px; }
+#canvas-wrap { position: relative; display: inline-block; }
+canvas { display: block; image-rendering: pixelated; }
+#overlay-canvas { position: absolute; top: 0; left: 0; cursor: crosshair; }
+
+#tooltip { position: fixed; pointer-events: none; background: rgba(0,0,0,0.85); color: #e0e0e0; padding: 4px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; z-index: 1000; display: none; border: 1px solid #7ec8e3; }
+#selection-popup { position: fixed; display: none; z-index: 1001; background: #16213e; border: 1px solid #7ec8e3; border-radius: 6px; padding: 6px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+#selection-popup.visible { display: flex; gap: 6px; align-items: center; }
+
+.btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.btn-primary { background: #0f3460; color: #7ec8e3; }
+.btn-primary:hover { background: #1a4a7a; }
+.btn-danger { background: #5c1a1a; color: #e07a7a; }
+.btn-danger:hover { background: #7a2a2a; }
+.btn-success { background: #1a5c3a; color: #7ae0a0; }
+.btn-success:hover { background: #2a7a4a; }
+.btn-warn { background: #5c4a1a; color: #e0c07a; }
+.btn-warn:hover { background: #7a5a2a; }
+.btn-sm { padding: 4px 8px; font-size: 11px; }
+
+input, textarea, select { width: 100%; padding: 5px 8px; border: 1px solid #0f3460; border-radius: 4px; background: #1a1a2e; color: #e0e0e0; font-size: 12px; font-family: inherit; }
+input:disabled, select:disabled { opacity: 0.35; cursor: not-allowed; }
+textarea { resize: vertical; min-height: 50px; }
+label { font-size: 11px; color: #7ec8e3; display: block; margin-bottom: 1px; }
+.field { display: flex; flex-direction: column; gap: 1px; }
+.row { display: flex; gap: 6px; align-items: center; }
+.row-wrap { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+hr { border: none; border-top: 1px solid #0f3460; }
+
+.section-header { display: flex; justify-content: space-between; align-items: center; }
+.section-header h3 { font-size: 13px; color: #7ec8e3; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.list-item { padding: 6px 10px; background: #1a1a2e; border: 1px solid #0f3460; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+.list-item:hover { border-color: #7ec8e3; }
+.list-item.active { border-color: #7ec8e3; background: #0f3460; }
+.list-item .meta { font-size: 10px; color: #888; }
+
+.panel { display: flex; flex-direction: column; gap: 6px; padding: 10px; background: #1a1a2e; border: 1px solid #0f3460; border-radius: 4px; }
+.panel.hidden { display: none; }
+
+.color-swatch { width: 18px; height: 18px; border-radius: 3px; border: 1px solid #555; display: inline-block; vertical-align: middle; cursor: pointer; }
+.color-row { display: flex; gap: 4px; align-items: center; }
+
+#status { font-size: 11px; color: #888; min-height: 16px; }
+#tile-counter { font-size: 12px; padding: 6px 10px; border-radius: 4px; }
+#tile-counter.ok { background: #1a3c2a; color: #7ae0a0; }
+#tile-counter.warn { background: #3c3a1a; color: #e0c07a; }
+#tile-counter.over { background: #3c1a1a; color: #e07a7a; }
+
+.instructions { font-size: 11px; color: #666; line-height: 1.4; }
+.icon-preview { image-rendering: pixelated; border: 1px solid #333; background: #111; }
+.hex-label { font-size: 10px; color: #888; font-family: monospace; }
+
+#float-edit-container {
+  position: fixed; z-index: 500; background: #16213e; border: 1px solid #7ec8e3;
+  border-radius: 6px; padding: 0; max-width: 340px; max-height: 70vh; overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none;
+}
+#float-edit-container .panel { border: none; background: transparent; border-radius: 6px; }
+#float-edit-container .float-close {
+  position: sticky; top: 0; right: 0; z-index: 1; text-align: right; padding: 4px 8px 0 0;
+  background: #16213e; border-radius: 6px 6px 0 0;
+}
+#float-edit-container .float-close button {
+  background: none; border: none; color: #888; font-size: 16px; cursor: pointer; padding: 0 4px;
+}
+#float-edit-container .float-close button:hover { color: #e0e0e0; }
+
+.info-bubble {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%; background: #0f3460; color: #7ec8e3;
+  font-size: 10px; cursor: help; position: relative; font-style: italic; font-weight: bold;
+  flex-shrink: 0; margin-left: 6px;
+}
+.info-bubble .info-text {
+  display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: 300px; padding: 10px; background: #0a0a1a; border: 1px solid #7ec8e3; border-radius: 4px;
+  font-size: 11px; font-style: normal; font-weight: normal; color: #ccc; line-height: 1.5;
+  white-space: normal; z-index: 1000; pointer-events: none;
+}
+.info-bubble:hover .info-text { display: block; }
