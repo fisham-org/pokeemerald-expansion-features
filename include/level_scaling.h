@@ -21,7 +21,7 @@ struct LevelScalingConfig
 {
     u8 mode;                    // enum LevelScalingMode
     s8 levelAugmentAdd;         // Add/subtract from calculated level (-128 to +127)
-    u8 levelVariation;          // Random reduction range (0 = no variation)
+    u8 levelVariationPct;       // Random reduction as % of base level (0 = no variation, 10 = up to 10%)
     u8 minLevel;                // Minimum allowed level (0 = no minimum)
     u8 maxLevel;                // Maximum allowed level (0 = no maximum, use MAX_LEVEL)
     bool8 manageEvolutions;     // Enable automatic evolution validation
@@ -37,7 +37,7 @@ struct LevelScalingConfig
 #define LEVEL_SCALING_CONFIG_NONE { \
     .mode = LEVEL_SCALING_NONE, \
     .levelAugmentAdd = 1, /* Non-zero to mark as explicit */ \
-    .levelVariation = 0, \
+    .levelVariationPct = 0, \
     .minLevel = 0, \
     .maxLevel = 0, \
     .manageEvolutions = FALSE, \
@@ -48,7 +48,7 @@ struct LevelScalingConfig
 #define LEVEL_SCALING_CONFIG_LEVEL_CAP { \
     .mode = LEVEL_SCALING_TO_LEVEL_CAP, \
     .levelAugmentAdd = 0, \
-    .levelVariation = 0, \
+    .levelVariationPct = 0, \
     .minLevel = 0, \
     .maxLevel = 0, \
     .manageEvolutions = TRUE, \
@@ -58,7 +58,7 @@ struct LevelScalingConfig
 #define LEVEL_SCALING_CONFIG_PARTY_AVG { \
     .mode = LEVEL_SCALING_PARTY_AVG, \
     .levelAugmentAdd = 0, \
-    .levelVariation = 0, \
+    .levelVariationPct = 0, \
     .minLevel = 0, \
     .maxLevel = 0, \
     .manageEvolutions = TRUE, \
@@ -68,7 +68,7 @@ struct LevelScalingConfig
 #define LEVEL_SCALING_CONFIG_PARTY_HIGHEST { \
     .mode = LEVEL_SCALING_PARTY_HIGHEST, \
     .levelAugmentAdd = 0, \
-    .levelVariation = 0, \
+    .levelVariationPct = 0, \
     .minLevel = 0, \
     .maxLevel = 0, \
     .manageEvolutions = TRUE, \
