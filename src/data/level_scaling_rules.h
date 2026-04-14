@@ -17,7 +17,7 @@
 //    [TRAINER_ROXANNE_1] = {
 //        .mode = LEVEL_SCALING_TO_LEVEL_CAP,
 //        .levelAugmentAdd = 2,         // +2 levels above cap
-//        .levelVariation = 1,          // Random 0-1 level reduction
+//        .levelVariationPct = 10,         // Up to 10% level reduction
 //        .minLevel = 10,
 //        .maxLevel = 50,
 //        .manageEvolutions = TRUE,
@@ -47,7 +47,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_ROXANNE_1] = {
         .mode = LEVEL_SCALING_TO_LEVEL_CAP,
         .levelAugmentAdd = 0,
-        .levelVariation = 0,
+        .levelVariationPct = 0,
         .manageEvolutions = TRUE,
     },
 
@@ -55,7 +55,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_BRAWLY_1] = {
         .mode = LEVEL_SCALING_PARTY_AVG,
         .levelAugmentAdd = 3,
-        .levelVariation = 0,
+        .levelVariationPct = 0,
         .manageEvolutions = TRUE,
         .excludeFainted = TRUE,
     },
@@ -64,7 +64,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_WATTSON_1] = {
         .mode = LEVEL_SCALING_PARTY_HIGHEST,
         .levelAugmentAdd = 0,
-        .levelVariation = 2,
+        .levelVariationPct = 10,
         .manageEvolutions = TRUE,
     },
 
@@ -72,7 +72,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_FLANNERY_1] = {
         .mode = LEVEL_SCALING_PARTY_LOWEST,
         .levelAugmentAdd = 5,
-        .levelVariation = 0,
+        .levelVariationPct = 0,
         .manageEvolutions = TRUE,
     },
 
@@ -80,7 +80,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_NORMAN_1] = {
         .mode = LEVEL_SCALING_PARTY_HIGHEST,
         .levelAugmentAdd = 2,
-        .levelVariation = 3,
+        .levelVariationPct = 10,
         .minLevel = 25,
         .maxLevel = 50,
         .manageEvolutions = TRUE,
@@ -90,7 +90,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_WINONA_1] = {
         .mode = LEVEL_SCALING_TO_LEVEL_CAP,
         .levelAugmentAdd = -20,  // Reduce levels significantly
-        .levelVariation = 0,
+        .levelVariationPct = 0,
         .manageEvolutions = TRUE,
     },
 
@@ -101,7 +101,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_ROXANNE_1] = {
         .mode = LEVEL_SCALING_TO_LEVEL_CAP,
         .levelAugmentAdd = 2,
-        .levelVariation = 1,
+        .levelVariationPct = 1,
         .minLevel = 0,
         .maxLevel = 0,
         .manageEvolutions = TRUE,
@@ -111,7 +111,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_BRAWLY_1] = {
         .mode = LEVEL_SCALING_TO_LEVEL_CAP,
         .levelAugmentAdd = 2,
-        .levelVariation = 1,
+        .levelVariationPct = 1,
         .manageEvolutions = TRUE,
     },
 
@@ -119,7 +119,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_BRENDAN_ROUTE_103_TREECKO] = {
         .mode = LEVEL_SCALING_PARTY_HIGHEST,
         .levelAugmentAdd = 0,
-        .levelVariation = 1,
+        .levelVariationPct = 1,
         .manageEvolutions = TRUE,
         .excludeFainted = TRUE,
     },
@@ -128,7 +128,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_SIDNEY] = {
         .mode = LEVEL_SCALING_PARTY_AVG,
         .levelAugmentAdd = 5,
-        .levelVariation = 2,
+        .levelVariationPct = 2,
         .minLevel = 55,
         .maxLevel = 75,
         .manageEvolutions = TRUE,
@@ -138,7 +138,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_PHOEBE] = {
         .mode = LEVEL_SCALING_PARTY_AVG,
         .levelAugmentAdd = 5,
-        .levelVariation = 2,
+        .levelVariationPct = 2,
         .minLevel = 55,
         .maxLevel = 75,
         .manageEvolutions = TRUE,
@@ -148,7 +148,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_GLACIA] = {
         .mode = LEVEL_SCALING_PARTY_AVG,
         .levelAugmentAdd = 5,
-        .levelVariation = 2,
+        .levelVariationPct = 2,
         .minLevel = 55,
         .maxLevel = 75,
         .manageEvolutions = TRUE,
@@ -158,7 +158,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_DRAKE] = {
         .mode = LEVEL_SCALING_PARTY_AVG,
         .levelAugmentAdd = 5,
-        .levelVariation = 2,
+        .levelVariationPct = 2,
         .minLevel = 55,
         .maxLevel = 75,
         .manageEvolutions = TRUE,
@@ -169,7 +169,7 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
     [TRAINER_WALLACE] = {
         .mode = LEVEL_SCALING_PARTY_OR_PC_HIGHEST,
         .levelAugmentAdd = 7,
-        .levelVariation = 2,
+        .levelVariationPct = 2,
         .minLevel = 60,
         .maxLevel = 80,
         .manageEvolutions = TRUE,

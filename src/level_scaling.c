@@ -103,13 +103,22 @@ static u8 GetPlayerPartyLowestLevel(bool8 excludeFainted)
 // Internal Helper Functions - Level Manipulation
 // ============================================================================
 
-static u8 ApplyLevelVariation(u8 baseLevel, u8 variation)
+static u8 ApplyLevelVariation(u8 baseLevel, u8 variationPct)
 {
-    if (variation == 0)
+    u8 maxReduction;
+
+    if (variationPct == 0)
         return baseLevel;
 
-    // Randomly reduce level by 0 to variation
-    u8 reduction = Random() % (variation + 1);
+    // Compute max reduction proportional to base level
+    // Use u16 intermediate to avoid overflow before dividing
+    maxReduction = (u8)((u16)baseLevel * variationPct / 100);
+
+    // Guarantee at least 1 level of spread when pct is non-zero
+    if (maxReduction == 0)
+        maxReduction = 1;
+
+    u8 reduction = Random() % (maxReduction + 1);
     if (baseLevel > reduction)
         return baseLevel - reduction;
 
@@ -322,7 +331,7 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
     static const struct LevelScalingConfig sDefaultConfig = {
         .mode = B_TRAINER_SCALING_DEFAULT_MODE,
         .levelAugmentAdd = B_TRAINER_SCALING_LEVEL_AUGMENT,
-        .levelVariation = B_TRAINER_SCALING_LEVEL_VARIATION,
+        .levelVariationPct = B_TRAINER_SCALING_LEVEL_VARIATION_PCT,
         .minLevel = B_TRAINER_SCALING_MIN_LEVEL,
         .maxLevel = B_TRAINER_SCALING_MAX_LEVEL,
         .manageEvolutions = B_TRAINER_SCALING_MANAGE_EVOLUTIONS,
@@ -347,7 +356,7 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
     {
         // Check if any other field is non-zero (indicates explicit config)
         if (config->levelAugmentAdd == 0 &&
-            config->levelVariation == 0 &&
+            config->levelVariationPct == 0 &&
             config->minLevel == 0 &&
             config->maxLevel == 0 &&
             config->manageEvolutions == FALSE &&
@@ -382,7 +391,7 @@ u8 CalculateScaledLevel(const struct LevelScalingConfig *config, u8 originalLeve
         adjustedLevel = 1;
 
     // Apply random variation
-    adjustedLevel = ApplyLevelVariation((u8)adjustedLevel, config->levelVariation);
+    adjustedLevel = ApplyLevelVariation((u8)adjustedLevel, config->levelVariationPct);
 
     // Clamp to configured min/max
     adjustedLevel = ClampLevel((u8)adjustedLevel, config->minLevel, config->maxLevel);
@@ -401,7 +410,7 @@ u8 CalculateWildScaledLevel(u16 species, u8 originalLevel)
     static const struct LevelScalingConfig sWildConfig = {
         .mode = B_WILD_SCALING_DEFAULT_MODE,
         .levelAugmentAdd = B_WILD_SCALING_LEVEL_AUGMENT,
-        .levelVariation = B_WILD_SCALING_LEVEL_VARIATION,
+        .levelVariationPct = B_WILD_SCALING_LEVEL_VARIATION_PCT,
         .minLevel = B_WILD_SCALING_MIN_LEVEL,
         .maxLevel = B_WILD_SCALING_MAX_LEVEL,
         .manageEvolutions = B_WILD_SCALING_MANAGE_EVOLUTIONS,

@@ -29,9 +29,9 @@
 #define B_TRAINER_SCALING_LEVEL_AUGMENT     1       // Add/subtract levels from base (-127 to +127)
                                                      // Example: -2 makes trainers 2 levels lower
                                                      //          +5 makes trainers 5 levels higher
-#define B_TRAINER_SCALING_LEVEL_VARIATION   2       // Random level reduction (0 to 255)
-                                                     // Example: 3 means random(0-3) levels lower
-                                                     //          Creates variety in trainer teams
+#define B_TRAINER_SCALING_LEVEL_VARIATION_PCT 10    // Random level reduction as % of base (0 = none)
+                                                     // Example: 10 means up to 10% reduction
+                                                     //          At level 10 → up to 1 level, level 50 → up to 5
 #define B_TRAINER_SCALING_MIN_LEVEL         0       // Minimum level (0 = no minimum)
 #define B_TRAINER_SCALING_MAX_LEVEL         0       // Maximum level (0 = no maximum)
 #define B_TRAINER_SCALING_MANAGE_EVOLUTIONS TRUE    // Auto-devolve Pokemon if level too low
@@ -47,9 +47,9 @@
 #define B_WILD_SCALING_DEFAULT_MODE         LEVEL_SCALING_PARTY_AVG
 #define B_WILD_SCALING_LEVEL_AUGMENT        -3       // Add/subtract levels from base (-127 to +127)
                                                      // Example: -5 makes wild Pokémon 5 levels lower
-#define B_WILD_SCALING_LEVEL_VARIATION      3       // Random level reduction (0 to 255)
-                                                     // Example: 3 means random(0-3) levels lower
-                                                     //          Creates variety in wild encounters
+#define B_WILD_SCALING_LEVEL_VARIATION_PCT  15      // Random level reduction as % of base (0 = none)
+                                                     // Example: 15 means up to 15% reduction
+                                                     //          At level 10 → up to 1-2 levels, level 50 → up to 7-8
 #define B_WILD_SCALING_MIN_LEVEL            0       // Minimum level (0 = no minimum)
 #define B_WILD_SCALING_MAX_LEVEL            0       // Maximum level (0 = no maximum)
 #define B_WILD_SCALING_MANAGE_EVOLUTIONS    TRUE    // Auto-devolve wild Pokémon if level too low
