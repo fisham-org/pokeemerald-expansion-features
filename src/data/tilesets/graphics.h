@@ -3048,3 +3048,22 @@ const u16 ALIGNED(4) gTilesetPalettes_General_Frlg[][16] =
 const u32 gTilesetTiles_General_Frlg[] = INCBIN_U32("data/tilesets/primary/general_frlg/tiles.4bpp.smol");
 
 #endif // IS_FRLG
+
+const u16 gTilesetPalettes_ShipCity[][16] =
+{
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/00.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/01.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/02.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/03.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/04.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/05.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/06.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/07.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/08.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/09.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/10.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/11.gbapal"),
+    INCBIN_U16("data/tilesets/secondary/shipcity/palettes/12.gbapal"),
+};
+
+const u32 gTilesetTiles_ShipCity[] = INCBIN_U32("data/tilesets/secondary/shipcity/tiles.4bpp.lz");

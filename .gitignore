@@ -68,6 +68,5 @@ tools/poryscript/poryscript
 data/maps/**/scripts.inc
 CLAUDE.md
 .claude/*
-notes/*
 private-notes/*
 .map_version
