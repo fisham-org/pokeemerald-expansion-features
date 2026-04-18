@@ -1163,6 +1163,13 @@
     "SevenIsland_SevaultCanyon_House_Frlg"
   ],
   "gMapGroup_owpoc_TownsAndRoutes": [
-    "poc_Kolchavi"
+    "poc_Kolchavi",
+    "poc_r3",
+    "poc_r6",
+    "poc_Floran",
+    "poc_r10",
+    "poc_r8",
+    "poc_r2",
+    "poc_r9"
   ]
 }

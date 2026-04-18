@@ -1889,3 +1889,17 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/scripts/apricorn_tree.inc"
 
 	.include "data/maps/poc_Kolchavi/scripts.inc"
+
+	.include "data/maps/poc_r10/scripts.inc"
+
+	.include "data/maps/poc_r6/scripts.inc"
+
+	.include "data/maps/poc_r3/scripts.inc"
+
+	.include "data/maps/poc_Floran/scripts.inc"
+
+	.include "data/maps/poc_r8/scripts.inc"
+
+	.include "data/maps/poc_r2/scripts.inc"
+
+	.include "data/maps/poc_r9/scripts.inc"
