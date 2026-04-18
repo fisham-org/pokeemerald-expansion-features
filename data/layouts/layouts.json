@@ -9325,14 +9325,14 @@
       "layout_version": "frlg"
     },
     {
-      "id": "LAYOUT_KOLCHAVI_CITY",
-      "name": "KolchaviCity_Layout",
+      "id": "LAYOUT_POC_KOLCHAVI",
+      "name": "poc_Kolchavi_Layout",
       "width": 45,
       "height": 25,
       "primary_tileset": "gTileset_General",
       "secondary_tileset": "gTileset_ShipCity",
-      "border_filepath": "data/layouts/KolchaviCity/border.bin",
-      "blockdata_filepath": "data/layouts/KolchaviCity/map.bin"
+      "border_filepath": "data/layouts/poc_Kolchavi/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Kolchavi/map.bin"
     }
   ]
 }
