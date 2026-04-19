@@ -2044,6 +2044,28 @@ const u16 ALIGNED(4) gTilesetPalettes_General[][16] =
 
 const u32 gTilesetTiles_General[] = INCBIN_U32("data/tilesets/primary/general/tiles.4bpp.smol");
 
+const u16 ALIGNED(4) gTilesetPalettes_PrimaryPoc[][16] =
+{
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/00.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/01.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/02.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/03.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/04.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/05.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/06.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/07.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/08.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/09.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/10.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/11.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/12.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/13.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/14.gbapal"),
+    INCBIN_U16("data/tilesets/primary/primary_poc/palettes/15.gbapal"),
+};
+
+const u32 gTilesetTiles_PrimaryPoc[] = INCBIN_U32("data/tilesets/primary/primary_poc/tiles.4bpp.smol");
+
 // trade/egg hatch
 
 const u16 gTradeGba_Pal[] = INCBIN_U16("graphics/trade/gba.gbapal");

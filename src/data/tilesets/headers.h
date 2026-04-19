@@ -41,6 +41,17 @@ const struct Tileset gTileset_General =
     .callback = InitTilesetAnim_General,
 };
 
+const struct Tileset gTileset_PrimaryPoc =
+{
+    .isCompressed = TRUE,
+    .isSecondary = FALSE,
+    .tiles = gTilesetTiles_PrimaryPoc,
+    .palettes = gTilesetPalettes_PrimaryPoc,
+    .metatiles = gMetatiles_PrimaryPoc,
+    .metatileAttributes = gMetatileAttributes_PrimaryPoc,
+    .callback = InitTilesetAnim_General,
+};
+
 const struct Tileset gTileset_Petalburg =
 {
     .isCompressed = TRUE,
