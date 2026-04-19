@@ -1,0 +1,2 @@
+north-facing stairs: comment from https://www.reddit.com/r/PokemonRMXP/comments/xbym4r/are_there_any_frontfacing_stairs_in_any_tileset/
+sideways stairs: ghoulslash/Spherical Ice/Pokemon Gaia - https://www.pokecommunity.com/threads/sideways-stairs.435887/

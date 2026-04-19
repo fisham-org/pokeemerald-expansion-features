@@ -9329,7 +9329,7 @@
       "name": "MapTest_Layout",
       "width": 30,
       "height": 30,
-      "primary_tileset": "gTileset_General",
+      "primary_tileset": "gTileset_PrimaryPoc",
       "secondary_tileset": "gTileset_Petalburg",
       "border_filepath": "data/layouts/MapTest/border.bin",
       "blockdata_filepath": "data/layouts/MapTest/map.bin"
