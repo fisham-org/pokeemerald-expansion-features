@@ -1,8 +1,6 @@
 #ifndef GUARD_METATILE_LABELS_H
 #define GUARD_METATILE_LABELS_H
 
-// note: metatile total limit has been changed from 1024 to 2048 per instructions in https://github.com/pret/pokeemerald/wiki/Expanding-The-Metatile-Count
-
 // gTileset_BattleArena
 #define METATILE_BattleArena_Door  0x41B
 

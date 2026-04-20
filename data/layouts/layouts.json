@@ -9327,7 +9327,7 @@
     {
       "id": "LAYOUT_POC_KOLCHAVI",
       "name": "poc_Kolchavi_Layout",
-      "width": 45,
+      "width": 48,
       "height": 40,
       "primary_tileset": "gTileset_General",
       "secondary_tileset": "gTileset_ShipCity",
@@ -9357,10 +9357,10 @@
     {
       "id": "LAYOUT_POC_R3",
       "name": "poc_r3_Layout",
-      "width": 25,
+      "width": 44,
       "height": 50,
       "primary_tileset": "gTileset_General",
-      "secondary_tileset": "gTileset_Petalburg",
+      "secondary_tileset": "gTileset_ShipCity",
       "border_filepath": "data/layouts/poc_r3/border.bin",
       "blockdata_filepath": "data/layouts/poc_r3/map.bin"
     },
