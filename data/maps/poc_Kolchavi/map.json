@@ -15,12 +15,12 @@
   "connections": [
     {
       "map": "MAP_POC_R3",
-      "offset": 10,
+      "offset": 12,
       "direction": "up"
     },
     {
       "map": "MAP_POC_R8",
-      "offset": 5,
+      "offset": 4,
       "direction": "right"
     }
   ],

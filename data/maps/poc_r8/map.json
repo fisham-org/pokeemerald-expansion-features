@@ -15,7 +15,7 @@
   "connections": [
     {
       "map": "MAP_POC_KOLCHAVI",
-      "offset": -5,
+      "offset": -4,
       "direction": "left"
     },
     {
