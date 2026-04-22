@@ -820,6 +820,7 @@ enum __attribute__((packed)) Item
     ITEM_HM06 = 687,
     ITEM_HM07 = 688,
     ITEM_HM08 = 689,
+    ITEM_HM09 = 690, // NOTE: this conflicts with oval charm and is not a long term solution - will re-evaluate TMs/HMs
 
 
     /* Expands to:

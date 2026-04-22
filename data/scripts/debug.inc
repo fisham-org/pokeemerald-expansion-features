@@ -293,10 +293,8 @@ Debug_EventScript_Script_6::
 	end
 
 Debug_EventScript_Script_7::
-	msgbox Debug_LevelScaling_Test6_Intro, MSGBOX_DEFAULT
-	trainerbattle_no_intro TRAINER_WINONA_1, Debug_LevelScaling_Defeated
-	msgbox Debug_LevelScaling_Test6_Result, MSGBOX_DEFAULT
-	release
+	setmonmove 0, 0, MOVE_ROCK_CLIMB
+	releaseall
 	end
 
 Debug_LevelScaling_Defeated:
