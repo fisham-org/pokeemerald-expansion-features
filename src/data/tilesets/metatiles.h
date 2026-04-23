@@ -411,3 +411,6 @@ const u16 gMetatileAttributes_HallOfFame[] = INCBIN_U16("data/tilesets/secondary
 
 const u16 gMetatiles_ShipCity[] = INCBIN_U16("data/tilesets/secondary/shipcity/metatiles.bin");
 const u16 gMetatileAttributes_ShipCity[] = INCBIN_U16("data/tilesets/secondary/shipcity/metatile_attributes.bin");
+
+const u16 gMetatiles_Kolchavi[] = INCBIN_U16("data/tilesets/secondary/kolchavi/metatiles.bin");
+const u16 gMetatileAttributes_Kolchavi[] = INCBIN_U16("data/tilesets/secondary/kolchavi/metatile_attributes.bin");

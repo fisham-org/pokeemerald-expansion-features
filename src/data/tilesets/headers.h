@@ -1552,3 +1552,14 @@ const struct Tileset gTileset_ShipCity =
     .metatileAttributes = gMetatileAttributes_ShipCity,
     .callback = NULL,
 };
+
+const struct Tileset gTileset_Kolchavi =
+{
+    .isCompressed = TRUE,
+    .isSecondary = TRUE,
+    .tiles = gTilesetTiles_Kolchavi,
+    .palettes = gTilesetPalettes_Kolchavi,
+    .metatiles = gMetatiles_Kolchavi,
+    .metatileAttributes = gMetatileAttributes_Kolchavi,
+    .callback = NULL,
+};
