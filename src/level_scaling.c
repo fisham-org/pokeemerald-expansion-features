@@ -336,6 +336,7 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
         .maxLevel = B_TRAINER_SCALING_MAX_LEVEL,
         .manageEvolutions = B_TRAINER_SCALING_MANAGE_EVOLUTIONS,
         .excludeFainted = B_TRAINER_SCALING_EXCLUDE_FAINTED,
+        .scaleEVs = B_TRAINER_SCALING_SCALE_EVS,
     };
 
     // Check bounds
@@ -360,7 +361,8 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
             config->minLevel == 0 &&
             config->maxLevel == 0 &&
             config->manageEvolutions == FALSE &&
-            config->excludeFainted == FALSE)
+            config->excludeFainted == FALSE &&
+            config->scaleEVs == FALSE)
         {
             // All fields zero = undefined entry, use default
             return &sDefaultConfig;
@@ -415,6 +417,7 @@ u8 CalculateWildScaledLevel(u16 species, u8 originalLevel)
         .maxLevel = B_WILD_SCALING_MAX_LEVEL,
         .manageEvolutions = B_WILD_SCALING_MANAGE_EVOLUTIONS,
         .excludeFainted = B_WILD_SCALING_EXCLUDE_FAINTED,
+        .scaleEVs = FALSE,
     };
 
     u8 newLevel = CalculateScaledLevel(&sWildConfig, originalLevel);
@@ -436,6 +439,44 @@ u16 CalculateWildScaledSpecies(u16 species, u8 scaledLevel)
     #else
     return species;
     #endif
+}
+
+// Proportional EV scaling: budget = min(level * 10, 510). If defined EVs total <= budget, leave as-is.
+// Otherwise scale each stat by budget/baseTotal. Truncation residual is dropped (negligible).
+bool32 TryApplyScaledTrainerEVs(struct Pokemon *mon, const u8 *baseEVs, u16 trainerId, u8 scaledLevel)
+{
+    const struct LevelScalingConfig *config = GetTrainerLevelScalingConfig(trainerId);
+    if (config->mode == LEVEL_SCALING_NONE || !config->scaleEVs)
+        return FALSE;
+
+    u32 baseTotal = 0;
+    u32 i;
+    for (i = 0; i < 6; i++)
+        baseTotal += baseEVs[i];
+
+    u32 budget = (u32)scaledLevel * 10;
+    if (budget > 510)
+        budget = 510;
+
+    u8 out[6];
+    if (baseTotal == 0 || baseTotal <= budget)
+    {
+        for (i = 0; i < 6; i++)
+            out[i] = baseEVs[i];
+    }
+    else
+    {
+        for (i = 0; i < 6; i++)
+            out[i] = (u8)(((u32)baseEVs[i] * budget) / baseTotal);
+    }
+
+    SetMonData(mon, MON_DATA_HP_EV,    &out[0]);
+    SetMonData(mon, MON_DATA_ATK_EV,   &out[1]);
+    SetMonData(mon, MON_DATA_DEF_EV,   &out[2]);
+    SetMonData(mon, MON_DATA_SPATK_EV, &out[3]);
+    SetMonData(mon, MON_DATA_SPDEF_EV, &out[4]);
+    SetMonData(mon, MON_DATA_SPEED_EV, &out[5]);
+    return TRUE;
 }
 
 #endif // B_LEVEL_SCALING_ENABLED

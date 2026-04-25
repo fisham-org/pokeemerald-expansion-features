@@ -1990,8 +1990,8 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
             }
 
             // Apply level scaling
-            #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
             u8 scaledLevel = partyData[monIndex].lvl;
+            #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
             u16 scaledSpecies = partyData[monIndex].species;
             const struct LevelScalingConfig *config = GetTrainerLevelScalingConfig(trainerId);
             if (config->mode != LEVEL_SCALING_NONE)
@@ -2011,12 +2011,15 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
             SetMonData(&party[i], MON_DATA_IVS, &(partyData[monIndex].iv));
             if (partyData[monIndex].ev != NULL)
             {
-                SetMonData(&party[i], MON_DATA_HP_EV, &(partyData[monIndex].ev[0]));
-                SetMonData(&party[i], MON_DATA_ATK_EV, &(partyData[monIndex].ev[1]));
-                SetMonData(&party[i], MON_DATA_DEF_EV, &(partyData[monIndex].ev[2]));
-                SetMonData(&party[i], MON_DATA_SPATK_EV, &(partyData[monIndex].ev[3]));
-                SetMonData(&party[i], MON_DATA_SPDEF_EV, &(partyData[monIndex].ev[4]));
-                SetMonData(&party[i], MON_DATA_SPEED_EV, &(partyData[monIndex].ev[5]));
+                if (!TryApplyScaledTrainerEVs(&party[i], partyData[monIndex].ev, trainerId, scaledLevel))
+                {
+                    SetMonData(&party[i], MON_DATA_HP_EV, &(partyData[monIndex].ev[0]));
+                    SetMonData(&party[i], MON_DATA_ATK_EV, &(partyData[monIndex].ev[1]));
+                    SetMonData(&party[i], MON_DATA_DEF_EV, &(partyData[monIndex].ev[2]));
+                    SetMonData(&party[i], MON_DATA_SPATK_EV, &(partyData[monIndex].ev[3]));
+                    SetMonData(&party[i], MON_DATA_SPDEF_EV, &(partyData[monIndex].ev[4]));
+                    SetMonData(&party[i], MON_DATA_SPEED_EV, &(partyData[monIndex].ev[5]));
+                }
             }
             if (partyData[monIndex].ability != ABILITY_NONE)
             {
