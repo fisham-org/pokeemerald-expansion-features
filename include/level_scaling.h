@@ -26,6 +26,7 @@ struct LevelScalingConfig
     u8 maxLevel;                // Maximum allowed level (0 = no maximum, use MAX_LEVEL)
     bool8 manageEvolutions;     // Enable automatic evolution validation
     bool8 excludeFainted;       // For PARTY_* modes, exclude fainted mons
+    bool8 scaleEVs;             // Scale defined EVs proportionally to scaled level (10/level, cap 510)
 };
 
 // ============================================================================
@@ -41,7 +42,8 @@ struct LevelScalingConfig
     .minLevel = 0, \
     .maxLevel = 0, \
     .manageEvolutions = FALSE, \
-    .excludeFainted = FALSE \
+    .excludeFainted = FALSE, \
+    .scaleEVs = FALSE \
 }
 
 // Quick config macros for common scenarios
@@ -109,6 +111,10 @@ const struct EvolutionOverride *GetEvolutionOverride(u16 species);
 // Invalidate cached party level data (call when party changes)
 void InvalidatePartyLevelCache(void);
 
+// Apply scaled EVs to a mon if the trainer's config opts in. Returns TRUE if scaling applied
+// (caller should skip the normal SetMonData EV path); FALSE means caller should set EVs normally.
+bool32 TryApplyScaledTrainerEVs(struct Pokemon *mon, const u8 *baseEVs, u16 trainerId, u8 scaledLevel);
+
 #else
 
 // Empty inline functions when system is disabled
@@ -116,6 +122,7 @@ static inline void ApplyLevelScalingToTrainer(const struct Trainer *trainer, u16
                                                struct Pokemon *party, u8 partySize) { }
 static inline u8 CalculateWildScaledLevel(u16 species, u8 originalLevel) { return originalLevel; }
 static inline void InvalidatePartyLevelCache(void) { }
+static inline bool32 TryApplyScaledTrainerEVs(struct Pokemon *mon, const u8 *baseEVs, u16 trainerId, u8 scaledLevel) { return FALSE; }
 
 #endif // B_LEVEL_SCALING_ENABLED
 
