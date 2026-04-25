@@ -30,6 +30,15 @@
 // 3. Explicitly disable scaling (opt-out):
 //    [TRAINER_WALLY_VR_1] = LEVEL_SCALING_CONFIG_NONE,
 //
+// 4. Opt-in to EV scaling and/or moveset filtering for a specific trainer:
+//    [TRAINER_STEVEN] = {
+//        .mode = LEVEL_SCALING_PARTY_AVG,
+//        .scaleEVs = TRUE,        // Scale defined EVs proportionally to scaled level
+//        .scaleMoves = TRUE,      // Drop trainer-defined moves illegal for the scaled species/level
+//                                 // (filled from the scaled species' level-up learnset)
+//        .manageEvolutions = TRUE,
+//    },
+//
 // Available macros: LEVEL_SCALING_CONFIG_NONE, LEVEL_SCALING_CONFIG_LEVEL_CAP,
 //                   LEVEL_SCALING_CONFIG_PARTY_AVG, LEVEL_SCALING_CONFIG_PARTY_HIGHEST
 
@@ -68,12 +77,20 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
         .manageEvolutions = TRUE,
     },
 
-    // Test 4: Scale to party lowest + 5
+    // Test 4: Scale to party lowest + 5 (also exercises EV + moveset scaling)
+    // With the debug Script 1 setup, party lowest = 10 → scaled level = 15.
+    // - manageEvolutions devolves any fully-evolved mons
+    // - scaleMoves drops any trainer-defined move not in the devolved species'
+    //   level-up learnset at <= 15 AND not MOVE_TIER_DEFAULT, refilling from
+    //   the species' learnset at <= 15
+    // - scaleEVs caps total EVs at 15 * 10 = 150 (proportional to defined EVs)
     [TRAINER_FLANNERY_1] = {
         .mode = LEVEL_SCALING_PARTY_LOWEST,
         .levelAugmentAdd = 5,
         .levelVariationPct = 0,
         .manageEvolutions = TRUE,
+        .scaleEVs = TRUE,
+        .scaleMoves = TRUE,
     },
 
     // Test 5: Scale to party highest + augment with variation

@@ -38,6 +38,19 @@
 #define B_TRAINER_SCALING_EXCLUDE_FAINTED   FALSE   // Exclude fainted Pokemon from PARTY_* calculations
 #define B_TRAINER_SCALING_SCALE_EVS         FALSE   // Scale defined EVs to scaled level (10 EVs/level, cap 510)
                                                      // Opt-in default; per-trainer override in level_scaling_rules.h
+#define B_TRAINER_SCALING_SCALE_MOVES       FALSE   // Filter trainer-defined moves by legality at scaled level
+                                                     // Opt-in default; per-trainer override in level_scaling_rules.h
+
+// ============================================================================
+// MOVE PROGRESSION TIER THRESHOLDS
+// ============================================================================
+// Minimum scaled level at which moves of each tier become available. Per-move tier
+// data lives in src/data/move_progression_tiers.h. Moves not listed there default to
+// MOVE_TIER_DEFAULT (no gate).
+
+#define B_MOVE_TIER_MID_MIN_LEVEL           20
+#define B_MOVE_TIER_LATE_MIN_LEVEL          40
+#define B_MOVE_TIER_ENDGAME_MIN_LEVEL       100
 
 // ============================================================================
 // WILD POKÉMON SCALING DEFAULTS

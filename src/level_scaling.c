@@ -1,6 +1,7 @@
 #include "global.h"
 #include "level_scaling.h"
 #include "pokemon.h"
+#include "move.h"
 #include "data.h"
 #include "caps.h"
 #include "random.h"
@@ -12,6 +13,7 @@
 
 #include "data/level_scaling_rules.h"
 #include "data/level_scaling_evolution_overrides.h"
+#include "data/move_progression_tiers.h"
 
 // Party level cache for performance
 static struct {
@@ -337,6 +339,7 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
         .manageEvolutions = B_TRAINER_SCALING_MANAGE_EVOLUTIONS,
         .excludeFainted = B_TRAINER_SCALING_EXCLUDE_FAINTED,
         .scaleEVs = B_TRAINER_SCALING_SCALE_EVS,
+        .scaleMoves = B_TRAINER_SCALING_SCALE_MOVES,
     };
 
     // Check bounds
@@ -362,7 +365,8 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
             config->maxLevel == 0 &&
             config->manageEvolutions == FALSE &&
             config->excludeFainted == FALSE &&
-            config->scaleEVs == FALSE)
+            config->scaleEVs == FALSE &&
+            config->scaleMoves == FALSE)
         {
             // All fields zero = undefined entry, use default
             return &sDefaultConfig;
@@ -418,6 +422,7 @@ u8 CalculateWildScaledLevel(u16 species, u8 originalLevel)
         .manageEvolutions = B_WILD_SCALING_MANAGE_EVOLUTIONS,
         .excludeFainted = B_WILD_SCALING_EXCLUDE_FAINTED,
         .scaleEVs = FALSE,
+        .scaleMoves = FALSE,
     };
 
     u8 newLevel = CalculateScaledLevel(&sWildConfig, originalLevel);
@@ -477,6 +482,122 @@ bool32 TryApplyScaledTrainerEVs(struct Pokemon *mon, const u8 *baseEVs, u16 trai
     SetMonData(mon, MON_DATA_SPDEF_EV, &out[4]);
     SetMonData(mon, MON_DATA_SPEED_EV, &out[5]);
     return TRUE;
+}
+
+// ============================================================================
+// Move progression gate (Problem 2C — tier-bucket predicate)
+// ============================================================================
+
+bool32 IsMovePermittedAtLevel(u16 move, u8 level)
+{
+    if (move == MOVE_NONE || move >= MOVES_COUNT)
+        return TRUE;
+
+    u8 tier = gMoveProgressionTier[move];
+    switch (tier)
+    {
+        case MOVE_TIER_MID:     return level >= B_MOVE_TIER_MID_MIN_LEVEL;
+        case MOVE_TIER_LATE:    return level >= B_MOVE_TIER_LATE_MIN_LEVEL;
+        case MOVE_TIER_ENDGAME: return level >= B_MOVE_TIER_ENDGAME_MIN_LEVEL;
+        case MOVE_TIER_DEFAULT:
+        default:                return TRUE;
+    }
+}
+
+// ============================================================================
+// Move filter + level-up topup (Problem 1B)
+// ============================================================================
+
+// TRUE if `move` is in the species' level-up learnset at level <= maxLevel.
+static bool32 IsMoveInLevelUpLearnset(u16 species, u16 move, u8 maxLevel)
+{
+    const struct LevelUpMove *learnset = GetSpeciesLevelUpLearnset(species);
+    u32 i;
+    for (i = 0; i < MAX_LEVEL_UP_MOVES && learnset[i].move != LEVEL_UP_MOVE_END; i++)
+    {
+        if (learnset[i].level > maxLevel)
+            break;
+        if (learnset[i].move == move)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// Pick the next level-up move for `species` at <= maxLevel that is not already in `existing`.
+// Walks the learnset highest→lowest level so the strongest available natural move is preferred.
+static u16 PickNextLevelUpMove(u16 species, u8 maxLevel, const u16 *existing, u32 existingCount)
+{
+    const struct LevelUpMove *learnset = GetSpeciesLevelUpLearnset(species);
+    s32 lastIdx = -1;
+    s32 i;
+
+    for (i = 0; i < MAX_LEVEL_UP_MOVES && learnset[i].move != LEVEL_UP_MOVE_END; i++)
+    {
+        if (learnset[i].level <= maxLevel)
+            lastIdx = i;
+        else
+            break;
+    }
+
+    for (i = lastIdx; i >= 0; i--)
+    {
+        u16 candidate = learnset[i].move;
+        u32 j;
+        bool32 dupe = FALSE;
+        for (j = 0; j < existingCount; j++)
+        {
+            if (existing[j] == candidate)
+            {
+                dupe = TRUE;
+                break;
+            }
+        }
+        if (!dupe)
+            return candidate;
+    }
+    return MOVE_NONE;
+}
+
+void MaybeFilterTrainerMoves(struct Pokemon *mon, u16 trainerId, u16 scaledSpecies, u8 scaledLevel)
+{
+    const struct LevelScalingConfig *config = GetTrainerLevelScalingConfig(trainerId);
+    if (config->mode == LEVEL_SCALING_NONE || !config->scaleMoves)
+        return;
+
+    u16 finalMoves[MAX_MON_MOVES] = {MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE};
+    u32 outCount = 0;
+    u32 j;
+
+    // Pass 1: keep legal moves, drop the rest
+    for (j = 0; j < MAX_MON_MOVES; j++)
+    {
+        u16 move = GetMonData(mon, MON_DATA_MOVE1 + j, NULL);
+        if (move == MOVE_NONE)
+            continue;
+        if (IsMoveInLevelUpLearnset(scaledSpecies, move, scaledLevel)
+            || IsMovePermittedAtLevel(move, scaledLevel))
+        {
+            finalMoves[outCount++] = move;
+        }
+    }
+
+    // Pass 2: top up empty slots from level-up learnset
+    while (outCount < MAX_MON_MOVES)
+    {
+        u16 fill = PickNextLevelUpMove(scaledSpecies, scaledLevel, finalMoves, outCount);
+        if (fill == MOVE_NONE)
+            break;
+        finalMoves[outCount++] = fill;
+    }
+
+    // Write back
+    for (j = 0; j < MAX_MON_MOVES; j++)
+    {
+        u16 move = finalMoves[j];
+        u32 pp = (move != MOVE_NONE) ? GetMovePP(move) : 0;
+        SetMonData(mon, MON_DATA_MOVE1 + j, &move);
+        SetMonData(mon, MON_DATA_PP1 + j, &pp);
+    }
 }
 
 #endif // B_LEVEL_SCALING_ENABLED

@@ -7,6 +7,16 @@
 struct Trainer;
 struct Pokemon;
 
+// Move progression tier — gates which moves trainer mons can carry at low scaled levels.
+// Default (0) means no gate. Higher tiers require higher scaled levels (thresholds in config).
+enum MoveProgressionTier
+{
+    MOVE_TIER_DEFAULT = 0,  // Always allowed (no gate)
+    MOVE_TIER_MID,          // Allowed at >= B_MOVE_TIER_MID_MIN_LEVEL
+    MOVE_TIER_LATE,         // Allowed at >= B_MOVE_TIER_LATE_MIN_LEVEL
+    MOVE_TIER_ENDGAME,      // Allowed at >= B_MOVE_TIER_ENDGAME_MIN_LEVEL
+};
+
 enum LevelScalingMode
 {
     LEVEL_SCALING_NONE,                    // Vanilla behavior, no scaling
@@ -27,6 +37,7 @@ struct LevelScalingConfig
     bool8 manageEvolutions;     // Enable automatic evolution validation
     bool8 excludeFainted;       // For PARTY_* modes, exclude fainted mons
     bool8 scaleEVs;             // Scale defined EVs proportionally to scaled level (10/level, cap 510)
+    bool8 scaleMoves;           // Filter trainer-defined moves by legality at scaled level; top up from level-up learnset
 };
 
 // ============================================================================
@@ -43,7 +54,8 @@ struct LevelScalingConfig
     .maxLevel = 0, \
     .manageEvolutions = FALSE, \
     .excludeFainted = FALSE, \
-    .scaleEVs = FALSE \
+    .scaleEVs = FALSE, \
+    .scaleMoves = FALSE \
 }
 
 // Quick config macros for common scenarios
@@ -115,6 +127,14 @@ void InvalidatePartyLevelCache(void);
 // (caller should skip the normal SetMonData EV path); FALSE means caller should set EVs normally.
 bool32 TryApplyScaledTrainerEVs(struct Pokemon *mon, const u8 *baseEVs, u16 trainerId, u8 scaledLevel);
 
+// TRUE if a move is permitted at the given scaled level (per its progression tier).
+bool32 IsMovePermittedAtLevel(u16 move, u8 level);
+
+// If trainer's config opts in (.scaleMoves), filter the moves currently set on `mon` against
+// legality (species learnset at <= scaledLevel OR tier-gate predicate). Replace any dropped move
+// with the next available level-up move from the scaled species. No-op if not opted in.
+void MaybeFilterTrainerMoves(struct Pokemon *mon, u16 trainerId, u16 scaledSpecies, u8 scaledLevel);
+
 #else
 
 // Empty inline functions when system is disabled
@@ -123,6 +143,8 @@ static inline void ApplyLevelScalingToTrainer(const struct Trainer *trainer, u16
 static inline u8 CalculateWildScaledLevel(u16 species, u8 originalLevel) { return originalLevel; }
 static inline void InvalidatePartyLevelCache(void) { }
 static inline bool32 TryApplyScaledTrainerEVs(struct Pokemon *mon, const u8 *baseEVs, u16 trainerId, u8 scaledLevel) { return FALSE; }
+static inline bool32 IsMovePermittedAtLevel(u16 move, u8 level) { return TRUE; }
+static inline void MaybeFilterTrainerMoves(struct Pokemon *mon, u16 trainerId, u16 scaledSpecies, u8 scaledLevel) { }
 
 #endif // B_LEVEL_SCALING_ENABLED
 

@@ -336,16 +336,25 @@ Debug_LevelScaling_Test3_Result:
 	.string "Were enemies within 2 levels of\n"
 	.string "your highest Pokémon?$"
 
-@ Test 4: Scale to Party Lowest + 5
+@ Test 4: Scale to Party Lowest + 5 (+ EV/moveset scaling)
 Debug_LevelScaling_Test4_Intro:
 	.string "LEVEL SCALING TEST 4\n"
 	.string "Mode: PARTY LOWEST + 5\p"
-	.string "Expected: Enemy Pokémon should be\n"
-	.string "5 levels above your lowest level.$"
+	.string "Also tests:\n"
+	.string "- EV scaling (scaleEVs)\l"
+	.string "- Moveset filter (scaleMoves)\p"
+	.string "Expected at scaled lvl 15:\n"
+	.string "- Mons devolved\l"
+	.string "- TM/late moves dropped\l"
+	.string "- EVs capped at ~150 total$"
 
 Debug_LevelScaling_Test4_Result:
-	.string "Check your lowest level Pokémon.\n"
-	.string "Were enemies that +5?$"
+	.string "Checks (use party screen / summary):\p"
+	.string "- Devolved species?\n"
+	.string "- Any Earthquake/Stone Edge/etc.\l"
+	.string "  replaced by learnset moves?\p"
+	.string "- Total EVs <= 150 per mon?\n"
+	.string "  (offset by base EV definitions)$"
 
 @ Test 5: Scale to Party/PC Highest + 2 (variation 3, min 25, max 50)
 Debug_LevelScaling_Test5_Intro:

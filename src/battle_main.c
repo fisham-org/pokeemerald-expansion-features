@@ -2042,8 +2042,8 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
 
             // Apply level scaling
             u8 scaledLevel = partyData[monIndex].lvl;
-            #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
             u16 scaledSpecies = partyData[monIndex].species;
+            #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
             const struct LevelScalingConfig *config = GetTrainerLevelScalingConfig(trainerId);
             if (config->mode != LEVEL_SCALING_NONE)
             {
@@ -2059,6 +2059,7 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
             SetMonData(&party[i], MON_DATA_HELD_ITEM, &partyData[monIndex].heldItem);
 
             CustomTrainerPartyAssignMoves(&party[i], &partyData[monIndex]);
+            MaybeFilterTrainerMoves(&party[i], trainerId, scaledSpecies, scaledLevel);
             SetMonData(&party[i], MON_DATA_IVS, &(partyData[monIndex].iv));
             if (partyData[monIndex].ev != NULL)
             {
