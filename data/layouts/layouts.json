@@ -9337,10 +9337,10 @@
     {
       "id": "LAYOUT_POC_R10",
       "name": "poc_r10_Layout",
-      "width": 25,
+      "width": 50,
       "height": 34,
       "primary_tileset": "gTileset_General",
-      "secondary_tileset": "gTileset_Petalburg",
+      "secondary_tileset": "gTileset_ShipCity",
       "border_filepath": "data/layouts/poc_r10/border.bin",
       "blockdata_filepath": "data/layouts/poc_r10/map.bin"
     },
@@ -9348,9 +9348,9 @@
       "id": "LAYOUT_POC_R6",
       "name": "poc_r6_Layout",
       "width": 40,
-      "height": 33,
+      "height": 39,
       "primary_tileset": "gTileset_General",
-      "secondary_tileset": "gTileset_ShipCity",
+      "secondary_tileset": "gTileset_Floran",
       "border_filepath": "data/layouts/poc_r6/border.bin",
       "blockdata_filepath": "data/layouts/poc_r6/map.bin"
     },
@@ -9360,17 +9360,17 @@
       "width": 44,
       "height": 63,
       "primary_tileset": "gTileset_General",
-      "secondary_tileset": "gTileset_ShipCity",
+      "secondary_tileset": "gTileset_Floran",
       "border_filepath": "data/layouts/poc_r3/border.bin",
       "blockdata_filepath": "data/layouts/poc_r3/map.bin"
     },
     {
       "id": "LAYOUT_POC_FLORAN",
       "name": "poc_Floran_Layout",
-      "width": 50,
-      "height": 60,
+      "width": 60,
+      "height": 49,
       "primary_tileset": "gTileset_General",
-      "secondary_tileset": "gTileset_ShipCity",
+      "secondary_tileset": "gTileset_Floran",
       "border_filepath": "data/layouts/poc_Floran/border.bin",
       "blockdata_filepath": "data/layouts/poc_Floran/map.bin"
     },

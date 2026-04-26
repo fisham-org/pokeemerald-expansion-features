@@ -414,3 +414,6 @@ const u16 gMetatileAttributes_ShipCity[] = INCBIN_U16("data/tilesets/secondary/s
 
 const u16 gMetatiles_Kolchavi[] = INCBIN_U16("data/tilesets/secondary/kolchavi/metatiles.bin");
 const u16 gMetatileAttributes_Kolchavi[] = INCBIN_U16("data/tilesets/secondary/kolchavi/metatile_attributes.bin");
+
+const u16 gMetatiles_Floran[] = INCBIN_U16("data/tilesets/secondary/floran/metatiles.bin");
+const u16 gMetatileAttributes_Floran[] = INCBIN_U16("data/tilesets/secondary/floran/metatile_attributes.bin");

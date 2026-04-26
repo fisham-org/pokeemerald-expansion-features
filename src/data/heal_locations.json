@@ -349,6 +349,18 @@
       "y": 12,
       "respawn_map": "MAP_SIX_ISLAND_POKEMON_CENTER_1F",
       "respawn_npc": "LOCALID_SIX_ISLAND_NURSE"
+    },
+    {
+      "id": "HEAL_LOCATION_POC_FLORAN",
+      "map": "MAP_POC_FLORAN",
+      "x": 14,
+      "y": 12
+    },
+    {
+      "id": "HEAL_LOCATION_POC_KOLCHAVI",
+      "map": "MAP_POC_KOLCHAVI",
+      "x": 40,
+      "y": 14
     }
   ]
 }

@@ -14,13 +14,8 @@
   "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
   "connections": [
     {
-      "map": "MAP_POC_KOLCHAVI",
-      "offset": -4,
-      "direction": "left"
-    },
-    {
       "map": "MAP_POC_R10",
-      "offset": 15,
+      "offset": 14,
       "direction": "up"
     }
   ],

@@ -15,12 +15,12 @@
   "connections": [
     {
       "map": "MAP_POC_FLORAN",
-      "offset": 0,
+      "offset": -22,
       "direction": "up"
     },
     {
       "map": "MAP_POC_R8",
-      "offset": -15,
+      "offset": -14,
       "direction": "down"
     }
   ],
