@@ -17,7 +17,7 @@
 
 #include "constants/moves.h"
 
-const u8 gMoveProgressionTier[MOVES_COUNT] =
+const u8 gMoveProgressionTier[MOVES_COUNT_ALL] =
 {
     [MOVE_POUND]                       = MOVE_TIER_DEFAULT,
     [MOVE_KARATE_CHOP]                 = MOVE_TIER_DEFAULT,
