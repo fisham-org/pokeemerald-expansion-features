@@ -1574,3 +1574,14 @@ const struct Tileset gTileset_Floran =
     .metatileAttributes = gMetatileAttributes_Floran,
     .callback = NULL,
 };
+
+const struct Tileset gTileset_Mirevari =
+{
+    .isCompressed = TRUE,
+    .isSecondary = TRUE,
+    .tiles = gTilesetTiles_Mirevari,
+    .palettes = gTilesetPalettes_Mirevari,
+    .metatiles = gMetatiles_Mirevari,
+    .metatileAttributes = gMetatileAttributes_Mirevari,
+    .callback = InitTilesetAnim_Mirevari,
+};

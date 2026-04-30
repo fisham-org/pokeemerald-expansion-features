@@ -9380,7 +9380,7 @@
       "width": 65,
       "height": 25,
       "primary_tileset": "gTileset_General",
-      "secondary_tileset": "gTileset_Petalburg",
+      "secondary_tileset": "gTileset_Mirevari",
       "border_filepath": "data/layouts/poc_r8/border.bin",
       "blockdata_filepath": "data/layouts/poc_r8/map.bin"
     },
