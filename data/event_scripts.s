@@ -1903,3 +1903,5 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/maps/poc_r2/scripts.inc"
 
 	.include "data/maps/poc_r9/scripts.inc"
+
+	.include "data/maps/poc_r16/scripts.inc"

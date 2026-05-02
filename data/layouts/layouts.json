@@ -9403,6 +9403,16 @@
       "secondary_tileset": "gTileset_Petalburg",
       "border_filepath": "data/layouts/poc_r9/border.bin",
       "blockdata_filepath": "data/layouts/poc_r9/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_R16",
+      "name": "poc_r16_Layout",
+      "width": 30,
+      "height": 30,
+      "primary_tileset": "gTileset_General",
+      "secondary_tileset": "gTileset_Mirevari",
+      "border_filepath": "data/layouts/poc_r16/border.bin",
+      "blockdata_filepath": "data/layouts/poc_r16/map.bin"
     }
   ]
 }
