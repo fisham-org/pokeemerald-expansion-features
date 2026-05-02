@@ -9377,7 +9377,7 @@
     {
       "id": "LAYOUT_POC_R8",
       "name": "poc_r8_Layout",
-      "width": 65,
+      "width": 100,
       "height": 25,
       "primary_tileset": "gTileset_General",
       "secondary_tileset": "gTileset_Mirevari",

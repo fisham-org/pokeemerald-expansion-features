@@ -15,7 +15,7 @@
   "connections": [
     {
       "map": "MAP_POC_R8",
-      "offset": -50,
+      "offset": -80,
       "direction": "down"
     }
   ],
