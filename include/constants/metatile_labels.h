@@ -321,6 +321,10 @@
 #define METATILE_InsideShip_IntactDoor_Bottom_Locked    0x433
 #define METATILE_InsideShip_IntactDoor_Bottom_Unlocked  0x42B
 
+// gTileset_Kolchavi
+#define METATILE_Kolchavi_Door_Wooden_1  0x451
+#define METATILE_Kolchavi_Door_Wooden_2  0x471
+
 // gTileset_Lavaridge
 #define METATILE_Lavaridge_AshGrass             0x407
 #define METATILE_Lavaridge_CaveEntrance_Bottom  0x45E
