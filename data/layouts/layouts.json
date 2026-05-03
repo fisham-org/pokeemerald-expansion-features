@@ -9337,7 +9337,7 @@
     {
       "id": "LAYOUT_POC_R10",
       "name": "poc_r10_Layout",
-      "width": 50,
+      "width": 62,
       "height": 50,
       "primary_tileset": "gTileset_General",
       "secondary_tileset": "gTileset_Floran",
@@ -9407,12 +9407,22 @@
     {
       "id": "LAYOUT_POC_R16",
       "name": "poc_r16_Layout",
-      "width": 30,
-      "height": 30,
+      "width": 36,
+      "height": 28,
       "primary_tileset": "gTileset_General",
       "secondary_tileset": "gTileset_Mirevari",
       "border_filepath": "data/layouts/poc_r16/border.bin",
       "blockdata_filepath": "data/layouts/poc_r16/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_R12",
+      "name": "poc_r12_Layout",
+      "width": 70,
+      "height": 50,
+      "primary_tileset": "gTileset_General",
+      "secondary_tileset": "gTileset_Mirevari",
+      "border_filepath": "data/layouts/poc_r12/border.bin",
+      "blockdata_filepath": "data/layouts/poc_r12/map.bin"
     }
   ]
 }

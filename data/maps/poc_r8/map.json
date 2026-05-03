@@ -19,8 +19,8 @@
       "direction": "up"
     },
     {
-      "map": "MAP_POC_R16",
-      "offset": 80,
+      "map": "MAP_POC_R12",
+      "offset": 54,
       "direction": "up"
     }
   ],
