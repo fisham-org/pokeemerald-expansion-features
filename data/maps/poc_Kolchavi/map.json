@@ -22,17 +22,10 @@
   "object_events": [],
   "warp_events": [
     {
-      "x": 26,
+      "x": 40,
       "y": 13,
       "elevation": 0,
-      "dest_map": "MAP_POC_KOLCHAVI",
-      "dest_warp_id": "1"
-    },
-    {
-      "x": 33,
-      "y": 13,
-      "elevation": 0,
-      "dest_map": "MAP_POC_KOLCHAVI",
+      "dest_map": "MAP_POC_KOLCHAVI_POKEMON_CENTER",
       "dest_warp_id": "0"
     }
   ],
