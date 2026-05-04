@@ -1585,3 +1585,14 @@ const struct Tileset gTileset_Mirevari =
     .metatileAttributes = gMetatileAttributes_Mirevari,
     .callback = InitTilesetAnim_Mirevari,
 };
+
+const struct Tileset gTileset_Kolchavi_Lab =
+{
+    .isCompressed = TRUE,
+    .isSecondary = TRUE,
+    .tiles = gTilesetTiles_Kolchavi_Lab,
+    .palettes = gTilesetPalettes_Kolchavi_Lab,
+    .metatiles = gMetatiles_Kolchavi_Lab,
+    .metatileAttributes = gMetatileAttributes_Kolchavi_Lab,
+    .callback = NULL,
+};

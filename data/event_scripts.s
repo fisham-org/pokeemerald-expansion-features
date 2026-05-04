@@ -1910,4 +1910,6 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 
 	.include "data/maps/poc_Kolchavi_PokemonCenter/scripts.inc"
 
-	.include "data/maps/poc_Kolchavi_Lab/scripts.inc"
+	.include "data/maps/poc_Kolchavi_Lab_1F/scripts.inc"
+
+	.include "data/maps/poc_Kolchavi_Lab_2F/scripts.inc"
