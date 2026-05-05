@@ -1178,6 +1178,11 @@
   "gMapGroup_owpoc_IndoorKolchavi": [
     "poc_Kolchavi_PokemonCenter",
     "poc_Kolchavi_Lab_1F",
-    "poc_Kolchavi_Lab_2F"
+    "poc_Kolchavi_Lab_2F",
+    "poc_Kolchavi_House1",
+    "poc_Kolchavi_House2",
+    "poc_Kolchavi_House3",
+    "poc_Kolchavi_House4",
+    "poc_Kolchavi_MaritimeGuildhall"
   ]
 }
