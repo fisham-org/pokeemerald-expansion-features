@@ -9497,10 +9497,10 @@
     {
       "id": "LAYOUT_POC_KOLCHAVI_MARITIME_GUILDHALL",
       "name": "poc_Kolchavi_MaritimeGuildhall_Layout",
-      "width": 30,
-      "height": 30,
+      "width": 23,
+      "height": 19,
       "primary_tileset": "gTileset_Building",
-      "secondary_tileset": "gTileset_Facility",
+      "secondary_tileset": "gTileset_Kolchavi_Maritime",
       "border_filepath": "data/layouts/poc_Kolchavi_MaritimeGuildhall/border.bin",
       "blockdata_filepath": "data/layouts/poc_Kolchavi_MaritimeGuildhall/map.bin"
     }

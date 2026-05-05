@@ -423,3 +423,6 @@ const u16 gMetatileAttributes_Mirevari[] = INCBIN_U16("data/tilesets/secondary/m
 
 const u16 gMetatiles_Kolchavi_Lab[] = INCBIN_U16("data/tilesets/secondary/kolchavi_lab/metatiles.bin");
 const u16 gMetatileAttributes_Kolchavi_Lab[] = INCBIN_U16("data/tilesets/secondary/kolchavi_lab/metatile_attributes.bin");
+
+const u16 gMetatiles_Kolchavi_Maritime[] = INCBIN_U16("data/tilesets/secondary/kolchavi_maritime/metatiles.bin");
+const u16 gMetatileAttributes_Kolchavi_Maritime[] = INCBIN_U16("data/tilesets/secondary/kolchavi_maritime/metatile_attributes.bin");
