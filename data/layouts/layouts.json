@@ -9503,6 +9503,16 @@
       "secondary_tileset": "gTileset_Kolchavi_Maritime",
       "border_filepath": "data/layouts/poc_Kolchavi_MaritimeGuildhall/border.bin",
       "blockdata_filepath": "data/layouts/poc_Kolchavi_MaritimeGuildhall/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_FLORAN_POKEMON_CENTER",
+      "name": "poc_Floran_PokemonCenter_Layout",
+      "width": 24,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_PokemonCenter",
+      "border_filepath": "data/layouts/poc_Floran_PokemonCenter/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Floran_PokemonCenter/map.bin"
     }
   ]
 }

@@ -76,7 +76,9 @@
     "gMapGroup_IndoorSixIslandRoute_Frlg",
     "gMapGroup_IndoorSevenIslandRoute_Frlg",
     "gMapGroup_owpoc_TownsAndRoutes",
-    "gMapGroup_owpoc_IndoorKolchavi"
+    "gMapGroup_owpoc_Dungeons",
+    "gMapGroup_owpoc_IndoorKolchavi",
+    "gMapGroup_owpoc_IndoorFloran"
   ],
   "gMapGroup_TownsAndRoutes": [
     "PetalburgCity",
@@ -1175,6 +1177,7 @@
     "poc_r16",
     "poc_r12"
   ],
+  "gMapGroup_owpoc_Dungeons": [],
   "gMapGroup_owpoc_IndoorKolchavi": [
     "poc_Kolchavi_PokemonCenter",
     "poc_Kolchavi_Lab_1F",
@@ -1184,5 +1187,8 @@
     "poc_Kolchavi_House3",
     "poc_Kolchavi_House4",
     "poc_Kolchavi_MaritimeGuildhall"
+  ],
+  "gMapGroup_owpoc_IndoorFloran": [
+    "poc_Floran_PokemonCenter"
   ]
 }

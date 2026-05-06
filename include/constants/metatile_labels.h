@@ -219,6 +219,10 @@
 #define METATILE_Fallarbor_RedCaveEntrance_Top       0x547
 #define METATILE_Fallarbor_RedRockWall               0x469
 
+// gTileset_Floran
+#define METATILE_Floran_Door_Wooden_Brown  0x41C
+#define METATILE_Floran_Door_Wooden_Green  0x439
+
 // gTileset_Fortree
 #define METATILE_Fortree_BridgeOverGrass_Lowered           0x44F
 #define METATILE_Fortree_BridgeOverGrass_Raised            0x44E
