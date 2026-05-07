@@ -9513,6 +9513,106 @@
       "secondary_tileset": "gTileset_PokemonCenter",
       "border_filepath": "data/layouts/poc_Floran_PokemonCenter/border.bin",
       "blockdata_filepath": "data/layouts/poc_Floran_PokemonCenter/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_FLORAN_HOUSE1",
+      "name": "poc_Floran_House1_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_GenericBuilding",
+      "border_filepath": "data/layouts/poc_Floran_House1/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Floran_House1/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_FLORAN_HOUSE2",
+      "name": "poc_Floran_House2_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_GenericBuilding",
+      "border_filepath": "data/layouts/poc_Floran_House2/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Floran_House2/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_FLORAN_HOUSE3",
+      "name": "poc_Floran_House3_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_GenericBuilding",
+      "border_filepath": "data/layouts/poc_Floran_House3/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Floran_House3/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_FLORAN_HOUSE4",
+      "name": "poc_Floran_House4_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_GenericBuilding",
+      "border_filepath": "data/layouts/poc_Floran_House4/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Floran_House4/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_FLORAN_HOUSE5",
+      "name": "poc_Floran_House5_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_GenericBuilding",
+      "border_filepath": "data/layouts/poc_Floran_House5/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Floran_House5/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_FLORAN_WARDEN_GUILD",
+      "name": "poc_Floran_WardenGuild_Layout",
+      "width": 35,
+      "height": 25,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_LilycoveMuseum",
+      "border_filepath": "data/layouts/poc_Floran_WardenGuild/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Floran_WardenGuild/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_FLORAN_WAREHOUSE",
+      "name": "poc_Floran_Warehouse_Layout",
+      "width": 25,
+      "height": 25,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_Facility",
+      "border_filepath": "data/layouts/poc_Floran_Warehouse/border.bin",
+      "blockdata_filepath": "data/layouts/poc_Floran_Warehouse/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_R8_HOUSE1",
+      "name": "poc_r8_House1_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_GenericBuilding",
+      "border_filepath": "data/layouts/poc_r8_House1/border.bin",
+      "blockdata_filepath": "data/layouts/poc_r8_House1/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_R10_HOUSE1",
+      "name": "poc_r10_House1_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_GenericBuilding",
+      "border_filepath": "data/layouts/poc_r10_House1/border.bin",
+      "blockdata_filepath": "data/layouts/poc_r10_House1/map.bin"
+    },
+    {
+      "id": "LAYOUT_POC_R12_HOUSE1",
+      "name": "poc_r12_House1_Layout",
+      "width": 20,
+      "height": 20,
+      "primary_tileset": "gTileset_Building",
+      "secondary_tileset": "gTileset_GenericBuilding",
+      "border_filepath": "data/layouts/poc_r12_House1/border.bin",
+      "blockdata_filepath": "data/layouts/poc_r12_House1/map.bin"
     }
   ]
 }

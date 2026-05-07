@@ -30,7 +30,15 @@
     }
   ],
   "object_events": [],
-  "warp_events": [],
+  "warp_events": [
+    {
+      "x": 45,
+      "y": 9,
+      "elevation": 0,
+      "dest_map": "MAP_POC_R10_HOUSE1",
+      "dest_warp_id": "0"
+    }
+  ],
   "coord_events": [],
   "bg_events": []
 }

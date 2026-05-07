@@ -1,8 +1,8 @@
 {
-  "id": "MAP_POC_R12",
-  "name": "poc_r12",
-  "layout": "LAYOUT_POC_R12",
-  "music": "MUS_DUMMY",
+  "id": "MAP_POC_FLORAN_HOUSE1",
+  "name": "poc_Floran_House1",
+  "layout": "LAYOUT_POC_FLORAN_HOUSE1",
+  "music": "MUS_DEWFORD",
   "region_map_section": "MAPSEC_ABANDONED_SHIP",
   "requires_flash": false,
   "weather": "WEATHER_NONE",
@@ -12,26 +12,22 @@
   "allow_running": false,
   "show_map_name": true,
   "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
-  "connections": [
-    {
-      "map": "MAP_POC_R8",
-      "offset": -54,
-      "direction": "down"
-    },
-    {
-      "map": "MAP_POC_R10",
-      "offset": 0,
-      "direction": "left"
-    }
-  ],
+  "connections": null,
   "object_events": [],
   "warp_events": [
     {
-      "x": 40,
-      "y": 6,
+      "x": 7,
+      "y": 11,
       "elevation": 0,
-      "dest_map": "MAP_POC_R12_HOUSE1",
-      "dest_warp_id": "0"
+      "dest_map": "MAP_POC_FLORAN",
+      "dest_warp_id": "1"
+    },
+    {
+      "x": 8,
+      "y": 11,
+      "elevation": 0,
+      "dest_map": "MAP_POC_FLORAN",
+      "dest_warp_id": "1"
     }
   ],
   "coord_events": [],

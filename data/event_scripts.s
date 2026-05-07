@@ -1925,3 +1925,23 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/maps/poc_Kolchavi_MaritimeGuildhall/scripts.inc"
 
 	.include "data/maps/poc_Floran_PokemonCenter/scripts.inc"
+
+	.include "data/maps/poc_Floran_House1/scripts.inc"
+
+	.include "data/maps/poc_Floran_House2/scripts.inc"
+
+	.include "data/maps/poc_Floran_House3/scripts.inc"
+
+	.include "data/maps/poc_Floran_House4/scripts.inc"
+
+	.include "data/maps/poc_Floran_House5/scripts.inc"
+
+	.include "data/maps/poc_Floran_WardenGuild/scripts.inc"
+
+	.include "data/maps/poc_Floran_Warehouse/scripts.inc"
+
+	.include "data/maps/poc_r8_House1/scripts.inc"
+
+	.include "data/maps/poc_r10_House1/scripts.inc"
+
+	.include "data/maps/poc_r12_House1/scripts.inc"
