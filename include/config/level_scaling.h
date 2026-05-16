@@ -40,17 +40,37 @@
                                                      // Opt-in default; per-trainer override in level_scaling_rules.h
 #define B_TRAINER_SCALING_SCALE_MOVES       FALSE   // Filter trainer-defined moves by legality at scaled level
                                                      // Opt-in default; per-trainer override in level_scaling_rules.h
+#define B_TRAINER_SCALING_SCALE_ITEMS       FALSE   // Strip held items above the allowed progression tier
+                                                     // Opt-in default; per-trainer override in level_scaling_rules.h
 
 // ============================================================================
-// MOVE PROGRESSION TIER THRESHOLDS
+// PARTY SIZE SCALING
 // ============================================================================
-// Minimum scaled level at which moves of each tier become available. Per-move tier
-// data lives in src/data/move_progression_tiers.h. Moves not listed there default to
-// MOVE_TIER_DEFAULT (no gate).
+// Dynamically caps how many Pokémon a scaled trainer fields, so early-game
+// players don't face full 6-mon teams. Mode options (from level_scaling.h):
+//   PARTY_SIZE_SCALING_NONE             - No cap (trainer fields full party)
+//   PARTY_SIZE_SCALING_BY_PLAYER_SIZE   - Cap to the player's current party size
+//   PARTY_SIZE_SCALING_BY_PLAYER_LEVEL  - Cap via the avg-level threshold table
+//                                         in src/data/level_scaling_party_size_tiers.h
+// Per-trainer overrides (level_scaling_rules.h) can set .partySizeMode; leaving
+// it 0 (PARTY_SIZE_SCALING_INHERIT) falls back to this global default.
+
+#define B_TRAINER_PARTY_SIZE_MODE           PARTY_SIZE_SCALING_BY_PLAYER_LEVEL
+
+// ============================================================================
+// MOVE / ITEM PROGRESSION TIER THRESHOLDS
+// ============================================================================
+// Minimum scaled level at which moves/items of each tier become available.
+// Per-move data: src/data/move_progression_tiers.h (default MOVE_TIER_DEFAULT).
+// Per-item data: src/data/item_progression_tiers.h (default ITEM_TIER_DEFAULT).
 
 #define B_MOVE_TIER_MID_MIN_LEVEL           20
 #define B_MOVE_TIER_LATE_MIN_LEVEL          40
 #define B_MOVE_TIER_ENDGAME_MIN_LEVEL       100
+
+#define B_ITEM_TIER_MID_MIN_LEVEL           20
+#define B_ITEM_TIER_LATE_MIN_LEVEL          40
+#define B_ITEM_TIER_ENDGAME_MIN_LEVEL       70
 
 // ============================================================================
 // WILD POKÉMON SCALING DEFAULTS

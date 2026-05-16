@@ -14,6 +14,8 @@
 #include "data/level_scaling_rules.h"
 #include "data/level_scaling_evolution_overrides.h"
 #include "data/move_progression_tiers.h"
+#include "data/item_progression_tiers.h"
+#include "data/level_scaling_party_size_tiers.h"
 
 // Party level cache for performance
 static struct {
@@ -100,6 +102,25 @@ static u8 GetPlayerPartyLowestLevel(bool8 excludeFainted)
     return foundMon ? lowest : 1;
 }
 
+static u8 GetPlayerPartySize(bool8 excludeFainted)
+{
+    u8 count = 0;
+    u32 i;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+        if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE)
+            break;
+
+        if (excludeFainted && GetMonData(mon, MON_DATA_HP) == 0)
+            continue;
+
+        count++;
+    }
+
+    return count > 0 ? count : 1;
+}
 
 // ============================================================================
 // Internal Helper Functions - Level Manipulation
@@ -340,6 +361,8 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
         .excludeFainted = B_TRAINER_SCALING_EXCLUDE_FAINTED,
         .scaleEVs = B_TRAINER_SCALING_SCALE_EVS,
         .scaleMoves = B_TRAINER_SCALING_SCALE_MOVES,
+        .scaleItems = B_TRAINER_SCALING_SCALE_ITEMS,
+        .partySizeMode = B_TRAINER_PARTY_SIZE_MODE,
     };
 
     // Check bounds
@@ -366,7 +389,9 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
             config->manageEvolutions == FALSE &&
             config->excludeFainted == FALSE &&
             config->scaleEVs == FALSE &&
-            config->scaleMoves == FALSE)
+            config->scaleMoves == FALSE &&
+            config->scaleItems == FALSE &&
+            config->partySizeMode == PARTY_SIZE_SCALING_INHERIT)
         {
             // All fields zero = undefined entry, use default
             return &sDefaultConfig;
@@ -423,6 +448,8 @@ u8 CalculateWildScaledLevel(u16 species, u8 originalLevel)
         .excludeFainted = B_WILD_SCALING_EXCLUDE_FAINTED,
         .scaleEVs = FALSE,
         .scaleMoves = FALSE,
+        .scaleItems = FALSE,
+        .partySizeMode = PARTY_SIZE_SCALING_NONE,
     };
 
     u8 newLevel = CalculateScaledLevel(&sWildConfig, originalLevel);
@@ -597,6 +624,90 @@ void MaybeFilterTrainerMoves(struct Pokemon *mon, u16 trainerId, u16 scaledSpeci
         u32 pp = (move != MOVE_NONE) ? GetMovePP(move) : 0;
         SetMonData(mon, MON_DATA_MOVE1 + j, &move);
         SetMonData(mon, MON_DATA_PP1 + j, &pp);
+    }
+}
+
+// ============================================================================
+// Party-size scaling
+// ============================================================================
+
+u8 GetScaledTrainerPartySize(u16 trainerId, u8 originalPartySize)
+{
+    const struct LevelScalingConfig *config = GetTrainerLevelScalingConfig(trainerId);
+
+    if (config->mode == LEVEL_SCALING_NONE || originalPartySize <= 1)
+        return originalPartySize;
+
+    // Resolve INHERIT to the global default mode
+    u8 mode = config->partySizeMode;
+    if (mode == PARTY_SIZE_SCALING_INHERIT)
+        mode = B_TRAINER_PARTY_SIZE_MODE;
+
+    u8 cap;
+    switch (mode)
+    {
+        case PARTY_SIZE_SCALING_BY_PLAYER_SIZE:
+            cap = GetPlayerPartySize(config->excludeFainted);
+            break;
+        case PARTY_SIZE_SCALING_BY_PLAYER_LEVEL:
+        {
+            u8 avgLevel = GetPlayerPartyAverageLevel(config->excludeFainted);
+            u32 i;
+            cap = originalPartySize;
+            for (i = 0; i < ARRAY_COUNT(gPartySizeScalingTiers); i++)
+            {
+                if (avgLevel <= gPartySizeScalingTiers[i].maxAvgLevel)
+                {
+                    cap = gPartySizeScalingTiers[i].maxPartySize;
+                    break;
+                }
+            }
+            break;
+        }
+        case PARTY_SIZE_SCALING_NONE:
+        default:
+            return originalPartySize;
+    }
+
+    if (cap < 1)
+        cap = 1;
+    if (cap > originalPartySize)
+        cap = originalPartySize;
+
+    return cap;
+}
+
+// ============================================================================
+// Held item progression gate
+// ============================================================================
+
+bool32 IsItemPermittedAtLevel(u16 item, u8 level)
+{
+    if (item == ITEM_NONE || item >= ITEMS_COUNT)
+        return TRUE;
+
+    u8 tier = gItemProgressionTier[item];
+    switch (tier)
+    {
+        case ITEM_TIER_MID:     return level >= B_ITEM_TIER_MID_MIN_LEVEL;
+        case ITEM_TIER_LATE:    return level >= B_ITEM_TIER_LATE_MIN_LEVEL;
+        case ITEM_TIER_ENDGAME: return level >= B_ITEM_TIER_ENDGAME_MIN_LEVEL;
+        case ITEM_TIER_DEFAULT:
+        default:                return TRUE;
+    }
+}
+
+void MaybeStripTrainerItem(struct Pokemon *mon, u16 trainerId, u8 scaledLevel)
+{
+    const struct LevelScalingConfig *config = GetTrainerLevelScalingConfig(trainerId);
+    if (config->mode == LEVEL_SCALING_NONE || !config->scaleItems)
+        return;
+
+    u16 item = GetMonData(mon, MON_DATA_HELD_ITEM, NULL);
+    if (!IsItemPermittedAtLevel(item, scaledLevel))
+    {
+        u16 none = ITEM_NONE;
+        SetMonData(mon, MON_DATA_HELD_ITEM, &none);
     }
 }
 

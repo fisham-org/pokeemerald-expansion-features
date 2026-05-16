@@ -1956,6 +1956,10 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
             monsCount = trainer->partySize;
         }
 
+        #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
+        monsCount = GetScaledTrainerPartySize(trainerId, monsCount);
+        #endif
+
         u32 monIndices[monsCount];
         DoTrainerPartyPool(trainer, monIndices, monsCount, battleTypeFlags);
 
@@ -2006,6 +2010,7 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
             CreateMon(&party[i], partyData[monIndex].species, partyData[monIndex].lvl, personalityValue, otId);
             #endif
             SetMonData(&party[i], MON_DATA_HELD_ITEM, &partyData[monIndex].heldItem);
+            MaybeStripTrainerItem(&party[i], trainerId, scaledLevel);
 
             CustomTrainerPartyAssignMoves(&party[i], &partyData[monIndex]);
             MaybeFilterTrainerMoves(&party[i], trainerId, scaledSpecies, scaledLevel);
