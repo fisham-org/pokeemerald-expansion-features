@@ -57,6 +57,16 @@
 
 #define B_TRAINER_PARTY_SIZE_MODE           PARTY_SIZE_SCALING_BY_PLAYER_LEVEL
 
+// When the cap reduces a trainer's team, this decides WHICH mons are dropped.
+// BST is evaluated on the FINAL post-scale, post-devolution species. Options:
+//   PARTY_SIZE_SORT_NONE             - Keep pool/declaration order (drop the tail)
+//   PARTY_SIZE_SORT_KEEP_HIGHEST_BST - Drop lowest-BST mons (keep strongest team)
+//   PARTY_SIZE_SORT_KEEP_LOWEST_BST  - Drop highest-BST mons (keep weakest team)
+//   PARTY_SIZE_SORT_RANDOM           - Drop random mons
+// Per-trainer override: .partySizeSort in level_scaling_rules.h (0 = inherit).
+
+#define B_TRAINER_PARTY_SIZE_SORT           PARTY_SIZE_SORT_KEEP_LOWEST_BST
+
 // ============================================================================
 // MOVE / ITEM PROGRESSION TIER THRESHOLDS
 // ============================================================================

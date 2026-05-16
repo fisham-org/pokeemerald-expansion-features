@@ -363,6 +363,7 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
         .scaleMoves = B_TRAINER_SCALING_SCALE_MOVES,
         .scaleItems = B_TRAINER_SCALING_SCALE_ITEMS,
         .partySizeMode = B_TRAINER_PARTY_SIZE_MODE,
+        .partySizeSort = B_TRAINER_PARTY_SIZE_SORT,
     };
 
     // Check bounds
@@ -391,7 +392,8 @@ const struct LevelScalingConfig *GetTrainerLevelScalingConfig(u16 trainerId)
             config->scaleEVs == FALSE &&
             config->scaleMoves == FALSE &&
             config->scaleItems == FALSE &&
-            config->partySizeMode == PARTY_SIZE_SCALING_INHERIT)
+            config->partySizeMode == PARTY_SIZE_SCALING_INHERIT &&
+            config->partySizeSort == PARTY_SIZE_SORT_INHERIT)
         {
             // All fields zero = undefined entry, use default
             return &sDefaultConfig;
@@ -450,6 +452,7 @@ u8 CalculateWildScaledLevel(u16 species, u8 originalLevel)
         .scaleMoves = FALSE,
         .scaleItems = FALSE,
         .partySizeMode = PARTY_SIZE_SCALING_NONE,
+        .partySizeSort = PARTY_SIZE_SORT_NONE,
     };
 
     u8 newLevel = CalculateScaledLevel(&sWildConfig, originalLevel);
@@ -675,6 +678,86 @@ u8 GetScaledTrainerPartySize(u16 trainerId, u8 originalPartySize)
         cap = originalPartySize;
 
     return cap;
+}
+
+static u32 GetSpeciesBST(u16 species)
+{
+    u32 total = 0;
+    u32 i;
+    for (i = 0; i < NUM_STATS; i++)
+        total += GetSpeciesBaseStat(species, i);
+    return total;
+}
+
+// Swap entry a/b across all three parallel arrays so they stay aligned.
+static void SwapPartyEntries(u32 *monIndices, u8 *scaledLevels, u16 *scaledSpecies, u32 a, u32 b)
+{
+    u32 ti = monIndices[a];   monIndices[a]   = monIndices[b];   monIndices[b]   = ti;
+    u8  tl = scaledLevels[a]; scaledLevels[a] = scaledLevels[b]; scaledLevels[b] = tl;
+    u16 ts = scaledSpecies[a];scaledSpecies[a]= scaledSpecies[b];scaledSpecies[b]= ts;
+}
+
+static u8 ResolvePartySizeSort(u16 trainerId)
+{
+    const struct LevelScalingConfig *config = GetTrainerLevelScalingConfig(trainerId);
+    u8 sort = config->partySizeSort;
+    if (sort == PARTY_SIZE_SORT_INHERIT)
+        sort = B_TRAINER_PARTY_SIZE_SORT;
+    return sort;
+}
+
+// TRUE when the resolved sort mode means scaling picks WHICH mons survive
+// (so the caller must hand the full intended team to the pool, then trim).
+// FALSE for NONE — the pool should be asked for the reduced count directly so
+// its Lead/Ace/Doubles rules stay authoritative.
+bool32 ScaledPartySortOverridesPool(u16 trainerId)
+{
+    return ResolvePartySizeSort(trainerId) != PARTY_SIZE_SORT_NONE;
+}
+
+void SelectScaledTrainerParty(u16 trainerId, u32 *monIndices, u8 *scaledLevels,
+                              u16 *scaledSpecies, u8 fullCount, u8 keepCount)
+{
+    if (keepCount >= fullCount)
+        return;
+
+    u8 sort = ResolvePartySizeSort(trainerId);
+
+    if (sort == PARTY_SIZE_SORT_NONE)
+        return; // Keep existing order — caller drops the tail
+
+    if (sort == PARTY_SIZE_SORT_RANDOM)
+    {
+        // Fisher-Yates: a uniform shuffle, caller keeps the first keepCount
+        s32 i;
+        for (i = (s32)fullCount - 1; i > 0; i--)
+        {
+            u32 j = Random() % (i + 1);
+            SwapPartyEntries(monIndices, scaledLevels, scaledSpecies, i, j);
+        }
+        return;
+    }
+
+    // BST sorts: selection sort (n <= 6). KEEP_HIGHEST_BST puts the biggest
+    // BST first (drop the lowest); KEEP_LOWEST_BST puts the smallest first.
+    bool32 highestFirst = (sort == PARTY_SIZE_SORT_KEEP_HIGHEST_BST);
+    u32 i, j;
+    for (i = 0; i < (u32)fullCount - 1; i++)
+    {
+        u32 best = i;
+        u32 bestBST = GetSpeciesBST(scaledSpecies[i]);
+        for (j = i + 1; j < fullCount; j++)
+        {
+            u32 bst = GetSpeciesBST(scaledSpecies[j]);
+            if ((highestFirst && bst > bestBST) || (!highestFirst && bst < bestBST))
+            {
+                best = j;
+                bestBST = bst;
+            }
+        }
+        if (best != i)
+            SwapPartyEntries(monIndices, scaledLevels, scaledSpecies, i, best);
+    }
 }
 
 // ============================================================================
