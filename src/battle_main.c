@@ -1957,32 +1957,20 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
         }
 
         u8 fullCount = monsCount;
-        u8 poolCount = monsCount;
-        #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
-        monsCount = GetScaledTrainerPartySize(trainerId, fullCount);
-        poolCount = monsCount;
-        // When a BST/random sort is chosen, we deliberately override the pool's
-        // pick: draw the full intended team so the sort can rank all candidates,
-        // then trim. With NONE the pool stays authoritative — ask it for the
-        // reduced count directly so its Lead/Ace/Doubles rules apply as designed.
-        if (monsCount < fullCount && ScaledPartySortOverridesPool(trainerId))
-            poolCount = fullCount;
-        #endif
-
         u32 monIndices[fullCount];
-        DoTrainerPartyPool(trainer, monIndices, poolCount, battleTypeFlags);
+        DoTrainerPartyPool(trainer, monIndices, fullCount, battleTypeFlags);
 
         const struct TrainerMon *partyData = trainer->party;
 
         #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
-        // Precompute the final (post-scale, post-devolution) level/species for
-        // every candidate, then let the trainer's sort mode decide which
-        // `monsCount` survive. Computing once keeps BST selection consistent
-        // with what actually gets created (CalculateScaledLevel uses RNG).
+        // Precompute each drawn mon's final (post-scale, post-devolution)
+        // level/species once — CalculateScaledLevel uses RNG, so recomputing
+        // later would desync from what BST selection saw. SelectScaledTrainerParty
+        // then drops over-BST non-ace mons and applies the party-size cap.
         u8 scaledLevelArr[fullCount];
         u16 scaledSpeciesArr[fullCount];
         const struct LevelScalingConfig *psConfig = GetTrainerLevelScalingConfig(trainerId);
-        for (i = 0; i < poolCount; i++)
+        for (i = 0; i < fullCount; i++)
         {
             u32 mi = monIndices[i];
             if (psConfig->mode != LEVEL_SCALING_NONE)
@@ -1996,8 +1984,8 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
                 scaledSpeciesArr[i] = partyData[mi].species;
             }
         }
-        if (monsCount < poolCount)
-            SelectScaledTrainerParty(trainerId, monIndices, scaledLevelArr, scaledSpeciesArr, poolCount, monsCount);
+        if (psConfig->mode != LEVEL_SCALING_NONE)
+            monsCount = SelectScaledTrainerParty(trainer, trainerId, monIndices, scaledLevelArr, scaledSpeciesArr, fullCount);
         #endif
 
         for (i = 0; i < monsCount; i++)

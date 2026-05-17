@@ -12,9 +12,9 @@ struct Pokemon;
 enum MoveProgressionTier
 {
     MOVE_TIER_DEFAULT = 0,  // Always allowed (no gate)
-    MOVE_TIER_MID,          // Allowed at >= B_MOVE_TIER_MID_MIN_LEVEL
-    MOVE_TIER_LATE,         // Allowed at >= B_MOVE_TIER_LATE_MIN_LEVEL
-    MOVE_TIER_ENDGAME,      // Allowed at >= B_MOVE_TIER_ENDGAME_MIN_LEVEL
+    MOVE_TIER_MID,          // Allowed at >= B_SCALING_TIER_MID_MIN_LEVEL
+    MOVE_TIER_LATE,         // Allowed at >= B_SCALING_TIER_LATE_MIN_LEVEL
+    MOVE_TIER_ENDGAME,      // Allowed at >= B_SCALING_TIER_ENDGAME_MIN_LEVEL
 };
 
 // Item progression tier — gates which held items trainer mons can carry at low
@@ -22,9 +22,9 @@ enum MoveProgressionTier
 enum ItemProgressionTier
 {
     ITEM_TIER_DEFAULT = 0,  // Always allowed (no gate)
-    ITEM_TIER_MID,          // Allowed at >= B_ITEM_TIER_MID_MIN_LEVEL
-    ITEM_TIER_LATE,         // Allowed at >= B_ITEM_TIER_LATE_MIN_LEVEL
-    ITEM_TIER_ENDGAME,      // Allowed at >= B_ITEM_TIER_ENDGAME_MIN_LEVEL
+    ITEM_TIER_MID,          // Allowed at >= B_SCALING_TIER_MID_MIN_LEVEL
+    ITEM_TIER_LATE,         // Allowed at >= B_SCALING_TIER_LATE_MIN_LEVEL
+    ITEM_TIER_ENDGAME,      // Allowed at >= B_SCALING_TIER_ENDGAME_MIN_LEVEL
 };
 
 enum LevelScalingMode
@@ -47,8 +47,7 @@ enum PartySizeScalingMode
 };
 
 // When party-size scaling reduces a trainer's team, this decides WHICH mons are
-// dropped. BST is evaluated on the FINAL (post-scale, post-devolution) species.
-// INHERIT (0) falls back to the global B_TRAINER_PARTY_SIZE_SORT default.
+// dropped. INHERIT (0) falls back to the global B_TRAINER_PARTY_SIZE_SORT default.
 enum PartySizeSortMode
 {
     PARTY_SIZE_SORT_INHERIT = 0,        // Per-trainer: use global default
@@ -183,18 +182,13 @@ void MaybeFilterTrainerMoves(struct Pokemon *mon, u16 trainerId, u16 scaledSpeci
 // Resolve the scaled party size for a trainer (clamped to [1, originalPartySize]).
 u8 GetScaledTrainerPartySize(u16 trainerId, u8 originalPartySize);
 
-// Reorder the parallel arrays (monIndices/scaledLevels/scaledSpecies, all of
-// length fullCount) so the `keepCount` mons to actually field come first, per
-// the trainer's resolved PartySizeSortMode. BST is read from scaledSpecies, so
-// callers must pass POST-scale, POST-devolution species. No-op if the sort
-// mode resolves to NONE or keepCount >= fullCount.
-void SelectScaledTrainerParty(u16 trainerId, u32 *monIndices, u8 *scaledLevels,
-                              u16 *scaledSpecies, u8 fullCount, u8 keepCount);
-
-// TRUE if the trainer's resolved sort mode overrides pool selection (BST/random),
-// meaning the full intended team must be drawn from the pool then trimmed.
-// FALSE for NONE — request the reduced count from the pool directly.
-bool32 ScaledPartySortOverridesPool(u16 trainerId);
+// Decide which of the `fullCount` drawn mons the trainer actually fields.
+// Drops non-ace mons whose post-scale BST exceeds the level's tier ceiling,
+// then applies the party-size cap using the resolved PartySizeSortMode (ace
+// mons are always kept). The three parallel arrays (monIndices/scaledLevels/
+// scaledSpecies) are reordered so the kept team occupies [0, return value).
+u8 SelectScaledTrainerParty(const struct Trainer *trainer, u16 trainerId,
+                            u32 *monIndices, u8 *scaledLevels, u16 *scaledSpecies, u8 fullCount);
 
 // TRUE if a held item is permitted at the given scaled level (per its progression tier).
 bool32 IsItemPermittedAtLevel(u16 item, u8 level);
@@ -214,8 +208,7 @@ static inline bool32 TryApplyScaledTrainerEVs(struct Pokemon *mon, const u8 *bas
 static inline bool32 IsMovePermittedAtLevel(u16 move, u8 level) { return TRUE; }
 static inline void MaybeFilterTrainerMoves(struct Pokemon *mon, u16 trainerId, u16 scaledSpecies, u8 scaledLevel) { }
 static inline u8 GetScaledTrainerPartySize(u16 trainerId, u8 originalPartySize) { return originalPartySize; }
-static inline void SelectScaledTrainerParty(u16 trainerId, u32 *monIndices, u8 *scaledLevels, u16 *scaledSpecies, u8 fullCount, u8 keepCount) { }
-static inline bool32 ScaledPartySortOverridesPool(u16 trainerId) { return FALSE; }
+static inline u8 SelectScaledTrainerParty(const struct Trainer *trainer, u16 trainerId, u32 *monIndices, u8 *scaledLevels, u16 *scaledSpecies, u8 fullCount) { return fullCount; }
 static inline bool32 IsItemPermittedAtLevel(u16 item, u8 level) { return TRUE; }
 static inline void MaybeStripTrainerItem(struct Pokemon *mon, u16 trainerId, u8 scaledLevel) { }
 

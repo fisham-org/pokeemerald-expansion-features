@@ -6,6 +6,7 @@
 #include "caps.h"
 #include "random.h"
 #include "pokemon_storage_system.h"
+#include "trainer_pools.h"
 #include "constants/trainers.h"
 #include "constants/pokemon.h"
 
@@ -526,9 +527,9 @@ bool32 IsMovePermittedAtLevel(u16 move, u8 level)
     u8 tier = gMoveProgressionTier[move];
     switch (tier)
     {
-        case MOVE_TIER_MID:     return level >= B_MOVE_TIER_MID_MIN_LEVEL;
-        case MOVE_TIER_LATE:    return level >= B_MOVE_TIER_LATE_MIN_LEVEL;
-        case MOVE_TIER_ENDGAME: return level >= B_MOVE_TIER_ENDGAME_MIN_LEVEL;
+        case MOVE_TIER_MID:     return level >= B_SCALING_TIER_MID_MIN_LEVEL;
+        case MOVE_TIER_LATE:    return level >= B_SCALING_TIER_LATE_MIN_LEVEL;
+        case MOVE_TIER_ENDGAME: return level >= B_SCALING_TIER_ENDGAME_MIN_LEVEL;
         case MOVE_TIER_DEFAULT:
         default:                return TRUE;
     }
@@ -680,23 +681,6 @@ u8 GetScaledTrainerPartySize(u16 trainerId, u8 originalPartySize)
     return cap;
 }
 
-static u32 GetSpeciesBST(u16 species)
-{
-    u32 total = 0;
-    u32 i;
-    for (i = 0; i < NUM_STATS; i++)
-        total += GetSpeciesBaseStat(species, i);
-    return total;
-}
-
-// Swap entry a/b across all three parallel arrays so they stay aligned.
-static void SwapPartyEntries(u32 *monIndices, u8 *scaledLevels, u16 *scaledSpecies, u32 a, u32 b)
-{
-    u32 ti = monIndices[a];   monIndices[a]   = monIndices[b];   monIndices[b]   = ti;
-    u8  tl = scaledLevels[a]; scaledLevels[a] = scaledLevels[b]; scaledLevels[b] = tl;
-    u16 ts = scaledSpecies[a];scaledSpecies[a]= scaledSpecies[b];scaledSpecies[b]= ts;
-}
-
 static u8 ResolvePartySizeSort(u16 trainerId)
 {
     const struct LevelScalingConfig *config = GetTrainerLevelScalingConfig(trainerId);
@@ -706,58 +690,162 @@ static u8 ResolvePartySizeSort(u16 trainerId)
     return sort;
 }
 
-// TRUE when the resolved sort mode means scaling picks WHICH mons survive
-// (so the caller must hand the full intended team to the pool, then trim).
-// FALSE for NONE — the pool should be asked for the reduced count directly so
-// its Lead/Ace/Doubles rules stay authoritative.
-bool32 ScaledPartySortOverridesPool(u16 trainerId)
+static u32 GetSpeciesBST(u16 species)
 {
-    return ResolvePartySizeSort(trainerId) != PARTY_SIZE_SORT_NONE;
+    u32 total = 0;
+    u32 i;
+    for (i = 0; i < NUM_STATS; i++)
+        total += GetSpeciesBaseStat(species, i);
+    return total;
 }
 
-void SelectScaledTrainerParty(u16 trainerId, u32 *monIndices, u8 *scaledLevels,
-                              u16 *scaledSpecies, u8 fullCount, u8 keepCount)
+// BST ceiling for a scaled level, per the shared tier-threshold bands.
+static u32 GetMaxBstForLevel(u8 level)
 {
-    if (keepCount >= fullCount)
-        return;
+    if (level < B_SCALING_TIER_MID_MIN_LEVEL)
+        return B_SCALING_BST_BELOW_MID;
+    if (level < B_SCALING_TIER_LATE_MIN_LEVEL)
+        return B_SCALING_BST_MID;
+    if (level < B_SCALING_TIER_ENDGAME_MIN_LEVEL)
+        return B_SCALING_BST_LATE;
+    return B_SCALING_BST_ABOVE_ENDGAME;
+}
 
-    u8 sort = ResolvePartySizeSort(trainerId);
+// Swap entry a/b across the three parallel arrays so they stay aligned.
+static void SwapPartyEntries(u32 *mi, u8 *lv, u16 *sp, u32 a, u32 b)
+{
+    u32 ti = mi[a]; mi[a] = mi[b]; mi[b] = ti;
+    u8  tl = lv[a]; lv[a] = lv[b]; lv[b] = tl;
+    u16 ts = sp[a]; sp[a] = sp[b]; sp[b] = ts;
+}
 
-    if (sort == PARTY_SIZE_SORT_NONE)
-        return; // Keep existing order — caller drops the tail
+u8 SelectScaledTrainerParty(const struct Trainer *trainer, u16 trainerId,
+                            u32 *monIndices, u8 *scaledLevels, u16 *scaledSpecies, u8 fullCount)
+{
+    if (fullCount == 0)
+        return 0;
 
-    if (sort == PARTY_SIZE_SORT_RANDOM)
+    u32 keptMi[PARTY_SIZE];
+    u8  keptLv[PARTY_SIZE];
+    u16 keptSp[PARTY_SIZE];
+    bool8 keptAce[PARTY_SIZE];
+    u8 kept = 0;
+    u32 lowestBst = 0xFFFFFFFF;
+    u8 lowestIdx = 0;
+    u32 i;
+
+    // BST filter: keep ace mons according to config, others only if their scaled
+    // BST is within the level's tier ceiling. Track the single lowest-BST mon
+    // as a floor so the trainer never fields an empty team.
+    for (i = 0; i < fullCount; i++)
     {
-        // Fisher-Yates: a uniform shuffle, caller keeps the first keepCount
-        s32 i;
-        for (i = (s32)fullCount - 1; i > 0; i--)
+        u32 bst = GetSpeciesBST(scaledSpecies[i]);
+        bool32 isAce = B_TRAINER_PARTY_ACE_EXEMPT
+                    && (trainer->party[monIndices[i]].tags & MON_POOL_TAG_ACE) != 0;
+
+        if (bst < lowestBst)
         {
-            u32 j = Random() % (i + 1);
-            SwapPartyEntries(monIndices, scaledLevels, scaledSpecies, i, j);
+            lowestBst = bst;
+            lowestIdx = i;
         }
-        return;
+        if (isAce || bst <= GetMaxBstForLevel(scaledLevels[i]))
+        {
+            keptMi[kept] = monIndices[i];
+            keptLv[kept] = scaledLevels[i];
+            keptSp[kept] = scaledSpecies[i];
+            keptAce[kept] = isAce;
+            kept++;
+        }
     }
 
-    // BST sorts: selection sort (n <= 6). KEEP_HIGHEST_BST puts the biggest
-    // BST first (drop the lowest); KEEP_LOWEST_BST puts the smallest first.
-    bool32 highestFirst = (sort == PARTY_SIZE_SORT_KEEP_HIGHEST_BST);
-    u32 i, j;
-    for (i = 0; i < (u32)fullCount - 1; i++)
+    if (kept == 0)
     {
-        u32 best = i;
-        u32 bestBST = GetSpeciesBST(scaledSpecies[i]);
-        for (j = i + 1; j < fullCount; j++)
+        monIndices[0] = monIndices[lowestIdx];
+        scaledLevels[0] = scaledLevels[lowestIdx];
+        scaledSpecies[0] = scaledSpecies[lowestIdx];
+        return 1;
+    }
+
+    // Reassemble: ace mons first (kept order), then the rest (kept order).
+    u32 oMi[PARTY_SIZE];
+    u8  oLv[PARTY_SIZE];
+    u16 oSp[PARTY_SIZE];
+    u8 o = 0, aceCount = 0;
+
+    for (i = 0; i < kept; i++)
+    {
+        if (keptAce[i])
         {
-            u32 bst = GetSpeciesBST(scaledSpecies[j]);
-            if ((highestFirst && bst > bestBST) || (!highestFirst && bst < bestBST))
+            oMi[o] = keptMi[i]; oLv[o] = keptLv[i]; oSp[o] = keptSp[i];
+            o++; aceCount++;
+        }
+    }
+    for (i = 0; i < kept; i++)
+    {
+        if (!keptAce[i])
+        {
+            oMi[o] = keptMi[i]; oLv[o] = keptLv[i]; oSp[o] = keptSp[i];
+            o++;
+        }
+    }
+
+    u8 cap = GetScaledTrainerPartySize(trainerId, kept);
+    if (cap < aceCount)
+        cap = aceCount;     // never drop an ace to satisfy the cap
+    if (cap > kept)
+        cap = kept;
+
+    // Order the non-ace remainder per the sort mode before truncating.
+    if (cap < kept)
+    {
+        u32 n = kept - aceCount;
+        u32 *mi = oMi + aceCount;
+        u8  *lv = oLv + aceCount;
+        u16 *sp = oSp + aceCount;
+        u8 sort = ResolvePartySizeSort(trainerId);
+
+        if (sort == PARTY_SIZE_SORT_RANDOM)
+        {
+            s32 k;
+            for (k = (s32)n - 1; k > 0; k--)
             {
-                best = j;
-                bestBST = bst;
+                u32 j = Random() % (k + 1);
+                SwapPartyEntries(mi, lv, sp, k, j);
             }
         }
-        if (best != i)
-            SwapPartyEntries(monIndices, scaledLevels, scaledSpecies, i, best);
+        else if (sort == PARTY_SIZE_SORT_KEEP_HIGHEST_BST || sort == PARTY_SIZE_SORT_KEEP_LOWEST_BST)
+        {
+            // Selection sort (n <= 6). HIGHEST puts biggest-BST first (drop the
+            // lowest); LOWEST puts smallest first (drop the highest).
+            bool32 highestFirst = (sort == PARTY_SIZE_SORT_KEEP_HIGHEST_BST);
+            u32 a, b;
+            for (a = 0; a + 1 < n; a++)
+            {
+                u32 best = a;
+                u32 bestBst = GetSpeciesBST(sp[a]);
+                for (b = a + 1; b < n; b++)
+                {
+                    u32 v = GetSpeciesBST(sp[b]);
+                    if ((highestFirst && v > bestBst) || (!highestFirst && v < bestBst))
+                    {
+                        best = b;
+                        bestBst = v;
+                    }
+                }
+                if (best != a)
+                    SwapPartyEntries(mi, lv, sp, a, best);
+            }
+        }
+        // PARTY_SIZE_SORT_NONE: keep order, drop the tail.
     }
+
+    for (i = 0; i < cap; i++)
+    {
+        monIndices[i] = oMi[i];
+        scaledLevels[i] = oLv[i];
+        scaledSpecies[i] = oSp[i];
+    }
+    return cap;
 }
 
 // ============================================================================
@@ -772,9 +860,9 @@ bool32 IsItemPermittedAtLevel(u16 item, u8 level)
     u8 tier = gItemProgressionTier[item];
     switch (tier)
     {
-        case ITEM_TIER_MID:     return level >= B_ITEM_TIER_MID_MIN_LEVEL;
-        case ITEM_TIER_LATE:    return level >= B_ITEM_TIER_LATE_MIN_LEVEL;
-        case ITEM_TIER_ENDGAME: return level >= B_ITEM_TIER_ENDGAME_MIN_LEVEL;
+        case ITEM_TIER_MID:     return level >= B_SCALING_TIER_MID_MIN_LEVEL;
+        case ITEM_TIER_LATE:    return level >= B_SCALING_TIER_LATE_MIN_LEVEL;
+        case ITEM_TIER_ENDGAME: return level >= B_SCALING_TIER_ENDGAME_MIN_LEVEL;
         case ITEM_TIER_DEFAULT:
         default:                return TRUE;
     }
