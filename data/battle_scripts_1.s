@@ -2881,7 +2881,25 @@ BattleScript_LocalBattleWonReward::
 BattleScript_PayDayMoneyAndPickUpItems::
 	givepaydaymoney
 	pickup
+	callnative BS_TryGiveWildItemReward
 	end2
+
+BattleScript_WildItemReward::
+	printstring STRINGID_RECEIVEDWILDITEM
+	waitmessage B_WAIT_TIME_LONG
+	return
+
+BattleScript_WildItemRewardDoubled::
+	printstring STRINGID_RECEIVEDWILDITEM
+	waitmessage B_WAIT_TIME_LONG
+	jumpifbyte CMP_EQUAL, cMULTISTRING_CHOOSER, 0, BattleScript_WildItemRewardExtraOne
+	printstring STRINGID_WILDITEMREWARDEXTRAMANY
+	goto BattleScript_WildItemRewardDoubledEnd
+BattleScript_WildItemRewardExtraOne::
+	printstring STRINGID_WILDITEMREWARDEXTRAONE
+BattleScript_WildItemRewardDoubledEnd::
+	waitmessage B_WAIT_TIME_LONG
+	return
 
 BattleScript_RivalBattleLost::
 	jumpifhasnohp BS_ATTACKER, BattleScript_RivalBattleLostSkipMonRecall

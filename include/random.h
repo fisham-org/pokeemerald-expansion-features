@@ -160,6 +160,9 @@ enum RandomTag
     RNG_SECONDARY_EFFECT_3,
     RNG_SHED_SKIN,
     RNG_SLEEP_TURNS,
+    RNG_WILD_ITEM_REWARD,        // drop-chance gate
+    RNG_WILD_ITEM_REWARD_SELECT, // double-battle target pick and pool entry pick
+    RNG_WILD_ITEM_REWARD_DOUBLE, // overflow-doubling roll (WILD_ITEM_DROP_OVERFLOW_DOUBLES)
     RNG_TAUNT_TURNS,
     RNG_ENCORE_TURNS,
     RNG_SPEED_TIE,
