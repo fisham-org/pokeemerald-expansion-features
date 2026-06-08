@@ -1149,5 +1149,9 @@
 #define WILD_ITEM_DROPS TRUE
 #undef WILD_ITEM_DROP_OVERFLOW_DOUBLES
 #define WILD_ITEM_DROP_OVERFLOW_DOUBLES TRUE
+// Pinned >100 so the boost/overflow-doubling tests are deterministic regardless
+// of the production default in config/wild_item_reward.h.
+#undef WILD_ITEM_DROP_ABILITY_MULTIPLIER
+#define WILD_ITEM_DROP_ABILITY_MULTIPLIER 150
 
 #endif // GUARD_CONFIG_TEST_H

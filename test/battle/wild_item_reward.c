@@ -62,7 +62,7 @@ WILD_BATTLE_TEST("Wild item reward: overflow chance can double the awarded items
         TURN { MOVE(player, MOVE_TACKLE); }
     } SCENE {
         MESSAGE("You obtained Rare Candy!");
-        MESSAGE("Venonat found an extra Rare Candy!");
+        MESSAGE("Venonat found an extra Rare Candy (x1)!");
     }
 }
 

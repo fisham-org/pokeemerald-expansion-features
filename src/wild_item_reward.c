@@ -8,7 +8,6 @@
 #include "wild_item_reward.h"
 #include "constants/abilities.h"
 #include "constants/battle.h"
-#include "constants/battle_script_commands.h"
 #include "constants/items.h"
 #include "constants/species.h"
 
@@ -138,7 +137,6 @@ static enum WildItemRewardResult TryGiveWildItemReward(void)
     AddBagItem(drop->item, extraQuantity);
     PREPARE_MON_NICK_WITH_PREFIX_BUFFER(gBattleTextBuff2, GetBattlerAtPosition(B_POSITION_PLAYER_LEFT), 0);
     PREPARE_HWORD_NUMBER_BUFFER(gBattleTextBuff3, 3, extraQuantity);
-    gBattleCommunication[MULTISTRING_CHOOSER] = (extraQuantity == 1) ? 0 : 1;
     return WILD_ITEM_REWARD_DOUBLED;
 }
 

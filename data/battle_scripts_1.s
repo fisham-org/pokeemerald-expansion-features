@@ -2892,12 +2892,7 @@ BattleScript_WildItemReward::
 BattleScript_WildItemRewardDoubled::
 	printstring STRINGID_RECEIVEDWILDITEM
 	waitmessage B_WAIT_TIME_LONG
-	jumpifbyte CMP_EQUAL, cMULTISTRING_CHOOSER, 0, BattleScript_WildItemRewardExtraOne
-	printstring STRINGID_WILDITEMREWARDEXTRAMANY
-	goto BattleScript_WildItemRewardDoubledEnd
-BattleScript_WildItemRewardExtraOne::
-	printstring STRINGID_WILDITEMREWARDEXTRAONE
-BattleScript_WildItemRewardDoubledEnd::
+	printstring STRINGID_WILDITEMREWARDEXTRA
 	waitmessage B_WAIT_TIME_LONG
 	return
 
