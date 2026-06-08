@@ -1567,6 +1567,18 @@
 #define FLAG_UNUSED_0x91E                           (SYSTEM_FLAGS + 0xBE) // Unused Flag
 #define FLAG_UNUSED_0x91F                           (SYSTEM_FLAGS + 0xBF) // Unused Flag
 
+// TM crafting recipe-unlock flags (reuse the 0x900+ unused range). A recipe in
+// src/data/tm_crafting.h becomes craftable once its flag is set (or always, if
+// its unlockFlag is 0 / TM_CRAFTING_UNLOCK_ALL is enabled).
+#define FLAG_TM_RECIPE_1                            FLAG_UNUSED_0x900
+#define FLAG_TM_RECIPE_2                            FLAG_UNUSED_0x901
+#define FLAG_TM_RECIPE_3                            FLAG_UNUSED_0x902
+#define FLAG_TM_RECIPE_4                            FLAG_UNUSED_0x903
+#define FLAG_TM_RECIPE_5                            FLAG_UNUSED_0x904
+#define FLAG_TM_RECIPE_6                            FLAG_UNUSED_0x905
+#define FLAG_TM_RECIPE_7                            FLAG_UNUSED_0x906
+#define FLAG_TM_RECIPE_8                            FLAG_UNUSED_0x907
+
 // Daily Flags
 // These flags are cleared once per day
 // The start and end are byte-aligned because the flags are cleared in byte increments

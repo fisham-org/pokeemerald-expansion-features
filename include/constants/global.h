@@ -29,6 +29,7 @@
 #include "config/overworld.h"
 #include "config/pokemon.h"
 #include "config/summary_screen.h"
+#include "config/tm_crafting.h"
 #include "config/wild_encounter.h"
 #include "config/wild_item_reward.h"
 

@@ -7241,6 +7241,111 @@ const struct ItemInfo gItemsInfo[] =
         .iconPalette = gItemIconPalette_Glimmoranite,
     },
 
+// TM crafting materials. One item per consolidated Scarlet/Violet material
+// category.
+// NOTE: all share a placeholder icon for now; per-material art is a follow-up.
+#define MATERIAL_ITEM_FIELDS                       \
+    .price = 200,                                  \
+    .pocket = POCKET_ITEMS,                        \
+    .sortType = ITEM_TYPE_SELLABLE,                \
+    .type = ITEM_USE_BAG_MENU,                     \
+    .fieldUseFunc = ItemUseOutOfBattle_CannotUse,  \
+    .iconPic = gItemIcon_Nugget,                   \
+    .iconPalette = gItemIconPalette_Nugget
+
+    [ITEM_MATERIAL_FUR] =
+    {
+        .name = ITEM_NAME("Fur Tuft"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial made of\nsoft fur."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_FEATHER] =
+    {
+        .name = ITEM_NAME("Feather"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. A light,\nfluffy feather."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_SCALES] =
+    {
+        .name = ITEM_NAME("Scales"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. Shed\nPokémon scales."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_FANG] =
+    {
+        .name = ITEM_NAME("Sharp Fang"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. A fang,\nclaw, or spike."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_SHELL] =
+    {
+        .name = ITEM_NAME("Shell Bit"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. A piece\nof hard shell."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_GOO] =
+    {
+        .name = ITEM_NAME("Sticky Goo"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. Thick,\nsticky goo."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_POWDER] =
+    {
+        .name = ITEM_NAME("Fine Powder"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. Fine\npowder or dust."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_GAS] =
+    {
+        .name = ITEM_NAME("Gas Sac"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial holding\nstrange gas."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_SPARK] =
+    {
+        .name = ITEM_NAME("Spark Sac"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial that\ncrackles with\nstatic."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_LEAF] =
+    {
+        .name = ITEM_NAME("Leaf"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. Plant\nmatter."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_MINERAL] =
+    {
+        .name = ITEM_NAME("Mineral"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. A chunk\nof rock or ore."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_METAL] =
+    {
+        .name = ITEM_NAME("Metal Bit"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. Scrap\nof worked metal."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_SILK] =
+    {
+        .name = ITEM_NAME("Silk Thread"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. Strong\nspun silk."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_TOXIN] =
+    {
+        .name = ITEM_NAME("Toxin"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. A vial\nof toxins."),
+        MATERIAL_ITEM_FIELDS,
+    },
+    [ITEM_MATERIAL_ODDMENT] =
+    {
+        .name = ITEM_NAME("Oddment"),
+        .description = COMPOUND_STRING("A TM crafting\nmaterial. An odd\nleftover trinket."),
+        MATERIAL_ITEM_FIELDS,
+    },
+
+#undef MATERIAL_ITEM_FIELDS
+
 // Gems
     #if I_PRICE >= GEN_9
         #define GEM_PRICE 15000

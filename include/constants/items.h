@@ -1052,6 +1052,24 @@ enum __attribute__((packed)) Item
     ITEM_TATSUGIRINITE = 872,
     ITEM_GLIMMORANITE = 873,
 
+    // TM crafting materials (Scarlet/Violet-style), one item per consolidated
+    // category. See notes/feature-wild-item-reward/sv-material-categories.md.
+    ITEM_MATERIAL_FUR = 874,
+    ITEM_MATERIAL_FEATHER = 875,
+    ITEM_MATERIAL_SCALES = 876,
+    ITEM_MATERIAL_FANG = 877,
+    ITEM_MATERIAL_SHELL = 878,
+    ITEM_MATERIAL_GOO = 879,
+    ITEM_MATERIAL_POWDER = 880,
+    ITEM_MATERIAL_GAS = 881,
+    ITEM_MATERIAL_SPARK = 882,
+    ITEM_MATERIAL_LEAF = 883,
+    ITEM_MATERIAL_MINERAL = 884,
+    ITEM_MATERIAL_METAL = 885,
+    ITEM_MATERIAL_SILK = 886,
+    ITEM_MATERIAL_TOXIN = 887,
+    ITEM_MATERIAL_ODDMENT = 888,
+
     ITEMS_COUNT,
     ITEM_FIELD_ARROW = ITEMS_COUNT,
 };

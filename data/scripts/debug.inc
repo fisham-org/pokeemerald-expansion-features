@@ -201,12 +201,40 @@ Debug_EventScript_Text_DefensiveIVs:
 	.string "HP IVs: {STR_VAR_1}, DEF IVs: {STR_VAR_2}, SPDEF IVs: {STR_VAR_3}$"
 
 Debug_EventScript_Script_1::
-	release
-	end
+	goto TMCrafting_EventScript_Loop
 
 Debug_EventScript_Script_2::
-	release
+	lockall
+	setflag FLAG_TM_RECIPE_1
+	setflag FLAG_TM_RECIPE_2
+	setflag FLAG_TM_RECIPE_3
+	setflag FLAG_TM_RECIPE_4
+	setflag FLAG_TM_RECIPE_5
+	setflag FLAG_TM_RECIPE_6
+	setflag FLAG_TM_RECIPE_7
+	setflag FLAG_TM_RECIPE_8
+	additem ITEM_MATERIAL_FUR, 50
+	additem ITEM_MATERIAL_FEATHER, 50
+	additem ITEM_MATERIAL_SCALES, 50
+	additem ITEM_MATERIAL_FANG, 50
+	additem ITEM_MATERIAL_SHELL, 50
+	additem ITEM_MATERIAL_GOO, 50
+	additem ITEM_MATERIAL_POWDER, 50
+	additem ITEM_MATERIAL_GAS, 50
+	additem ITEM_MATERIAL_SPARK, 50
+	additem ITEM_MATERIAL_LEAF, 50
+	additem ITEM_MATERIAL_MINERAL, 50
+	additem ITEM_MATERIAL_METAL, 50
+	additem ITEM_MATERIAL_SILK, 50
+	additem ITEM_MATERIAL_TOXIN, 50
+	additem ITEM_MATERIAL_ODDMENT, 50
+	addmoney 999999
+	msgbox Debug_EventScript_Text_TMCraftSetup, MSGBOX_DEFAULT
+	releaseall
 	end
+
+Debug_EventScript_Text_TMCraftSetup:
+	.string "Unlocked all TM recipes, gave 50\nof each material, and maxed money!$"
 
 Debug_EventScript_Script_3::
 	release

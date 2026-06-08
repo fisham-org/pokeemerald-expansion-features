@@ -1145,6 +1145,11 @@
 //  Move animation testing
 #define T_SHOULD_RUN_MOVE_ANIM  FALSE       //  If TRUE, enables the move animation tests, these are very computationally heavy and takes a long time to run.
 
+#undef TM_CRAFTING
+#define TM_CRAFTING TRUE
+#undef TM_CRAFTING_UNLOCK_ALL
+#define TM_CRAFTING_UNLOCK_ALL TRUE
+
 #undef WILD_ITEM_DROPS
 #define WILD_ITEM_DROPS TRUE
 #undef WILD_ITEM_DROP_OVERFLOW_DOUBLES

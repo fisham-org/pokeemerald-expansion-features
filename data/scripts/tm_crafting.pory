@@ -1,0 +1,54 @@
+// TM crafting machine (prototype). See include/config/tm_crafting.h (TM_CRAFTING),
+// the recipe table in src/data/tm_crafting.h, and src/tm_crafting.c for the logic.
+//
+// To use: point an object event's script at TMCrafting_EventScript_Machine (in
+// Porymap), or `call(TMCrafting_EventScript_Machine)` from any other script.
+//
+// The VAR_RESULT cases below mirror enum TMCraftResult in include/tm_crafting.h:
+//   0 = success, 1 = no materials, 2 = no money, 3 = no bag space.
+
+script TMCrafting_EventScript_Machine {
+    lock
+    faceplayer
+    msgbox(format("This is the TM Machine. Shall I craft a TM for you?"))
+    goto(TMCrafting_EventScript_Loop)
+}
+
+script TMCrafting_EventScript_Loop {
+    // Builds the dynamic list of unlocked recipes; VAR_RESULT = how many.
+    callnative(TMCrafting_BuildList)
+    if (var(VAR_RESULT) == 0) {
+        msgbox(format("There are no TM recipes available right now."))
+        goto(TMCrafting_EventScript_Done)
+    }
+    // VAR_RESULT becomes the chosen TM's item id (or a cancel sentinel).
+    dynmultistack(0, 0, FALSE, 6, FALSE, 0, DYN_MULTICHOICE_CB_SHOW_ITEM)
+    // Resolves the choice to a recipe and buffers its details. VAR_RESULT = TRUE/FALSE.
+    callnative(TMCrafting_PrepareSelection)
+    if (var(VAR_RESULT) == FALSE) {
+        goto(TMCrafting_EventScript_Done)
+    }
+    msgbox(format("Craft {STR_VAR_1}?\pIt needs {STR_VAR_3}, and costs ¥{STR_VAR_2}."), MSGBOX_YESNO)
+    if (var(VAR_RESULT) == NO) {
+        goto(TMCrafting_EventScript_Loop)
+    }
+    callnative(TMCrafting_TryCraft)
+    switch (var(VAR_RESULT)) {
+        case 0: // TM_CRAFT_SUCCESS
+            playse(SE_SHOP)
+            msgbox(format("Here you go! One {STR_VAR_1}, freshly crafted!"))
+        case 1: // TM_CRAFT_NO_MATERIALS
+            msgbox(format("You don't have the materials needed for {STR_VAR_1}."))
+        case 2: // TM_CRAFT_NO_MONEY
+            msgbox(format("You can't afford to craft {STR_VAR_1}."))
+        case 3: // TM_CRAFT_NO_SPACE
+            msgbox(format("Your Bag has no room for {STR_VAR_1}."))
+    }
+    goto(TMCrafting_EventScript_Loop)
+}
+
+script TMCrafting_EventScript_Done {
+    msgbox(format("Come back anytime!"))
+    release
+    end
+}

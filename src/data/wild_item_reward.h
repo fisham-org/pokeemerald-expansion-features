@@ -28,16 +28,17 @@ static const struct FamilyItemDrop sLechonkTestPool[] =
 //   ...
 //   { SPECIES_LECHONK, sLechonkPool, ARRAY_COUNT(sLechonkPool) },
 
+// Drops are the consolidated TM-crafting category materials (see
+// notes/feature-wild-item-reward/sv-material-categories.md): Poochyena -> Fang,
+// Wurmple -> Silk.
 static const struct FamilyItemDrop sPoochyenaPool[] =
 {
-    { ITEM_POTION,     1 },
-    { ITEM_ORAN_BERRY, 1 },
+    { ITEM_MATERIAL_FANG, 1 },
 };
 
 static const struct FamilyItemDrop sWurmplePool[] =
 {
-    { ITEM_POTION,     1 },
-    { ITEM_ORAN_BERRY, 1 },
+    { ITEM_MATERIAL_SILK, 1 },
 };
 
 const struct FamilyDropPool gFamilyDropPools[] =
