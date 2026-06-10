@@ -24,8 +24,7 @@ struct TMRecipe
 extern const struct TMRecipe gTMRecipes[];
 extern const u32 gTMRecipeCount;
 
-// Status codes written to VAR_RESULT by TMCrafting_TryCraft, matched in the
-// crafting script (data/scripts/tm_crafting.pory).
+// Result of TMCrafting_CheckCraft: whether a recipe can be crafted, or why not.
 enum TMCraftResult
 {
     TM_CRAFT_SUCCESS,
@@ -34,9 +33,12 @@ enum TMCraftResult
     TM_CRAFT_NO_SPACE,
 };
 
-// Script callnative entry points (src/tm_crafting.c).
-void TMCrafting_BuildList(struct ScriptContext *ctx);
-void TMCrafting_PrepareSelection(struct ScriptContext *ctx);
-void TMCrafting_TryCraft(struct ScriptContext *ctx);
+// Shared rules used by both the menu and any script path (src/tm_crafting.c).
+bool32 TMCrafting_RecipeIsUnlocked(const struct TMRecipe *recipe);
+enum TMCraftResult TMCrafting_CheckCraft(const struct TMRecipe *recipe); // no side effects
+void TMCrafting_Craft(const struct TMRecipe *recipe);                    // consumes materials/money, gives the TM
+
+// Opens the full-screen crafting menu (src/tm_crafting_menu.c). Script callnative.
+void TMCrafting_OpenMenu(struct ScriptContext *ctx);
 
 #endif // GUARD_TM_CRAFTING_H
