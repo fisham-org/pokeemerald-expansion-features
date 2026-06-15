@@ -240,8 +240,14 @@ Debug_EventScript_Text_TMCraftSetup:
 	.string "Unlocked all TM recipes, gave 50\nof each material, and maxed money!$"
 
 Debug_EventScript_Script_3::
-	release
+	lockall
+	additem ITEM_TM24, 1
+	msgbox Debug_EventScript_Text_GaveTM24, MSGBOX_DEFAULT
+	releaseall
 	end
+
+Debug_EventScript_Text_GaveTM24:
+	.string "Gave 1 TM24 (Thunderbolt).\nIts crafting recipe is now unlocked!$"
 
 Debug_EventScript_Script_4::
 	release

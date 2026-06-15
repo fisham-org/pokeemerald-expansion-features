@@ -38,6 +38,9 @@ bool32 TMCrafting_RecipeIsUnlocked(const struct TMRecipe *recipe);
 enum TMCraftResult TMCrafting_CheckCraft(const struct TMRecipe *recipe); // no side effects
 void TMCrafting_Craft(const struct TMRecipe *recipe);                    // consumes materials/money, gives the TM
 
+// Unlocks a TM's recipe when that TM is obtained. Hooked into AddBagItem.
+void TMCrafting_OnItemAdded(enum Item itemId);
+
 // Opens the full-screen crafting menu (src/tm_crafting_menu.c). Script callnative.
 void TMCrafting_OpenMenu(struct ScriptContext *ctx);
 

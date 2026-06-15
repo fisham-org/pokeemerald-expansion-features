@@ -16,6 +16,7 @@
 #include "battle_pyramid_bag.h"
 #include "graphics.h"
 #include "shop_criteria.h"
+#include "tm_crafting.h"
 #include "constants/battle.h"
 #include "constants/items.h"
 #include "constants/moves.h"
@@ -357,7 +358,12 @@ bool32 AddBagItem(enum Item itemId, u16 count)
     if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE || FlagGet(FLAG_STORING_ITEMS_IN_PYRAMID_BAG) == TRUE)
         return AddPyramidBagItem(itemId, count);
 
-    return BagPocket_AddItem(&gBagPockets[GetItemPocket(itemId)], itemId, count);
+    if (BagPocket_AddItem(&gBagPockets[GetItemPocket(itemId)], itemId, count))
+    {
+        TMCrafting_OnItemAdded(itemId); // unlock the TM's crafting recipe, if any
+        return TRUE;
+    }
+    return FALSE;
 }
 
 static bool32 NONNULL BagPocket_RemoveItem(struct BagPocket *pocket, enum Item itemId, u16 count)

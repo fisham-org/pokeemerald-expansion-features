@@ -44,3 +44,24 @@ void TMCrafting_Craft(const struct TMRecipe *recipe)
     RemoveMoney(&gSaveBlock1Ptr->money, recipe->cost);
     AddBagItem(recipe->tm, 1);
 }
+
+// Called from AddBagItem whenever an item enters the bag. If the item is a
+// craftable TM, permanently unlocks its recipe so it shows up in the crafting
+// menu. This mirrors Scarlet/Violet: obtaining a TM by any means (shop, gym
+// reward, NPC gift, giveitem) lets you craft it forever after.
+void TMCrafting_OnItemAdded(enum Item itemId)
+{
+    u32 i;
+
+    if (!TM_CRAFTING)
+        return;
+
+    for (i = 0; i < gTMRecipeCount; i++)
+    {
+        if (gTMRecipes[i].tm == itemId && gTMRecipes[i].unlockFlag != 0)
+        {
+            FlagSet(gTMRecipes[i].unlockFlag);
+            return;
+        }
+    }
+}
