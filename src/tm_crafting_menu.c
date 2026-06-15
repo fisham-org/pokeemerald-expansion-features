@@ -11,6 +11,7 @@
 #include "graphics.h"
 #include "item.h"
 #include "item_icon.h"
+#include "line_break.h"
 #include "list_menu.h"
 #include "main.h"
 #include "malloc.h"
@@ -50,7 +51,7 @@
 
 enum { COLORID_NORMAL, COLORID_HAVE, COLORID_LACK };
 
-enum { WIN_MONEY, WIN_LIST, WIN_INFO, WIN_MESSAGE };
+enum { WIN_LIST, WIN_INFO, WIN_MOVE_DESC, WIN_MESSAGE };
 
 // viewport NPC info indices (as in shop.c)
 enum { OBJ_EVENT_ID, X_COORD, Y_COORD, ANIM_NUM, LAYER_TYPE };
@@ -85,6 +86,7 @@ static void Menu_InitWindows(void);
 static void Menu_DrawGraphics(void);
 static void Menu_PrintInfo(s32 id, bool8 onInit, struct ListMenu *list);
 static void Menu_DrawInfoText(s32 id);
+static void Menu_DrawMoveDesc(s32 id);
 static void Menu_RestoreAfterMessage(u8 taskId);
 static void Menu_AddIcon(enum Item item, u8 slot);
 static void Menu_RemoveIcon(u8 slot);
@@ -108,23 +110,16 @@ static bool8 Menu_CheckIfObjectEventOverlapsMenuBg(s16 *object);
 
 static const u8 sText_SpaceSlash[] = _(" ");
 static const u8 sText_Slash[]      = _("/");
-static const u8 sText_Cost[]       = _("Cost ¥");
-static const u8 sText_TypeSep[]    = _(" / ");
-static const u8 sText_CraftQ[]     = _("Craft {STR_VAR_1}?");
+static const u8 sText_CraftQ[]     = _("Crafting {STR_VAR_1} will cost ¥{STR_VAR_2}. Proceed?");
 static const u8 sText_Crafted[]    = _("Here you go! One {STR_VAR_1}!");
 static const u8 sText_NoMats[]     = _("You don't have the materials for {STR_VAR_1}.");
 static const u8 sText_NoMoney[]    = _("You can't afford {STR_VAR_1}.");
 static const u8 sText_NoSpace[]    = _("There's no room for {STR_VAR_1}.");
-static const u8 *const sCategoryNames[] = {
-    [DAMAGE_CATEGORY_PHYSICAL] = COMPOUND_STRING("Physical"),
-    [DAMAGE_CATEGORY_SPECIAL]  = COMPOUND_STRING("Special"),
-    [DAMAGE_CATEGORY_STATUS]   = COMPOUND_STRING("Status"),
-};
 
 static const u8 sTextColors[][3] = {
-    [COLORID_NORMAL] = {1, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_GRAY},
-    [COLORID_HAVE]   = {1, TEXT_COLOR_GREEN,     TEXT_COLOR_LIGHT_GRAY},
-    [COLORID_LACK]   = {1, TEXT_COLOR_RED,       TEXT_COLOR_LIGHT_GRAY},
+    [COLORID_NORMAL] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_GRAY},
+    [COLORID_HAVE]   = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_GREEN,     TEXT_COLOR_LIGHT_GRAY},
+    [COLORID_LACK]   = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_RED,       TEXT_COLOR_LIGHT_GRAY},
 };
 static const u8 sMsgColors[3] = {1, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_GRAY};
 
@@ -136,15 +131,19 @@ static const struct BgTemplate sBgTemplates[] = {
 };
 
 static const struct WindowTemplate sWindowTemplates[] = {
-    [WIN_MONEY]   = { .bg = 0, .tilemapLeft =  1, .tilemapTop =  1, .width = 10, .height = 2,  .paletteNum = 15, .baseBlock = 0x001E },
-    [WIN_LIST]    = { .bg = 0, .tilemapLeft = 14, .tilemapTop =  2, .width = 15, .height = 16, .paletteNum = 15, .baseBlock = 0x0032 },
-    [WIN_INFO]    = { .bg = 0, .tilemapLeft =  0, .tilemapTop = 10, .width = 13, .height = 10, .paletteNum = 15, .baseBlock = 0x0122 },
-    [WIN_MESSAGE] = { .bg = 0, .tilemapLeft =  2, .tilemapTop = 15, .width = 27, .height = 4,  .paletteNum = 15, .baseBlock = 0x01B0 },
+    // baseBlocks start at 0x1E: tiles 1-0x1D are reserved for the window-frame and
+    // message-box gfx loaded in Menu_InitWindows. Starting lower would overwrite them.
+    [WIN_LIST]      = { .bg = 0, .tilemapLeft = 14, .tilemapTop =  2, .width = 15, .height = 16, .paletteNum = 15, .baseBlock = 0x001E },
+    [WIN_INFO]      = { .bg = 0, .tilemapLeft =  0, .tilemapTop = 13, .width = 14, .height =  6, .paletteNum = 15, .baseBlock = 0x010E },
+    // Inner area only; the std frame is drawn in the 1-tile ring around it, so the
+    // visible bordered box spans rows 0-7, cols 0-12 (where the money box used to be).
+    [WIN_MOVE_DESC] = { .bg = 0, .tilemapLeft =  1, .tilemapTop =  1, .width = 11, .height =  6, .paletteNum = 15, .baseBlock = 0x0162 },
+    [WIN_MESSAGE]   = { .bg = 0, .tilemapLeft =  2, .tilemapTop = 15, .width = 27, .height =  4, .paletteNum = 15, .baseBlock = 0x01A4 },
     DUMMY_WIN_TEMPLATE,
 };
 
 static const struct WindowTemplate sYesNoWindowTemplate = {
-    .bg = 0, .tilemapLeft = 21, .tilemapTop = 9, .width = 5, .height = 4, .paletteNum = 15, .baseBlock = 0x0250,
+    .bg = 0, .tilemapLeft = 21, .tilemapTop = 9, .width = 5, .height = 4, .paletteNum = 15, .baseBlock = 0x0210,
 };
 
 static const struct YesNoFuncTable sCraftYesNoFuncs = { .yesFunc = ConfirmYes, .noFunc = ConfirmNo };
@@ -236,8 +235,8 @@ static void Menu_AddIcon(enum Item item, u8 slot)
     {
         *idPtr = spriteId;
         gSprites[spriteId].oam.priority = 0; // draw in front of the info panel
-        gSprites[spriteId].x2 = 84;          // bottom-right of the info panel
-        gSprites[spriteId].y2 = 140;
+        gSprites[spriteId].x2 = 24;          // shop graphic's baked icon box (mid-left)
+        gSprites[spriteId].y2 = 88;
     }
 }
 
@@ -273,12 +272,13 @@ static void Menu_Print(u8 windowId, const u8 *text, u8 x, u8 y, u8 colorId)
 static void Menu_DrawInfoText(s32 id)
 {
     const struct TMRecipe *recipe;
-    enum Move move;
     u8 *str;
     u32 i;
     u8 y;
 
-    FillWindowPixelBuffer(WIN_INFO, PIXEL_FILL(1));
+    // Transparent fill so the shop's baked description-box graphic (on BG1) shows
+    // through as this panel's background, exactly as the shop description does.
+    FillWindowPixelBuffer(WIN_INFO, PIXEL_FILL(0));
 
     if (id == LIST_CANCEL || (u32)id >= sRecipeCount)
     {
@@ -287,16 +287,10 @@ static void Menu_DrawInfoText(s32 id)
     }
 
     recipe = sRecipes[id];
-    move = GetItemTMHMMoveId(recipe->tm);
 
-    // Type / Category.
-    str = StringCopy(gStringVar4, gTypesInfo[GetMoveType(move)].name);
-    str = StringAppend(str, sText_TypeSep);
-    StringCopy(str, sCategoryNames[GetMoveCategory(move)]);
-    Menu_Print(WIN_INFO, gStringVar4, 6, 2, COLORID_NORMAL);
-
-    // Materials with have/need counts, colored.
-    y = 16;
+    // The panel lists only the recipe's materials (up to 4), each as a have/need
+    // count colored green when the player has enough and red when short.
+    y = 2;
     for (i = 0; i < recipe->materialCount; i++)
     {
         const struct TMRecipeMaterial *mat = &recipe->materials[i];
@@ -309,15 +303,31 @@ static void Menu_DrawInfoText(s32 id)
         str = StringAppend(str, sText_Slash);
         ConvertIntToDecimalStringN(str, mat->quantity, STR_CONV_MODE_LEFT_ALIGN, 3);
         Menu_Print(WIN_INFO, gStringVar4, 6, y, color);
-        y += 14;
+        y += 11;
     }
 
-    // Cost.
-    str = StringCopy(gStringVar4, sText_Cost);
-    ConvertIntToDecimalStringN(str, recipe->cost, STR_CONV_MODE_LEFT_ALIGN, 6);
-    Menu_Print(WIN_INFO, gStringVar4, 6, y, COLORID_NORMAL);
-
     CopyWindowToVram(WIN_INFO, COPYWIN_GFX);
+}
+
+// The crafted move's in-game description, re-wrapped to the narrow left strip
+// (frameless, opaque) above the TM icon. Blank (transparent) on the CANCEL row.
+static void Menu_DrawMoveDesc(s32 id)
+{
+    u8 buf[128];
+
+    FillWindowPixelBuffer(WIN_MOVE_DESC, PIXEL_FILL(1));
+
+    if (id != LIST_CANCEL && (u32)id < sRecipeCount)
+    {
+        StringCopy(buf, GetMoveDescription(GetItemTMHMMoveId(sRecipes[id]->tm)));
+        StripLineBreaks(buf);
+        // Re-wrap to the box's inner width (11 tiles) over up to 4 lines, spaced out
+        // (lineSpacing 4) so the rows don't run into each other.
+        BreakStringAutomatic(buf, 86, 4, FONT_SMALL_NARROW, HIDE_SCROLL_PROMPT);
+        AddTextPrinterParameterized4(WIN_MOVE_DESC, FONT_SMALL_NARROW, 0, 1, 0, 4, sMsgColors, TEXT_SKIP_DRAW, buf);
+    }
+
+    CopyWindowToVram(WIN_MOVE_DESC, COPYWIN_GFX);
 }
 
 static void Menu_PrintInfo(s32 id, bool8 onInit, struct ListMenu *list)
@@ -332,6 +342,7 @@ static void Menu_PrintInfo(s32 id, bool8 onInit, struct ListMenu *list)
     sCraftData->iconSlot ^= 1;
 
     Menu_DrawInfoText(id);
+    Menu_DrawMoveDesc(id);
 }
 
 // Clears the message/confirm box and redraws the panel + list it covered, so
@@ -340,7 +351,9 @@ static void Menu_RestoreAfterMessage(u8 taskId)
 {
     ClearStdWindowAndFrameToTransparent(WIN_MESSAGE, FALSE);
     ClearWindowTilemap(WIN_MESSAGE);
-    DrawStdFrameWithCustomTileAndPalette(WIN_INFO, FALSE, 1, 13);
+    // Re-map the info panel's BG0 tiles (the message box overwrote that region)
+    // and redraw its text; the baked description box behind it (BG1) was untouched.
+    PutWindowTilemap(WIN_INFO);
     Menu_DrawInfoText(gTasks[taskId].tSelected);
     Menu_SetIconInvisible(FALSE);
     PutWindowTilemap(WIN_LIST);
@@ -378,33 +391,23 @@ static void Menu_InitWindows(void)
 {
     InitWindows(sWindowTemplates);
     DeactivateAllTextPrinters();
-    LoadUserWindowBorderGfx(WIN_MONEY, 1, BG_PLTT_ID(13));
-    LoadMessageBoxGfx(WIN_MONEY, 0xA, BG_PLTT_ID(14));
+    LoadUserWindowBorderGfx(WIN_MOVE_DESC, 1, BG_PLTT_ID(13));
+    LoadMessageBoxGfx(WIN_MOVE_DESC, 0xA, BG_PLTT_ID(14));
     Menu_LoadStdPalAt(BG_PLTT_ID(15));
-    PutWindowTilemap(WIN_MONEY);
     PutWindowTilemap(WIN_LIST);
     PutWindowTilemap(WIN_INFO);
+    PutWindowTilemap(WIN_MOVE_DESC);
 }
 
 static void Menu_DrawGraphics(void)
 {
     Menu_DrawMapGraphics();
     Menu_CopyMenuBgToBg1TilemapBuffer();
-    // Give the info/message boxes a solid backing so their frame's transparent
-    // edge pixels don't reveal the live map (the shop graphic does this for the
-    // money box and list). Reuse the list panel's solid background tile.
-    {
-        u16 backing = sCraftData->tilemapBuffers[1][3 * 32 + 20]; // a list-panel bg tile (BG1)
-        u32 bx, by;
-        for (by = 9; by < 20; by++)
-            for (bx = 0; bx < 14; bx++)
-                sCraftData->tilemapBuffers[1][by * 32 + bx] = backing;
-    }
-    // Own (taller) frame for the info panel, drawn over the shop graphic's box.
-    FillWindowPixelBuffer(WIN_INFO, PIXEL_FILL(1));
-    DrawStdFrameWithCustomTileAndPalette(WIN_INFO, FALSE, 1, 13);
-    AddMoneyLabelObject(19, 11);
-    PrintMoneyAmountInMoneyBoxWithBorder(WIN_MONEY, 1, 13, GetMoney(&gSaveBlock1Ptr->money));
+    // The info panel reuses the shop graphic's baked description box (BG1) as its
+    // backing and prints onto it transparently (see Menu_DrawInfoText), so there
+    // is no frame to draw and no need to carve/backfill the shop tilemap.
+    // The move-description box does get its own framed border (drawn once here).
+    DrawStdFrameWithCustomTileAndPalette(WIN_MOVE_DESC, FALSE, 1, 13);
     ScheduleBgCopyTilemapToVram(0);
     ScheduleBgCopyTilemapToVram(1);
     ScheduleBgCopyTilemapToVram(2);
@@ -440,15 +443,6 @@ static void CB2_InitMenu(void)
         DecompressAndCopyTileDataToVram(1, gShopMenu_Gfx, 0x3A0, 0x3E3, 0);
         DecompressDataWithHeaderWram(gShopMenu_Tilemap, sCraftData->tilemapBuffers[0]);
         LoadPalette(gShopMenu_Pal, BG_PLTT_ID(MENU_PALETTE_ID), PLTT_SIZE_4BPP);
-        // Erase the shop graphic in the bottom-left (the baked description box AND
-        // the list panel's left border in this row range) so neither the tan box
-        // nor the orange list shows behind/through our own WIN_INFO frame.
-        {
-            u32 bx, by;
-            for (by = 9; by < 20; by++)
-                for (bx = 0; bx < 14; bx++)
-                    sCraftData->tilemapBuffers[0][by * 32 + bx] = 0;
-        }
         gMain.state++;
         break;
     case 1:
@@ -517,6 +511,7 @@ static void Task_Menu(u8 taskId)
     switch (TMCrafting_CheckCraft(sRecipes[input]))
     {
     case TM_CRAFT_SUCCESS:
+        ConvertIntToDecimalStringN(gStringVar2, sRecipes[input]->cost, STR_CONV_MODE_LEFT_ALIGN, 6);
         StringExpandPlaceholders(gStringVar4, sText_CraftQ);
         PrintMessage(gStringVar4);
         CreateYesNoMenuWithCallbacks(taskId, &sYesNoWindowTemplate, 1, 0, 0, 1, 13, &sCraftYesNoFuncs);
@@ -545,13 +540,10 @@ static void ConfirmYes(u8 taskId)
 
     TMCrafting_Craft(recipe);
     PlaySE(SE_SHOP);
-    PrintMoneyAmountInMoneyBoxWithBorder(WIN_MONEY, 1, 13, GetMoney(&gSaveBlock1Ptr->money));
     // Restore the recipe list the Yes/No box covered (the "No" path does this via
     // Menu_RestoreAfterMessage; the "Yes" path must do it before showing a message).
     PutWindowTilemap(WIN_LIST);
     RedrawListMenu(gTasks[taskId].tListTaskId);
-    // PrintMoneyAmount... formats the amount through gStringVar1, clobbering the
-    // TM name; re-buffer it for the "Here you go!" message.
     StringCopy(gStringVar1, GetItemName(recipe->tm));
     StringExpandPlaceholders(gStringVar4, sText_Crafted);
     PrintMessage(gStringVar4);
@@ -575,7 +567,8 @@ static void Task_WaitMessage(u8 taskId)
 
 static void PrintMessage(const u8 *str)
 {
-    Menu_SetIconInvisible(TRUE);
+    // The icon box (mid-left) doesn't overlap the message or Yes/No boxes, so the
+    // TM icon can stay visible while a message is shown.
     FillWindowPixelBuffer(WIN_MESSAGE, PIXEL_FILL(1));
     DrawStdFrameWithCustomTileAndPalette(WIN_MESSAGE, FALSE, 1, 13);
     AddTextPrinterParameterized4(WIN_MESSAGE, FONT_NORMAL, 4, 6, 0, 0, sMsgColors, TEXT_SKIP_DRAW, str);
@@ -598,7 +591,6 @@ static void Task_ExitMenu(u8 taskId)
     DestroyListMenuTask(gTasks[taskId].tListTaskId, NULL, NULL);
     Menu_RemoveIcon(0);
     Menu_RemoveIcon(1);
-    RemoveMoneyLabelObject();
     DestroyTask(taskId);
 
     Free(sRecipes);
