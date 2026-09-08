@@ -544,7 +544,7 @@ static bool32 IsMoveInLevelUpLearnset(u16 species, u16 move, u8 maxLevel)
 {
     const struct LevelUpMove *learnset = GetSpeciesLevelUpLearnset(species);
     u32 i;
-    for (i = 0; i < MAX_LEVEL_UP_MOVES && learnset[i].move != LEVEL_UP_MOVE_END; i++)
+    for (i = 0; learnset[i].move != LEVEL_UP_MOVE_END; i++)
     {
         if (learnset[i].level > maxLevel)
             break;
@@ -562,7 +562,7 @@ static u16 PickNextLevelUpMove(u16 species, u8 maxLevel, const u16 *existing, u3
     s32 lastIdx = -1;
     s32 i;
 
-    for (i = 0; i < MAX_LEVEL_UP_MOVES && learnset[i].move != LEVEL_UP_MOVE_END; i++)
+    for (i = 0; learnset[i].move != LEVEL_UP_MOVE_END; i++)
     {
         if (learnset[i].level <= maxLevel)
             lastIdx = i;
