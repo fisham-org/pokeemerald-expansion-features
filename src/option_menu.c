@@ -680,10 +680,6 @@ static void SaveCurrentSettings(u8 taskId)
     else
         FlagSet(FLAG_POKEMON_FOLLOWERS);
 #endif
-#if OPT_BATTLE_SPEED == TRUE
-    // Update battle speed variable for runtime access
-    VarSet(VAR_BATTLE_SPEED, gSaveBlock2Ptr->optionsBattleSpeed);
-#endif
 #endif // OPT_EXTENDED_OPTIONS_MENU
 }
 
