@@ -8672,4 +8672,24 @@ s8 Test_UpdatePartySelectionSingleLayout(s8 slotId, s8 movementDir, bool8 choose
     sPartyMenuInternal = savedInternal;
     return slotId;
 }
+
+// Returns the field moves listed for 'mons[slotId]', as 'enum FieldMove'
+// values written to 'fieldMoves' (which must hold ARRAY_COUNT(internal.actions)).
+u32 Test_GetPartyMenuFieldMoves(struct Pokemon *mons, u8 slotId, u8 *fieldMoves)
+{
+    struct PartyMenuInternal internal = {0};
+    struct PartyMenuInternal *savedInternal = sPartyMenuInternal;
+    u32 count = 0;
+
+    sPartyMenuInternal = &internal;
+    SetPartyMonFieldSelectionActions(mons, slotId);
+    sPartyMenuInternal = savedInternal;
+
+    for (u32 i = 0; i < internal.numActions; i++)
+    {
+        if (internal.actions[i] >= MENU_FIELD_MOVES)
+            fieldMoves[count++] = internal.actions[i] - MENU_FIELD_MOVES;
+    }
+    return count;
+}
 #endif
