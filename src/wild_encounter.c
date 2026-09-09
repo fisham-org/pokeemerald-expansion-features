@@ -515,6 +515,9 @@ void CreateWildMon(enum Species species, u8 level)
 {
     // Apply level scaling for wild encounters
 #if B_LEVEL_SCALING_ENABLED && B_WILD_SCALING_ENABLED
+    // The party may have changed since whatever last warmed the cache, and
+    // nothing else invalidates it outside trainer battle setup.
+    InvalidatePartyLevelCache();
     level = CalculateWildScaledLevel(species, level);
     // Apply species scaling (evolution management)
     species = CalculateWildScaledSpecies(species, level);

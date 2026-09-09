@@ -18,12 +18,14 @@
 #include "data/item_progression_tiers.h"
 #include "data/level_scaling_party_size_tiers.h"
 
-// Party level cache for performance
+// Party level cache for performance. Each PARTY_* mode gets its own slot, and
+// the two excludeFainted variants are cached separately because they disagree
+// whenever a party member has fainted.
+#define PARTY_LEVEL_CACHE_SLOTS 3   // PARTY_AVG, PARTY_HIGHEST, PARTY_LOWEST
+
 static struct {
-    u8 partyAverage;
-    u8 partyHighest;
-    u8 partyLowest;
-    bool8 cached;
+    u8 level[2][PARTY_LEVEL_CACHE_SLOTS];
+    bool8 cached[2][PARTY_LEVEL_CACHE_SLOTS];
 } sPartyLevelCache = {0};
 
 // ============================================================================
@@ -292,59 +294,62 @@ u16 ValidateSpeciesForLevel(u16 species, u8 targetLevel, bool8 manageEvolutions)
 
 void InvalidatePartyLevelCache(void)
 {
-    sPartyLevelCache.cached = FALSE;
+    u32 i, j;
+
+    for (i = 0; i < 2; i++)
+    {
+        for (j = 0; j < PARTY_LEVEL_CACHE_SLOTS; j++)
+            sPartyLevelCache.cached[i][j] = FALSE;
+    }
 }
 
 u8 CalculatePlayerPartyBaseLevel(u8 mode, bool8 excludeFainted)
 {
     u8 baseLevel = 1;
+    u32 slot;
+    u32 fainted = (excludeFainted != FALSE);
 
-    // Use cache if available
-    if (sPartyLevelCache.cached)
-    {
-        switch (mode)
-        {
-            case LEVEL_SCALING_PARTY_AVG:
-                return sPartyLevelCache.partyAverage;
-            case LEVEL_SCALING_PARTY_HIGHEST:
-                return sPartyLevelCache.partyHighest;
-            case LEVEL_SCALING_PARTY_LOWEST:
-                return sPartyLevelCache.partyLowest;
-        }
-    }
-
-    // Calculate based on mode
+    // Modes that don't read the party are answered directly - they're cheap and
+    // the level cap can change between calls.
     switch (mode)
     {
         case LEVEL_SCALING_NONE:
             return 0; // Signal to use original level
 
         case LEVEL_SCALING_TO_LEVEL_CAP:
-            baseLevel = GetCurrentLevelCap();
-            break;
+            return GetCurrentLevelCap();
 
         case LEVEL_SCALING_PARTY_AVG:
+        case LEVEL_SCALING_PARTY_HIGHEST:
+        case LEVEL_SCALING_PARTY_LOWEST:
+            slot = mode - LEVEL_SCALING_PARTY_AVG;
+            break;
+
+        default:
+            return 1;
+    }
+
+    // Use cache if this exact mode/excludeFainted pair has been calculated
+    if (sPartyLevelCache.cached[fainted][slot])
+        return sPartyLevelCache.level[fainted][slot];
+
+    switch (mode)
+    {
+        case LEVEL_SCALING_PARTY_AVG:
             baseLevel = GetPlayerPartyAverageLevel(excludeFainted);
-            sPartyLevelCache.partyAverage = baseLevel;
             break;
 
         case LEVEL_SCALING_PARTY_HIGHEST:
             baseLevel = GetPlayerPartyHighestLevel(excludeFainted);
-            sPartyLevelCache.partyHighest = baseLevel;
             break;
 
         case LEVEL_SCALING_PARTY_LOWEST:
             baseLevel = GetPlayerPartyLowestLevel(excludeFainted);
-            sPartyLevelCache.partyLowest = baseLevel;
-            break;
-
-        default:
-            baseLevel = 1;
             break;
     }
 
-    // Mark cache as valid after first calculation
-    sPartyLevelCache.cached = TRUE;
+    sPartyLevelCache.level[fainted][slot] = baseLevel;
+    sPartyLevelCache.cached[fainted][slot] = TRUE;
 
     return baseLevel;
 }
