@@ -887,4 +887,30 @@ void MaybeStripTrainerItem(struct Pokemon *mon, u16 trainerId, u8 scaledLevel)
     }
 }
 
+enum Ability GetScaledTrainerAbility(enum Species originalSpecies, enum Species scaledSpecies, enum Ability ability)
+{
+    u32 slot;
+
+    if (ability == ABILITY_NONE || scaledSpecies == originalSpecies)
+        return ability;
+
+    // Still legal on the devolved species (shared abilities are common in a family).
+    for (slot = 0; slot < ARRAY_COUNT(gSpeciesInfo[scaledSpecies].abilities); slot++)
+    {
+        if (gSpeciesInfo[scaledSpecies].abilities[slot] == ability)
+            return ability;
+    }
+
+    // Otherwise keep the trainer's intent by holding the slot: a hidden ability stays
+    // hidden, a first ability stays first. An empty slot yields ABILITY_NONE, which
+    // makes GenerateMonFromTrainerMon choose a legal ability itself.
+    for (slot = 0; slot < ARRAY_COUNT(gSpeciesInfo[originalSpecies].abilities); slot++)
+    {
+        if (gSpeciesInfo[originalSpecies].abilities[slot] == ability)
+            return gSpeciesInfo[scaledSpecies].abilities[slot];
+    }
+
+    return ABILITY_NONE;
+}
+
 #endif // B_LEVEL_SCALING_ENABLED

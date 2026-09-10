@@ -197,6 +197,12 @@ bool32 IsItemPermittedAtLevel(u16 item, u8 level);
 // is above the allowed progression tier for the scaled level. No-op otherwise.
 void MaybeStripTrainerItem(struct Pokemon *mon, u16 trainerId, u8 scaledLevel);
 
+// Remap a trainer-defined ability onto a devolved species. Devolution can leave the
+// trainer's ability illegal on the new species (Gallade's Sharpness is not on Ralts),
+// which trips the assert in SetCorrectAbilityNum. Returns the ability in the same slot
+// on the scaled species, or ABILITY_NONE to let the generator pick a legal one.
+enum Ability GetScaledTrainerAbility(enum Species originalSpecies, enum Species scaledSpecies, enum Ability ability);
+
 #else
 
 // Empty inline functions when system is disabled
@@ -211,6 +217,7 @@ static inline u8 GetScaledTrainerPartySize(u16 trainerId, u8 originalPartySize) 
 static inline u8 SelectScaledTrainerParty(const struct Trainer *trainer, u16 trainerId, u32 *monIndices, u8 *scaledLevels, u16 *scaledSpecies, u8 fullCount) { return fullCount; }
 static inline bool32 IsItemPermittedAtLevel(u16 item, u8 level) { return TRUE; }
 static inline void MaybeStripTrainerItem(struct Pokemon *mon, u16 trainerId, u8 scaledLevel) { }
+static inline enum Ability GetScaledTrainerAbility(enum Species originalSpecies, enum Species scaledSpecies, enum Ability ability) { return ability; }
 
 #endif // B_LEVEL_SCALING_ENABLED
 

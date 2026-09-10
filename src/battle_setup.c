@@ -2289,6 +2289,9 @@ void CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Traine
 #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
         struct TrainerMon scaledMon = trainer->party[monIndex];
 
+        // Devolution can strand the trainer's ability on a species that cannot have it.
+        // scaledMon.species is still the original here.
+        scaledMon.ability = GetScaledTrainerAbility(scaledMon.species, scaledSpecies[i], scaledMon.ability);
         scaledMon.lvl = scaledLevels[i];
         scaledMon.species = scaledSpecies[i];
         GenerateMonFromTrainerMon(&party[i], &scaledMon, trainerGen);

@@ -668,3 +668,34 @@ TEST("(Level Scaling) wild species are devolved to match their scaled level")
 
 
 #endif // B_LEVEL_SCALING_ENABLED
+
+TEST("(Level Scaling) a devolved species keeps the trainer's ability slot")
+{
+    enum Species original, scaled;
+    enum Ability ability, expected;
+
+    // Both pairs crashed SetCorrectAbilityNum before GetScaledTrainerAbility existed.
+    PARAMETRIZE { original = SPECIES_GALLADE;  scaled = SPECIES_RALTS;   ability = ABILITY_SHARPNESS; expected = ABILITY_TRACE; }
+    PARAMETRIZE { original = SPECIES_PELIPPER; scaled = SPECIES_WINGULL; ability = ABILITY_DRIZZLE;   expected = ABILITY_HYDRATION; }
+
+    ASSUME(P_FAMILY_RALTS == TRUE);
+    ASSUME(P_FAMILY_WINGULL == TRUE);
+
+    EXPECT_EQ(GetScaledTrainerAbility(original, scaled, ability), expected);
+}
+
+TEST("(Level Scaling) an ability the devolved species still has is left alone")
+{
+    ASSUME(P_FAMILY_WINGULL == TRUE);
+
+    // Rain Dish sits on both Pelipper and Wingull, so it survives devolution.
+    EXPECT_EQ(GetScaledTrainerAbility(SPECIES_PELIPPER, SPECIES_WINGULL, ABILITY_RAIN_DISH), ABILITY_RAIN_DISH);
+}
+
+TEST("(Level Scaling) an unscaled species keeps its ability untouched")
+{
+    ASSUME(P_FAMILY_RALTS == TRUE);
+
+    EXPECT_EQ(GetScaledTrainerAbility(SPECIES_GALLADE, SPECIES_GALLADE, ABILITY_SHARPNESS), ABILITY_SHARPNESS);
+    EXPECT_EQ(GetScaledTrainerAbility(SPECIES_GALLADE, SPECIES_RALTS, ABILITY_NONE), ABILITY_NONE);
+}
