@@ -9,6 +9,7 @@
 #include "menu.h"
 #include "overworld.h"
 #include "palette.h"
+#include "quest_guidance.h"
 #include "region_map.h"
 #include "sound.h"
 #include "strings.h"
@@ -151,6 +152,7 @@ static void FieldUpdateRegionMap(void)
         InitRegionMap(&sFieldRegionMapHandler->regionMap, FALSE);
         CreateRegionMapPlayerIcon(TAG_PLAYER_ICON, TAG_PLAYER_ICON);
         CreateRegionMapCursor(TAG_CURSOR, TAG_CURSOR);
+        QuestPin_CreateTownMapSprite();
         sFieldRegionMapHandler->state++;
         break;
     case 1:

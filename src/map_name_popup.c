@@ -470,6 +470,11 @@ static void Task_MapNamePopUpWindow(u8 taskId)
         SetGpuReg(REG_OFFSET_BG0VOFS, task->tYOffset);
 }
 
+bool32 IsMapNamePopupActive(void)
+{
+    return FuncIsActiveTask(Task_MapNamePopUpWindow);
+}
+
 void HideMapNamePopUpWindow(void)
 {
     if (FuncIsActiveTask(Task_MapNamePopUpWindow))

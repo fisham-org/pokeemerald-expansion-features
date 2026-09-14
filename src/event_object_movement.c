@@ -1,4 +1,5 @@
 #include "global.h"
+#include "quest_guidance.h"
 #include "malloc.h"
 #include "battle_anim.h"
 #include "battle_pyramid.h"
@@ -1906,6 +1907,7 @@ u8 TrySpawnObjectEventTemplate(const struct ObjectEventTemplate *objectEventTemp
         SetSubspriteTables(&gSprites[gObjectEvents[objectEventId].spriteId], subspriteTables);
 
     OnOverworldWildEncounterSpawn(&gObjectEvents[objectEventId]);
+    QuestMarkers_OnObjectSpawn(objectEventId);
     return objectEventId;
 }
 
@@ -3043,6 +3045,7 @@ static void SpawnObjectEventOnReturnToField(u8 objectEventId, s16 x, s16 y)
         ResetObjectEventFldEffData(objectEvent);
         SetObjectSubpriorityByElevation(objectEvent->previousElevation, sprite, 1);
         RestoreSavedOWEBehaviorState(objectEvent, sprite);
+        QuestMarkers_OnObjectSpawn(objectEventId);
     }
 }
 

@@ -1,6 +1,8 @@
 #include "global.h"
 #include "clock.h"
 #include "new_game.h"
+#include "quest.h"
+#include "quest_toast.h"
 #include "random.h"
 #include "clock.h"
 #include "pokemon.h"
@@ -177,6 +179,8 @@ void NewGameInitData(void)
     ClearFrontierRecord();
     ClearSav1();
     ClearSav3();
+    Quest_InitProgressCache();
+    QuestToast_ClearQueue();
     ClearAllMail();
     gSaveBlock2Ptr->specialSaveWarpFlags = 0;
     gSaveBlock2Ptr->gcnLinkFlags = 0;

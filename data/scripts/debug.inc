@@ -201,20 +201,26 @@ Debug_EventScript_Text_DefensiveIVs:
 	.string "HP IVs: {STR_VAR_1}, DEF IVs: {STR_VAR_2}, SPDEF IVs: {STR_VAR_3}$"
 
 Debug_EventScript_Script_1::
-	release
-	end
+      addlead QUEST_EXAMPLE_SIGHTING
+      unlockquest QUEST_EXAMPLE_DELIVERY
+      release
+      end
 
 Debug_EventScript_Script_2::
-	release
-	end
+      startquest QUEST_EXAMPLE_ERRAND
+      startquest QUEST_EXAMPLE_DELIVERY
+      release
+      end
 
 Debug_EventScript_Script_3::
-	release
-	end
+      setqueststage QUEST_EXAMPLE_ERRAND, STAGE_ERRAND_REPORT
+      release
+      end
 
 Debug_EventScript_Script_4::
-	release
-	end
+      completequest QUEST_EXAMPLE_ERRAND, OUTCOME_ERRAND_SKIPPED
+      release
+      end
 
 Debug_EventScript_Script_5::
 	release

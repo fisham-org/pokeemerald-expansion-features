@@ -2493,7 +2493,7 @@
 
 // System Flags
 #define FLAG_SYS_POKENAV_GET                         0
-#define FLAG_UNUSED_0x863                            0
+#define FLAG_SYS_QUEST_MENU_GET                      0
 #define FLAG_SYS_CHAT_USED                           0
 #define FLAG_UNLOCKED_TRENDY_SAYINGS                 0
 

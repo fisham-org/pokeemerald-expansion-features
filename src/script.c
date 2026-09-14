@@ -1,4 +1,5 @@
 #include "global.h"
+#include "quest.h"
 #include "script.h"
 #include "event_data.h"
 #include "field_screen_effect.h"
@@ -295,6 +296,7 @@ bool8 ScriptContext_RunScript(void)
     {
         sGlobalScriptContextStatus = CONTEXT_SHUTDOWN;
         UnlockPlayerFieldControls();
+        Quest_CheckProgress();
         return FALSE;
     }
 

@@ -53,6 +53,8 @@
 #include "task.h"
 #include "tv.h"
 #include "pokemon_summary_screen.h"
+#include "quest.h"
+#include "quest_toast.h"
 #include "wild_encounter.h"
 #include "constants/abilities.h"
 #include "constants/battle_ai.h"
@@ -436,6 +438,15 @@ static const struct DebugSelection sTrainerFromMapSelection;
 static const struct DebugSelection sTrainer1Selection;
 static const struct DebugSelection sTrainer2Selection;
 static const struct DebugSelection sPartnerSelection;
+static const struct DebugSelection sQuestStatusSelection;
+static const struct DebugSelection sQuestStageSelection;
+static const struct DebugSelection sQuestOutcomeSelection;
+static const struct DebugSelection sQuestObjectiveSelection;
+static const struct DebugSelection sQuestTrackSelection;
+static void DebugAction_Quests_Untrack(u8 taskId);
+static void DebugAction_Quests_TestToast(u8 taskId);
+static void DebugAction_Quests_CheckProgress(u8 taskId);
+static void DebugAction_Quests_ResetAll(u8 taskId);
 
 #include "data/map_group_count.h"
 
@@ -767,6 +778,20 @@ static const u8 *const sDebugMenu_Actions_BagUse_Options[] =
     COMPOUND_STRING("No Bag: {STR_VAR_1}Invalid value"),
 };
 
+static const struct DebugMenuOption sDebugMenu_Actions_Quests[] =
+{
+    { COMPOUND_STRING("Set status…"),        DebugAction_Selection_Init, &sQuestStatusSelection },
+    { COMPOUND_STRING("Set stage…"),         DebugAction_Selection_Init, &sQuestStageSelection },
+    { COMPOUND_STRING("Set outcome…"),       DebugAction_Selection_Init, &sQuestOutcomeSelection },
+    { COMPOUND_STRING("Toggle objective…"),  DebugAction_Selection_Init, &sQuestObjectiveSelection },
+    { COMPOUND_STRING("Track quest…"),       DebugAction_Selection_Init, &sQuestTrackSelection },
+    { COMPOUND_STRING("Untrack quest"),      DebugAction_Quests_Untrack },
+    { COMPOUND_STRING("Fire test toast"),    DebugAction_Quests_TestToast },
+    { COMPOUND_STRING("Check progress"),     DebugAction_Quests_CheckProgress },
+    { COMPOUND_STRING("Reset all quests"),   DebugAction_Quests_ResetAll },
+    { NULL }
+};
+
 static const struct DebugMenuOption sDebugMenu_Actions_Main[] =
 {
     { COMPOUND_STRING("Utilities…"),    DebugAction_OpenSubMenu, sDebugMenu_Actions_Utilities, },
@@ -778,6 +803,7 @@ static const struct DebugMenuOption sDebugMenu_Actions_Main[] =
     { COMPOUND_STRING("Trainers…"),     DebugAction_OpenSubMenuTrainers, sDebugMenu_Actions_Trainers, },
     { COMPOUND_STRING("Encounters…"),   DebugAction_OpenSubMenu, sDebugMenu_Actions_Encounters, },
     { COMPOUND_STRING("Flags & Vars…"), DebugAction_OpenSubMenuFlagsVars, sDebugMenu_Actions_Flags, },
+    { COMPOUND_STRING("Quests…"),       DebugAction_OpenSubMenu, sDebugMenu_Actions_Quests, },
     { COMPOUND_STRING("Sound…"),        DebugAction_OpenSubMenu, sDebugMenu_Actions_Sound, },
     { COMPOUND_STRING("ROM Info…"),     DebugAction_OpenSubMenu, sDebugMenu_Actions_ROMInfo2, },
     { COMPOUND_STRING("Cancel"),        DebugAction_Cancel, },
@@ -1330,6 +1356,12 @@ static void DebugSelectionStep_ReturnToFlagsVarsMenu(u8 taskId)
 {
     Debug_RemoveCallbackMenu();
     DebugAction_OpenSubMenuFlagsVars(taskId, sDebugMenu_Actions_Flags);
+}
+
+static void DebugSelectionStep_ReturnToQuestsMenu(u8 taskId)
+{
+    Debug_RemoveCallbackMenu();
+    DebugAction_OpenSubMenu(taskId, sDebugMenu_Actions_Quests);
 }
 
 static void DebugSelectionStep_ReturnToGiveMenu(u8 taskId)
@@ -4774,6 +4806,265 @@ void DebugNative_Party_SetPokerus(void)
 #undef tStrain
 #undef tPartyId
 
+// *******************************
+// Actions Quests
+
+static const u8 *const sDebugText_QuestStatuses[] =
+{
+    [QUEST_STATUS_HIDDEN]    = COMPOUND_STRING("Hidden"),
+    [QUEST_STATUS_LEAD]      = COMPOUND_STRING("Lead"),
+    [QUEST_STATUS_AVAILABLE] = COMPOUND_STRING("Available"),
+    [QUEST_STATUS_ACTIVE]    = COMPOUND_STRING("Active"),
+    [QUEST_STATUS_COMPLETE]  = COMPOUND_STRING("Complete"),
+    [QUEST_STATUS_CLOSED]    = COMPOUND_STRING("Closed"),
+};
+
+static u32 DebugQuest_MaxQuestId(u8 taskId)
+{
+    return QUEST_COUNT ? QUEST_COUNT - 1 : 0;
+}
+
+static u32 DebugQuest_MaxStage(u8 taskId)
+{
+    u32 questId = DebugSelection_GetData(taskId, 0);
+    return Quest_IsValid(questId) ? Quest_GetInfo(questId)->stageCount - 1 : 0;
+}
+
+static u32 DebugQuest_MaxOutcome(u8 taskId)
+{
+    u32 questId = DebugSelection_GetData(taskId, 0);
+    return Quest_IsValid(questId) ? Quest_GetInfo(questId)->outcomeCount - 1 : 0;
+}
+
+static u32 DebugQuest_MaxObjective(u8 taskId)
+{
+    u32 questId = DebugSelection_GetData(taskId, 0);
+    u32 count = Quest_IsValid(questId) ? Quest_GetCurrentStage(questId)->objectiveCount : 0;
+    return count ? count - 1 : 0;
+}
+
+// Line 1: quest id and name. Line 2: current status and stage.
+static void DebugQuest_PrintQuestHeader(u32 questId)
+{
+    u8 *end = ConvertIntToDecimalStringN(gStringVar1, questId, STR_CONV_MODE_LEADING_ZEROS, 3);
+    *end++ = CHAR_SPACE;
+    if (Quest_IsValid(questId))
+        StringCopyN(end, Quest_GetInfo(questId)->name, 10);
+    else
+        StringCopy(end, COMPOUND_STRING("(removed)"));
+
+    end = StringCopy(gStringVar2, sDebugText_QuestStatuses[Quest_GetStatus(questId)]);
+    end = StringCopy(end, COMPOUND_STRING(" S"));
+    ConvertIntToDecimalStringN(end, Quest_GetStage(questId), STR_CONV_MODE_LEFT_ALIGN, 3);
+}
+
+static void DebugSelectionStep_UpdateQuestId(u8 taskId, u8 digits, u32 min, u32 max)
+{
+    DebugQuest_PrintQuestHeader(gTasks[taskId].tInput);
+    StringCopy(gStringVar3, COMPOUND_STRING(""));
+    DebugNativeStep_PrintWindowSelection(taskId);
+}
+
+static void DebugSelectionStep_UpdateQuestStatus(u8 taskId, u8 digits, u32 min, u32 max)
+{
+    DebugQuest_PrintQuestHeader(DebugSelection_GetData(taskId, 0));
+    StringCopy(StringCopy(gStringVar3, COMPOUND_STRING("New: ")), sDebugText_QuestStatuses[gTasks[taskId].tInput]);
+    DebugNativeStep_PrintWindowSelection(taskId);
+}
+
+// Line 3: label followed by the input value
+static u8 *DebugQuest_PrepareNumberLine(u8 taskId, const u8 *label)
+{
+    DebugQuest_PrintQuestHeader(DebugSelection_GetData(taskId, 0));
+    return ConvertIntToDecimalStringN(StringCopy(gStringVar3, label), gTasks[taskId].tInput, STR_CONV_MODE_LEFT_ALIGN, 3);
+}
+
+static void DebugSelectionStep_UpdateQuestStage(u8 taskId, u8 digits, u32 min, u32 max)
+{
+    DebugQuest_PrepareNumberLine(taskId, COMPOUND_STRING("Stage: "));
+    DebugNativeStep_PrintWindowSelection(taskId);
+}
+
+static void DebugSelectionStep_UpdateQuestOutcome(u8 taskId, u8 digits, u32 min, u32 max)
+{
+    DebugQuest_PrepareNumberLine(taskId, COMPOUND_STRING("Outcome: "));
+    DebugNativeStep_PrintWindowSelection(taskId);
+}
+
+static void DebugSelectionStep_UpdateQuestObjective(u8 taskId, u8 digits, u32 min, u32 max)
+{
+    u32 questId = DebugSelection_GetData(taskId, 0);
+    u8 *end = DebugQuest_PrepareNumberLine(taskId, COMPOUND_STRING("Obj: "));
+
+    StringCopy(end, Quest_IsObjectiveDone(questId, gTasks[taskId].tInput) ? COMPOUND_STRING(" done") : COMPOUND_STRING(" open"));
+    DebugNativeStep_PrintWindowSelection(taskId);
+}
+
+static void DebugSelectionStep_UpdateQuestTrack(u8 taskId, u8 digits, u32 min, u32 max)
+{
+    u32 questId = gTasks[taskId].tInput;
+    DebugQuest_PrintQuestHeader(questId);
+    StringCopy(gStringVar3, Quest_GetTracked() == questId ? COMPOUND_STRING("Tracked") : COMPOUND_STRING(""));
+    DebugNativeStep_PrintWindowSelection(taskId);
+}
+
+static bool32 DebugQuest_RepeatSelection(u8 taskId)
+{
+    gTasks[taskId].tStep = 0;
+    gTasks[taskId].tStepsDataIndex = 0;
+    return FALSE;
+}
+
+static bool32 DebugSelection_QuestStatus_Complete(u8 taskId)
+{
+    Quest_DebugSetStatus(DebugSelection_GetData(taskId, 0), DebugSelection_GetData(taskId, 1));
+    return DebugQuest_RepeatSelection(taskId);
+}
+
+static bool32 DebugSelection_QuestStage_Complete(u8 taskId)
+{
+    Quest_DebugSetStage(DebugSelection_GetData(taskId, 0), DebugSelection_GetData(taskId, 1));
+    return DebugQuest_RepeatSelection(taskId);
+}
+
+static bool32 DebugSelection_QuestOutcome_Complete(u8 taskId)
+{
+    Quest_DebugSetOutcome(DebugSelection_GetData(taskId, 0), DebugSelection_GetData(taskId, 1));
+    return DebugQuest_RepeatSelection(taskId);
+}
+
+static bool32 DebugSelection_QuestObjective_Complete(u8 taskId)
+{
+    Quest_DebugToggleObjective(DebugSelection_GetData(taskId, 0), DebugSelection_GetData(taskId, 1));
+    return DebugQuest_RepeatSelection(taskId);
+}
+
+static bool32 DebugSelection_QuestTrack_Complete(u8 taskId)
+{
+    if (Quest_SetTracked(DebugSelection_GetData(taskId, 0)))
+        PlaySE(SE_SUCCESS);
+    else
+        PlaySE(SE_FAILURE);
+    return DebugQuest_RepeatSelection(taskId);
+}
+
+static const struct DebugSelectionStep sQuestIdSelectionStep = {
+    .stepUpdate = DebugSelectionStep_UpdateQuestId,
+    .stepConfirm = DebugSelectionStep_GenericInputConfirm,
+    .minValue = 0,
+    .maxFunc = DebugQuest_MaxQuestId,
+    .useMaxFunc = TRUE,
+    .digits = 3
+};
+
+static const struct DebugSelectionStep sQuestTrackIdSelectionStep = {
+    .stepUpdate = DebugSelectionStep_UpdateQuestTrack,
+    .stepConfirm = DebugSelectionStep_GenericInputConfirm,
+    .minValue = 0,
+    .maxFunc = DebugQuest_MaxQuestId,
+    .useMaxFunc = TRUE,
+    .digits = 3
+};
+
+static const struct DebugSelectionStep sQuestStatusSelectionStep = {
+    .stepUpdate = DebugSelectionStep_UpdateQuestStatus,
+    .stepConfirm = DebugSelectionStep_GenericInputConfirm,
+    .minValue = QUEST_STATUS_HIDDEN,
+    .maxValue = QUEST_STATUS_CLOSED,
+    .digits = 1
+};
+
+static const struct DebugSelectionStep sQuestStageSelectionStep = {
+    .stepUpdate = DebugSelectionStep_UpdateQuestStage,
+    .stepConfirm = DebugSelectionStep_GenericInputConfirm,
+    .minValue = 0,
+    .maxFunc = DebugQuest_MaxStage,
+    .useMaxFunc = TRUE,
+    .digits = 3
+};
+
+static const struct DebugSelectionStep sQuestOutcomeSelectionStep = {
+    .stepUpdate = DebugSelectionStep_UpdateQuestOutcome,
+    .stepConfirm = DebugSelectionStep_GenericInputConfirm,
+    .minValue = 0,
+    .maxFunc = DebugQuest_MaxOutcome,
+    .useMaxFunc = TRUE,
+    .digits = 1
+};
+
+static const struct DebugSelectionStep sQuestObjectiveSelectionStep = {
+    .stepUpdate = DebugSelectionStep_UpdateQuestObjective,
+    .stepConfirm = DebugSelectionStep_GenericInputConfirm,
+    .minValue = 0,
+    .maxFunc = DebugQuest_MaxObjective,
+    .useMaxFunc = TRUE,
+    .digits = 1
+};
+
+static const struct DebugSelection sQuestStatusSelection = {
+    .onInit = Debug_CreateInputDisplayWindow,
+    .onCancel = DebugSelectionStep_ReturnToQuestsMenu,
+    .onComplete = DebugSelection_QuestStatus_Complete,
+    .steps = {&sQuestIdSelectionStep, &sQuestStatusSelectionStep},
+    .maxSteps = 2,
+};
+
+static const struct DebugSelection sQuestStageSelection = {
+    .onInit = Debug_CreateInputDisplayWindow,
+    .onCancel = DebugSelectionStep_ReturnToQuestsMenu,
+    .onComplete = DebugSelection_QuestStage_Complete,
+    .steps = {&sQuestIdSelectionStep, &sQuestStageSelectionStep},
+    .maxSteps = 2,
+};
+
+static const struct DebugSelection sQuestOutcomeSelection = {
+    .onInit = Debug_CreateInputDisplayWindow,
+    .onCancel = DebugSelectionStep_ReturnToQuestsMenu,
+    .onComplete = DebugSelection_QuestOutcome_Complete,
+    .steps = {&sQuestIdSelectionStep, &sQuestOutcomeSelectionStep},
+    .maxSteps = 2,
+};
+
+static const struct DebugSelection sQuestObjectiveSelection = {
+    .onInit = Debug_CreateInputDisplayWindow,
+    .onCancel = DebugSelectionStep_ReturnToQuestsMenu,
+    .onComplete = DebugSelection_QuestObjective_Complete,
+    .steps = {&sQuestIdSelectionStep, &sQuestObjectiveSelectionStep},
+    .maxSteps = 2,
+};
+
+static const struct DebugSelection sQuestTrackSelection = {
+    .onInit = Debug_CreateInputDisplayWindow,
+    .onCancel = DebugSelectionStep_ReturnToQuestsMenu,
+    .onComplete = DebugSelection_QuestTrack_Complete,
+    .steps = {&sQuestTrackIdSelectionStep},
+    .maxSteps = 1,
+};
+
+static void DebugAction_Quests_Untrack(u8 taskId)
+{
+    Quest_SetTracked(QUEST_NONE);
+    PlaySE(SE_SUCCESS);
+}
+
+static void DebugAction_Quests_TestToast(u8 taskId)
+{
+    Debug_DestroyMenu_Full(taskId);
+    QuestToast_Queue(QUEST_TOAST_UPDATED, 0, 0);
+}
+
+static void DebugAction_Quests_CheckProgress(u8 taskId)
+{
+    Debug_DestroyMenu_Full(taskId);
+    Quest_CheckProgress();
+}
+
+static void DebugAction_Quests_ResetAll(u8 taskId)
+{
+    Quest_ResetAll();
+    PlaySE(SE_SUCCESS);
+}
+
 #undef tMenuTaskId
 #undef tWindowId
 #undef tSubWindowId
@@ -4849,3 +5140,4 @@ void CheckEWRAMCounters(struct ScriptContext *ctx)
     ConvertIntToDecimalStringN(gStringVar1, gFollowerSteps, STR_CONV_MODE_LEFT_ALIGN, 5);
     ConvertIntToDecimalStringN(gStringVar2, gChainFishingDexNavStreak, STR_CONV_MODE_LEFT_ALIGN, 5);
 }
+

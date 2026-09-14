@@ -3011,3 +3011,184 @@
 	getbraillestringwidth \text
 	call EventScript_BrailleCursorWaitButton
 	.endm
+
+	@ ============================================================
+	@ Quests (see include/quest.h and src/data/quests/*.json)
+	@ ============================================================
+
+	@ Hidden -> Lead. Shows a "New lead" toast.
+	.macro addlead quest:req
+	callnative ScrCmd_addlead, requests_effects=1
+	.2byte \quest
+	.endm
+
+	@ Hidden or Lead -> Available. Shows a "Quest available" toast.
+	.macro unlockquest quest:req
+	callnative ScrCmd_unlockquest, requests_effects=1
+	.2byte \quest
+	.endm
+
+	@ Hidden, Lead or Available -> Active at stage 0. Shows a "Quest started" toast.
+	.macro startquest quest:req
+	callnative ScrCmd_startquest, requests_effects=1
+	.2byte \quest
+	.endm
+
+	@ Moves an active quest forward to the given stage. Lower or equal stages are ignored.
+	.macro setqueststage quest:req, stage:req
+	callnative ScrCmd_setqueststage, requests_effects=1
+	.2byte \quest
+	.byte \stage
+	.endm
+
+	@ Completes the quest with the given outcome, closing any quests listed in the outcome's "closes".
+	.macro completequest quest:req, outcome:req
+	callnative ScrCmd_completequest, requests_effects=1
+	.2byte \quest
+	.byte \outcome
+	.endm
+
+	@ Lead, Available or Active -> Closed.
+	.macro closequest quest:req
+	callnative ScrCmd_closequest, requests_effects=1
+	.2byte \quest
+	.endm
+
+	@ Re-checks objective conditions of all active quests now.
+	.macro questupdate
+	callnative ScrCmd_questupdate, requests_effects=1
+	.endm
+
+	.macro goto_if_quest_status quest:req, status:req, dest:req
+	callnative ScrCmd_checkqueststatus, requests_effects=1
+	.2byte \quest
+	.byte \status
+	goto_if TRUE, \dest
+	.endm
+
+	.macro call_if_quest_status quest:req, status:req, dest:req
+	callnative ScrCmd_checkqueststatus, requests_effects=1
+	.2byte \quest
+	.byte \status
+	call_if TRUE, \dest
+	.endm
+
+	@ Stage comparisons use the stored stage regardless of status (a quest that was never started is at stage 0).
+	.macro goto_if_quest_stage_eq quest:req, stage:req, dest:req
+	callnative ScrCmd_checkqueststage, requests_effects=1
+	.2byte \quest
+	.byte \stage
+	.byte 0
+	goto_if TRUE, \dest
+	.endm
+
+	.macro call_if_quest_stage_eq quest:req, stage:req, dest:req
+	callnative ScrCmd_checkqueststage, requests_effects=1
+	.2byte \quest
+	.byte \stage
+	.byte 0
+	call_if TRUE, \dest
+	.endm
+
+	.macro goto_if_quest_stage_ge quest:req, stage:req, dest:req
+	callnative ScrCmd_checkqueststage, requests_effects=1
+	.2byte \quest
+	.byte \stage
+	.byte 1
+	goto_if TRUE, \dest
+	.endm
+
+	.macro call_if_quest_stage_ge quest:req, stage:req, dest:req
+	callnative ScrCmd_checkqueststage, requests_effects=1
+	.2byte \quest
+	.byte \stage
+	.byte 1
+	call_if TRUE, \dest
+	.endm
+
+	.macro goto_if_quest_stage_lt quest:req, stage:req, dest:req
+	callnative ScrCmd_checkqueststage, requests_effects=1
+	.2byte \quest
+	.byte \stage
+	.byte 2
+	goto_if TRUE, \dest
+	.endm
+
+	.macro call_if_quest_stage_lt quest:req, stage:req, dest:req
+	callnative ScrCmd_checkqueststage, requests_effects=1
+	.2byte \quest
+	.byte \stage
+	.byte 2
+	call_if TRUE, \dest
+	.endm
+
+	@ Branches if the quest is Complete with the given outcome.
+	.macro goto_if_quest_outcome quest:req, outcome:req, dest:req
+	callnative ScrCmd_checkquestoutcome, requests_effects=1
+	.2byte \quest
+	.byte \outcome
+	goto_if TRUE, \dest
+	.endm
+
+	.macro call_if_quest_outcome quest:req, outcome:req, dest:req
+	callnative ScrCmd_checkquestoutcome, requests_effects=1
+	.2byte \quest
+	.byte \outcome
+	call_if TRUE, \dest
+	.endm
+
+	@ Branches if objective n (index in the current stage) is done.
+	.macro goto_if_objective_done quest:req, objective:req, dest:req
+	callnative ScrCmd_checkobjectivedone, requests_effects=1
+	.2byte \quest
+	.byte \objective
+	goto_if TRUE, \dest
+	.endm
+
+	.macro call_if_objective_done quest:req, objective:req, dest:req
+	callnative ScrCmd_checkobjectivedone, requests_effects=1
+	.2byte \quest
+	.byte \objective
+	call_if TRUE, \dest
+	.endm
+
+	@ Writes the quest's name to the specified buffer.
+	.macro bufferquestname stringVarId:req, quest:req
+	callnative ScrCmd_bufferquestname, requests_effects=1
+	stringvar \stringVarId
+	.2byte \quest
+	.endm
+
+	@ Writes the number of quests in a category (or QUEST_CATEGORY_ANY) with the given status to the specified buffer.
+	.macro bufferquestcount stringVarId:req, category:req, status:req
+	callnative ScrCmd_bufferquestcount, requests_effects=1
+	stringvar \stringVarId
+	.byte \category
+	.byte \status
+	.endm
+
+	@ Sets VAR_RESULT to TRUE if any party member matches (key is PARTY_COND_*), and VAR_0x8005 to the first matching slot.
+	.macro checkpartycondition key:req, value:req
+	callnative ScrCmd_checkpartycondition, requests_effects=1
+	.byte \key
+	.2byte \value
+	.endm
+
+	@ Branches if any party member matches. Also sets VAR_RESULT and VAR_0x8005 like checkpartycondition.
+	.macro goto_if_party_has key:req, value:req, dest:req
+	checkpartycondition \key, \value
+	goto_if_eq VAR_RESULT, TRUE, \dest
+	.endm
+
+	.macro call_if_party_has key:req, value:req, dest:req
+	checkpartycondition \key, \value
+	call_if_eq VAR_RESULT, TRUE, \dest
+	.endm
+
+	@ After special ChoosePartyMon + waitstate: sets VAR_RESULT to TRUE if the chosen slot (VAR_0x8004) matches.
+	@ FALSE if the player cancelled.
+	.macro checkchosenmoncondition key:req, value:req
+	callnative ScrCmd_checkchosenmoncondition, requests_effects=1
+	.byte \key
+	.2byte \value
+	.endm

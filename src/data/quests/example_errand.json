@@ -1,0 +1,52 @@
+{
+  "id": "QUEST_EXAMPLE_ERRAND",
+  "category": "STORY",
+  "name": "Lab Errand",
+  "icon": { "type": "OBJECT", "value": "OBJ_EVENT_GFX_PROF_BIRCH" },
+  "giver": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_BIRCH" },
+  "summary": "Prof. Birch needs supplies before he heads out on fieldwork.",
+  "rewards": [
+    { "item": "ITEM_POKE_BALL", "count": 5 },
+    { "money": 500 }
+  ],
+  "stages": [
+    {
+      "id": "STAGE_ERRAND_SUPPLIES",
+      "title": "Gather Supplies",
+      "journal": "Prof. Birch asked for Potions and news from Oldale Town.",
+      "objectives": [
+        {
+          "text": "Get 3 Potions",
+          "condition": { "item": "ITEM_POTION", "count": 3 }
+        },
+        {
+          "text": "Visit Oldale Town",
+          "target": { "map": "MAP_OLDALE_TOWN" },
+          "condition": { "flag": "FLAG_VISITED_OLDALE_TOWN" }
+        },
+        {
+          "text": "Find an Antidote",
+          "optional": true,
+          "reveal": { "flag": "FLAG_VISITED_OLDALE_TOWN" },
+          "condition": { "item": "ITEM_ANTIDOTE", "count": 1 }
+        }
+      ],
+      "turn_in": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_BIRCH" }
+    },
+    {
+      "id": "STAGE_ERRAND_REPORT",
+      "title": "Report Back",
+      "journal": "The supplies were handed over to Prof. Birch.",
+      "objectives": [
+        {
+          "text": "Talk to the lab aide",
+          "target": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_AIDE" }
+        }
+      ]
+    }
+  ],
+  "outcomes": [
+    { "id": "OUTCOME_ERRAND_DONE", "summary": "Prof. Birch's fieldwork is fully stocked." },
+    { "id": "OUTCOME_ERRAND_SKIPPED", "summary": "Prof. Birch left without the supplies.", "closes": ["QUEST_EXAMPLE_DELIVERY"] }
+  ]
+}

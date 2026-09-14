@@ -1,0 +1,29 @@
+{
+  "id": "QUEST_EXAMPLE_DELIVERY",
+  "category": "SIDE",
+  "name": "Flyer Run",
+  "icon": { "type": "ITEM", "value": "ITEM_POTION" },
+  "giver": { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_OLDALE_MART_EMPLOYEE" },
+  "summary": "Hand out flyers for the Oldale Town Poké Mart.",
+  "rewards": [
+    { "item": "ITEM_POTION", "count": 2 }
+  ],
+  "stages": [
+    {
+      "id": "STAGE_DELIVERY_FLYERS",
+      "title": "Spread the Word",
+      "journal": "The Mart employee gave you a stack of flyers.",
+      "objectives": [
+        {
+          "text": "Hand out flyers",
+          "target": { "map": "MAP_OLDALE_TOWN" },
+          "condition": { "var": "VAR_UNUSED_0x404E", "ge": 5, "progress": true }
+        }
+      ],
+      "turn_in": { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_OLDALE_MART_EMPLOYEE" }
+    }
+  ],
+  "outcomes": [
+    { "id": "OUTCOME_DELIVERY_DONE", "summary": "Business at the Poké Mart is booming." }
+  ]
+}

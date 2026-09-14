@@ -53,6 +53,7 @@
 #include "constants/party_menu.h"
 #include "constants/pokeball.h"
 #include "constants/pokedex.h"
+#include "constants/quests.h"
 #include "constants/pokemon.h"
 #include "constants/pokemon_size_record.h"
 #include "constants/random_mon_generation.h"

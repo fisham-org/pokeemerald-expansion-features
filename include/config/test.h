@@ -1129,6 +1129,16 @@
 #undef P_FAMILY_PECHARUNT
 #define P_FAMILY_PECHARUNT               TRUE
 
+// Quests
+#undef QUEST_TOASTS
+#define QUEST_TOASTS                     TRUE
+#undef QUEST_NPC_MARKERS
+#define QUEST_NPC_MARKERS                TRUE
+#undef QUEST_TOWN_MAP_PIN
+#define QUEST_TOWN_MAP_PIN               TRUE
+#undef QUEST_START_MENU_UNREAD
+#define QUEST_START_MENU_UNREAD          TRUE
+
 // Vars
 #undef B_VAR_DIFFICULTY
 #define B_VAR_DIFFICULTY                TESTING_VAR_DIFFICULTY

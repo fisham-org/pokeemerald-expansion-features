@@ -1,0 +1,36 @@
+{
+  "id": "QUEST_EXAMPLE_SIGHTING",
+  "category": "POKEMON",
+  "name": "Strange Shadow",
+  "icon": { "type": "PKMN", "value": "SPECIES_WOBBUFFET" },
+  "lead": {
+    "hint": "Someone saw a strange blue shadow in the grass on Route 102.",
+    "map": "MAP_ROUTE102"
+  },
+  "summary": "Find out what is lurking in the grass on Route 102.",
+  "rewards": [
+    { "item": "ITEM_GREAT_BALL", "count": 3 }
+  ],
+  "stages": [
+    {
+      "id": "STAGE_SIGHTING_INVESTIGATE",
+      "title": "Investigate",
+      "journal": "The shadow on Route 102 turned out to be a Wobbuffet.",
+      "objectives": [
+        {
+          "text": "Bring a Psychic-type Pokémon",
+          "condition": { "party": { "type": "TYPE_PSYCHIC" } }
+        },
+        {
+          "text": "Catch the Wobbuffet",
+          "target": { "map": "MAP_ROUTE102" },
+          "condition": { "dex": "SPECIES_WOBBUFFET", "state": "caught" }
+        }
+      ]
+    }
+  ],
+  "outcomes": [
+    { "id": "OUTCOME_SIGHTING_CAUGHT", "summary": "The Wobbuffet joined your team." },
+    { "id": "OUTCOME_SIGHTING_FLED", "summary": "The Wobbuffet slipped away." }
+  ]
+}

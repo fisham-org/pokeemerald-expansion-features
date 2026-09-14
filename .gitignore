@@ -48,6 +48,8 @@ prefabs.json
 src/data/map_group_count.h
 include/constants/heal_locations.h
 include/constants/script_commands.h
+include/constants/quests.h
+src/data/quests.h
 tools/trainerproc/trainerproc
 src/data/battle_partners.h
 src/data/pokemon/teachable_learnsets.h

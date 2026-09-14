@@ -1,4 +1,6 @@
 #include "global.h"
+#include "quest.h"
+#include "quest_toast.h"
 #include "overworld.h"
 #include "battle_pyramid.h"
 #include "battle_setup.h"
@@ -899,6 +901,7 @@ void LoadMapFromCameraTransition(u8 mapGroup, u8 mapNum)
     SetDefaultFlashLevel();
     Overworld_ClearSavedMusic();
     RunOnTransitionMapScript();
+    Quest_CheckProgress();
     InitMap();
     CopySecondaryTilesetToVramUsingHeap(gMapHeader.mapLayout);
     LoadSecondaryTilesetPalette(gMapHeader.mapLayout, TRUE); // skip copying to Faded, gamma shift will take care of it
@@ -969,6 +972,7 @@ static void LoadMapFromWarp(bool32 a1)
     SetDefaultFlashLevel();
     Overworld_ClearSavedMusic();
     RunOnTransitionMapScript();
+    Quest_CheckProgress();
     UpdateLocationHistoryForRoamer();
     MoveAllRoamersToOtherLocationSets();
     gChainFishingDexNavStreak = 0;
@@ -1894,6 +1898,7 @@ void CB2_Overworld(void)
         SetFieldVBlankCallback();
         return;
     }
+    QuestToast_Update();
 }
 
 void SetMainCallback1(MainCallback cb)
@@ -2034,6 +2039,7 @@ static void CB2_LoadMapOnReturnToFieldCableClub(void)
 
 void CB2_ReturnToField(void)
 {
+    Quest_CheckProgress();
     if (IsOverworldLinkActive() == TRUE)
     {
         SetMainCallback2(CB2_ReturnToFieldLink);
@@ -2117,6 +2123,8 @@ void CB2_ContinueSavedGame(void)
     u8 trainerHillMapId;
 
     FieldClearVBlankHBlankCallbacks();
+    QuestToast_ClearQueue();
+    Quest_InitProgressCache();
     StopMapMusic();
     ResetSafariZoneFlag_();
     if (gSaveFileStatus == SAVE_STATUS_ERROR)
