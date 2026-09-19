@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+    // Pages are served at <site>/P/<code>; resolve assets relative to <site>/.
+    const base = document.createElement("base");
+    base.href = location.pathname.replace(/\/P\/[^/]*\/?$/i, "/").replace(/[^/]*$/, "");
+    document.head.appendChild(base);
+</script>
+<title>Trainer Share</title>
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<main>
+    <p id="status">Loading…</p>
+
+    <section id="share" class="card share" hidden>
+        <canvas id="scene"></canvas>
+        <div class="buttons">
+            <button id="download">Download image</button>
+            <button id="share-button" hidden>Share</button>
+        </div>
+    </section>
+
+    <section id="trainer" class="card" hidden>
+        <div class="trainer-head">
+            <h1 id="trainer-name"></h1>
+            <span class="version">Version <span id="release-version"></span></span>
+        </div>
+        <div class="stats">
+            <div class="stat"><span class="label">ID No.</span><span class="value" id="trainer-id"></span></div>
+            <div class="stat"><span class="label">Play time</span><span class="value" id="play-time"></span></div>
+            <div class="stat"><span class="label">Pokédex</span><span class="value" id="dex"></span></div>
+            <div class="stat"><span class="label">Badges</span><span class="value" id="badges"></span></div>
+        </div>
+    </section>
+
+    <section id="party" hidden>
+        <div id="party-buttons" class="buttons"><button id="copy-team">Copy team as Pokepaste</button></div>
+    </section>
+
+    <section id="debug" class="card" hidden>
+        <h2>Debug</h2>
+        <table>
+            <thead><tr><th>Name</th><th>Value</th></tr></thead>
+            <tbody id="debug-rows"></tbody>
+        </table>
+    </section>
+</main>
+
+<template id="mon-template">
+    <article class="card mon">
+        <div class="sprite-box"><img class="sprite" alt=""></div>
+        <div class="mon-body">
+            <header class="mon-head">
+                <h2><span class="nickname"></span> <span class="gender"></span></h2>
+                <span class="level"></span>
+            </header>
+            <p class="subtitle"><span class="species"></span><span class="tag shiny" hidden>★ Shiny</span></p>
+            <pre class="set"></pre>
+        </div>
+    </article>
+</template>
+</body>
+</html>

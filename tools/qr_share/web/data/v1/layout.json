@@ -1,0 +1,19 @@
+{
+ "dataVersion": 1,
+ "bits": {
+  "species": 11,
+  "item": 10,
+  "move": 10,
+  "ability": 9,
+  "dexCount": 11
+ },
+ "flags": [
+  "FLAG_SYS_GAME_CLEAR"
+ ],
+ "vars": [
+  {
+   "name": "VAR_STARTER_MON",
+   "bits": 2
+  }
+ ]
+}

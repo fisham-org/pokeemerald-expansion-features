@@ -1,0 +1,194 @@
+:root {
+    --bg: #eef1f6;
+    --card: #ffffff;
+    --inset: #f3f5f9;
+    --text: #1d2330;
+    --muted: #5b6475;
+    --accent: #2f6fd6;
+    --border: #d6dbe4;
+    --gold: #c98a00;
+    --gold-bg: #fff3d1;
+    --male: #2f6fd6;
+    --female: #d6457a;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #12151c;
+        --card: #1c212b;
+        --inset: #242a36;
+        --text: #e7eaf0;
+        --muted: #9aa3b5;
+        --accent: #6fa0f0;
+        --border: #2c3340;
+        --gold: #f0c04a;
+        --gold-bg: #3a3120;
+        --male: #6fa0f0;
+        --female: #f07aa5;
+    }
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.4 system-ui, sans-serif;
+}
+
+main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 16px;
+    display: grid;
+    gap: 16px;
+}
+
+h1, h2 { margin: 0; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.1rem; }
+
+#status { text-align: center; color: var(--muted); margin: 32px 0; }
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+
+/* Share image */
+
+.share { padding: 8px; }
+
+#scene {
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    border-radius: 8px;
+    display: block;
+}
+
+.buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+button {
+    font: inherit;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+}
+button:hover { filter: brightness(1.1); }
+
+/* Trainer */
+
+.trainer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-bottom: 12px;
+}
+.version { color: var(--muted); font-size: 0.85rem; }
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+.stat {
+    background: var(--inset);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+}
+.stat .label { color: var(--muted); font-size: 0.8rem; }
+.stat .value { font-weight: 600; }
+
+/* Party */
+
+#party {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 16px;
+}
+
+.mon { display: flex; gap: 12px; align-items: flex-start; }
+.sprite-box {
+    flex: none;
+    background: var(--inset);
+    border-radius: 10px;
+}
+.mon .sprite {
+    width: 128px;
+    height: 128px;
+    display: block;
+    image-rendering: pixelated;
+}
+.mon-body { flex: 1; min-width: 0; }
+.mon-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2px 8px;
+}
+.gender { font-weight: normal; white-space: nowrap; }
+.gender.male { color: var(--male); }
+.gender.female { color: var(--female); }
+.level {
+    flex: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--inset);
+    border-radius: 999px;
+    padding: 1px 8px;
+}
+.subtitle {
+    margin: 0 0 8px;
+    min-height: 1.4em;
+    color: var(--muted);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 1px 8px;
+}
+.tag[hidden] { display: none; }
+.tag.shiny { color: var(--gold); background: var(--gold-bg); }
+
+.mon .set {
+    margin: 0;
+    background: var(--inset);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font: 0.85rem/1.45 ui-monospace, monospace;
+    white-space: pre-wrap;
+    user-select: all;
+}
+#party-buttons { grid-column: 1 / -1; margin-top: 0; }
+
+/* Debug */
+
+table { width: 100%; border-collapse: collapse; font-family: ui-monospace, monospace; font-size: 0.9rem; }
+th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 600; }
+#debug h2 { margin-bottom: 8px; }
+
+@media (max-width: 520px) {
+    main { padding: 12px; gap: 12px; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    #party { grid-template-columns: 1fr; }
+}

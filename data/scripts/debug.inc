@@ -200,11 +200,49 @@ Debug_EventScript_Text_OffensiveIVs:
 Debug_EventScript_Text_DefensiveIVs:
 	.string "HP IVs: {STR_VAR_1}, DEF IVs: {STR_VAR_2}, SPDEF IVs: {STR_VAR_3}$"
 
+@ Replaces the party with an example QR Share team: nicknames (one full length), a shiny,
+@ held items, and a Charizard holding its Mega Stone (drawn as Mega Charizard X with QR_SHARE_SHOW_MEGA_FORMS).
 Debug_EventScript_Script_1::
+	createmon 0, 0, SPECIES_CHARIZARD, 50, item=ITEM_CHARIZARDITE_X, move1=MOVE_DRAGON_CLAW, move2=MOVE_FLARE_BLITZ, move3=MOVE_DRAGON_DANCE, move4=MOVE_PROTECT
+	createmon 0, 1, SPECIES_SWAMPERT, 52, item=ITEM_LEFTOVERS, move1=MOVE_EARTHQUAKE, move2=MOVE_WATERFALL, move3=MOVE_ICE_BEAM, move4=MOVE_PROTECT
+	createmon 0, 2, SPECIES_ALTARIA, 48, item=ITEM_SHARP_BEAK, move1=MOVE_DRAGON_DANCE, move2=MOVE_DRAGON_CLAW, move3=MOVE_HURRICANE, move4=MOVE_ROOST, shinyMode=SHINY_MODE_ALWAYS
+	createmon 0, 3, SPECIES_PIKACHU, 45, item=ITEM_LIGHT_BALL, move1=MOVE_THUNDERBOLT, move2=MOVE_VOLT_TACKLE, move3=MOVE_IRON_TAIL, move4=MOVE_QUICK_ATTACK
+	createmon 0, 4, SPECIES_AGGRON, 49, move1=MOVE_IRON_HEAD, move2=MOVE_HEAD_SMASH, move3=MOVE_EARTHQUAKE, move4=MOVE_ROCK_SLIDE
+	createmon 0, 5, SPECIES_ZIGZAGOON, 30, move1=MOVE_TACKLE, move2=MOVE_GROWL, move3=MOVE_HEADBUTT, move4=MOVE_BELLY_DRUM
+	callnative QrShare_SetPartyMonNickname
+	.byte 0
+	.4byte Debug_EventScript_Text_NicknameLizardon
+	callnative QrShare_SetPartyMonNickname
+	.byte 2
+	.4byte Debug_EventScript_Text_NicknameCottonCandy
+	callnative QrShare_SetPartyMonNickname
+	.byte 3
+	.4byte Debug_EventScript_Text_NicknameSparky
+	callnative QrShare_SetPartyMonNickname
+	.byte 5
+	.4byte Debug_EventScript_Text_NicknameZigzagZoomer
+	msgbox Debug_EventScript_Text_QrShareTeamSet, MSGBOX_DEFAULT
 	release
 	end
 
+Debug_EventScript_Text_NicknameLizardon:
+	.string "LIZARDON$"
+
+Debug_EventScript_Text_NicknameCottonCandy:
+	.string "CottonCandy$"
+
+Debug_EventScript_Text_NicknameSparky:
+	.string "Sparky$"
+
+Debug_EventScript_Text_NicknameZigzagZoomer:
+	.string "ZigzagZoomer$"
+
+Debug_EventScript_Text_QrShareTeamSet:
+	.string "Party replaced.$"
+
+@ show the choose background picker
 Debug_EventScript_Script_2::
+	call QrShare_EventScript_ChooseBackground
 	release
 	end
 

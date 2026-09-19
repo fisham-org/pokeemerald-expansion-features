@@ -638,3 +638,6 @@ gSpecials::
 	def_special UpdateTrainerCardPhotoIcons
 	def_special StickerManGetBragFlags
 	def_special CheckAddCoins
+	def_special QrShare_ShowScreen, waitstate=1
+	def_special QrShare_PushUnlockedBackgrounds
+	def_special QrShare_SetBackground

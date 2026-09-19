@@ -71,3 +71,4 @@ CLAUDE.md
 .claude/*
 notes/*
 .map_version
+.wrangler/

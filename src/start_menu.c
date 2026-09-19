@@ -31,6 +31,7 @@
 #include "party_menu.h"
 #include "pokedex.h"
 #include "pokenav.h"
+#include "qr_share.h"
 #include "safari_zone.h"
 #include "save.h"
 #include "scanline_effect.h"
@@ -69,6 +70,7 @@ enum
     MENU_ACTION_PYRAMID_BAG,
     MENU_ACTION_DEBUG,
     MENU_ACTION_DEXNAV,
+    MENU_ACTION_QR_SHARE,
 };
 
 // Save status
@@ -88,7 +90,7 @@ EWRAM_DATA static u8 sSafariBallsWindowId = 0;
 EWRAM_DATA static u8 sBattlePyramidFloorWindowId = 0;
 EWRAM_DATA static u8 sStartMenuCursorPos = 0;
 EWRAM_DATA static u8 sNumStartMenuActions = 0;
-EWRAM_DATA static u8 sCurrentStartMenuActions[9] = {0};
+EWRAM_DATA static u8 sCurrentStartMenuActions[10] = {0};
 EWRAM_DATA static s8 sInitStartMenuData[2] = {0};
 
 EWRAM_DATA static u8 (*sSaveDialogCallback)(void) = NULL;
@@ -111,6 +113,7 @@ static bool8 StartMenuBattlePyramidRetireCallback(void);
 static bool8 StartMenuBattlePyramidBagCallback(void);
 static bool8 StartMenuDebugCallback(void);
 static bool8 StartMenuDexNavCallback(void);
+static bool8 StartMenuQrShareCallback(void);
 
 // Menu callbacks
 static bool8 SaveStartCallback(void);
@@ -188,6 +191,7 @@ static const struct WindowTemplate sWindowTemplate_PyramidPeak = {
 };
 
 static const u8 sText_MenuDebug[] = _("DEBUG");
+static const u8 sText_MenuQrShare[] = _("SHARE");
 
 static const struct MenuAction sStartMenuItems[] =
 {
@@ -206,6 +210,7 @@ static const struct MenuAction sStartMenuItems[] =
     [MENU_ACTION_PYRAMID_BAG]     = {gText_MenuBag,     {.u8_void = StartMenuBattlePyramidBagCallback}},
     [MENU_ACTION_DEBUG]           = {sText_MenuDebug,   {.u8_void = StartMenuDebugCallback}},
     [MENU_ACTION_DEXNAV]          = {gText_MenuDexNav,  {.u8_void = StartMenuDexNavCallback}},
+    [MENU_ACTION_QR_SHARE]        = {sText_MenuQrShare, {.u8_void = StartMenuQrShareCallback}},
 };
 
 static const struct BgTemplate sBgTemplates_LinkBattleSave[] =
@@ -339,6 +344,10 @@ static void BuildNormalStartMenu(void)
         AddStartMenuAction(MENU_ACTION_POKENAV);
 
     AddStartMenuAction(MENU_ACTION_PLAYER);
+
+    if (QR_SHARE_START_MENU && (QR_SHARE_FLAG_START_MENU == 0 || FlagGet(QR_SHARE_FLAG_START_MENU)))
+        AddStartMenuAction(MENU_ACTION_QR_SHARE);
+
     AddStartMenuAction(MENU_ACTION_SAVE);
     AddStartMenuAction(MENU_ACTION_OPTION);
     AddStartMenuAction(MENU_ACTION_EXIT);
@@ -1502,6 +1511,21 @@ static bool8 StartMenuDexNavCallback(void)
 {
     CreateTask(Task_OpenDexNavFromStartMenu, 0);
     return TRUE;
+}
+
+static bool8 StartMenuQrShareCallback(void)
+{
+    if (!gPaletteFade.active)
+    {
+        PlayRainStoppingSoundEffect();
+        RemoveExtraStartMenuWindows();
+        CleanupOverworldWindowsAndTilemaps();
+        QrShare_Open(CB2_ReturnToFieldWithOpenMenu);
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 void Script_ForceSaveGame(struct ScriptContext *ctx)
