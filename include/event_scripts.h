@@ -710,7 +710,7 @@ extern const u8 EventScript_LostSignal[];
 extern const u8 EventScript_TooDark[];
 extern const u8 EventScript_MovedTooFast[];
 
-extern const u8 FieldMove_EventScript_Cut[]; // field items
+extern const u8 EventScript_CutTree[]; // field move items
 
 extern const u8 MoveTutor_AfterChooseBoxMon[];
 

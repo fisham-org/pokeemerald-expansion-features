@@ -5,7 +5,7 @@
 @ Interact with cuttable tree
 EventScript_CutTree::
 	    lockall
-    checkfieldmove FIELD_MOVE_CUT
+    checkfieldmove FIELD_MOVE_CUT, TRUE
     copyvar VAR_0x8004, VAR_RESULT
     goto_if_eq VAR_0x8004, PARTY_SIZE, EventScript_CheckTreeCantCut
     goto_if_eq VAR_0x8004, PARTY_SIZE + 1, EventScript_CutTreeWithItem
@@ -91,7 +91,7 @@ Text_MonUsedFieldMove:
 @ Interact with smashable rock
 EventScript_RockSmash::
     lockall
-    checkfieldmove FIELD_MOVE_ROCK_SMASH
+    checkfieldmove FIELD_MOVE_ROCK_SMASH, TRUE
     copyvar VAR_0x8004, VAR_RESULT
     goto_if_eq VAR_0x8004, PARTY_SIZE, EventScript_CantSmashRock
     goto_if_eq VAR_0x8004, PARTY_SIZE + 1, EventScript_RockSmashWithItem
@@ -186,7 +186,7 @@ Text_CantSmash:
 EventScript_StrengthBoulder::
     lockall
     goto_if_set FLAG_SYS_USE_STRENGTH, EventScript_CheckActivatedBoulder
-    checkfieldmove FIELD_MOVE_STRENGTH
+    checkfieldmove FIELD_MOVE_STRENGTH, TRUE
     copyvar VAR_0x8004, VAR_RESULT
     goto_if_eq VAR_0x8004, PARTY_SIZE, EventScript_CantStrength
     goto_if_eq VAR_0x8004, PARTY_SIZE + 1, EventScript_StrengthWithItem
@@ -268,7 +268,7 @@ Text_CantStrength:
 
 EventScript_UseWaterfall::
 	lockall
-    checkfieldmove FIELD_MOVE_WATERFALL
+    checkfieldmove FIELD_MOVE_WATERFALL, TRUE
     copyvar VAR_0x8004, VAR_RESULT
     goto_if_eq VAR_0x8004, PARTY_SIZE, EventScript_CantWaterfall
     goto_if_eq VAR_0x8004, PARTY_SIZE + 1, EventScript_UseWaterfallWithItem
@@ -333,7 +333,7 @@ Text_WantToWaterfall:
 
 EventScript_UseDive::
 	lockall
-    checkfieldmove FIELD_MOVE_DIVE
+    checkfieldmove FIELD_MOVE_DIVE, TRUE
     copyvar VAR_0x8004, VAR_RESULT
     goto_if_eq VAR_0x8004, PARTY_SIZE, EventScript_CantDive
     goto_if_eq VAR_0x8004, PARTY_SIZE + 1, EventScript_UseDiveWithItem
@@ -373,7 +373,7 @@ EventScript_EndDive::
 
 EventScript_UseDiveUnderwater::
 	lockall
-    checkfieldmove FIELD_MOVE_DIVE
+    checkfieldmove FIELD_MOVE_DIVE, TRUE
     copyvar VAR_0x8004, VAR_RESULT
     goto_if_eq VAR_0x8004, PARTY_SIZE, EventScript_CantSurface
     goto_if_eq VAR_0x8004, PARTY_SIZE + 1, EventScript_UseSurfaceWithItem

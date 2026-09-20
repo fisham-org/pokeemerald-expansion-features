@@ -37,6 +37,12 @@ static void MakeSlotAnEgg(u32 slotId)
     SetMonData(&gParties[B_TRAINER_PLAYER][slotId], MON_DATA_IS_EGG, &isEgg);
 }
 
+static void TeachSlotMove(u32 slotId, enum Move move)
+{
+    u16 moveId = move;
+    SetMonData(&gParties[B_TRAINER_PLAYER][slotId], MON_DATA_MOVE1, &moveId);
+}
+
 TEST("checkfieldmove returns the slot of a party mon that can learn the move")
 {
     ZeroPlayerPartyMons();
@@ -105,10 +111,26 @@ TEST("checkfieldmove succeeds for an always-unlocked field move without a badge"
     ZeroPlayerPartyMons();
     RUN_OVERWORLD_SCRIPT(
         givemon SPECIES_ZIGZAGOON, 5;
+    );
+    TeachSlotMove(0, MOVE_DIG);
+    RUN_OVERWORLD_SCRIPT(
         checkfieldmove FIELD_MOVE_DIG, TRUE;
     );
     EXPECT_EQ(gSpecialVar_Result, 0);
     EXPECT_EQ(GetFieldMoveSource(), FIELD_MOVE_SOURCE_POKEMON);
+}
+
+// Only field moves with a key item alternative are relaxed to "can learn"; the
+// rest keep the vanilla requirement so that moves like Secret Power, which have
+// no tool, are not usable by every mon that could be taught them.
+TEST("checkfieldmove requires a known move when the field move has no key item")
+{
+    ZeroPlayerPartyMons();
+    RUN_OVERWORLD_SCRIPT(
+        givemon SPECIES_ZIGZAGOON, 5;
+        checkfieldmove FIELD_MOVE_DIG, TRUE;
+    );
+    EXPECT_EQ(gSpecialVar_Result, PARTY_SIZE);
 }
 
 TEST("checkfieldmove fails for a field move with no key item and no capable mon")
@@ -240,12 +262,6 @@ static bool32 PartyMenuListsFieldMove(u32 slotId, enum FieldMove fieldMove)
             return TRUE;
     }
     return FALSE;
-}
-
-static void TeachSlotMove(u32 slotId, enum Move move)
-{
-    u16 moveId = move;
-    SetMonData(&gParties[B_TRAINER_PLAYER][slotId], MON_DATA_MOVE1, &moveId);
 }
 
 TEST("Party menu lists Fly for a mon that can learn it once the badge is obtained")

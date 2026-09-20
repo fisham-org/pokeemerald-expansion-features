@@ -3,7 +3,7 @@
 @##################################################################
 
 EventScript_UseSurf::
-    checkfieldmove FIELD_MOVE_SURF
+    checkfieldmove FIELD_MOVE_SURF, TRUE
     copyvar VAR_0x8004, VAR_RESULT
     goto_if_eq VAR_0x8004, PARTY_SIZE, EventScript_EndUseSurf @ On failure, jump to message
     goto_if_eq VAR_0x8004, PARTY_SIZE + 1, EventScript_UseSurfWithItem

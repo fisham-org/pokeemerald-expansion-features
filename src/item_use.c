@@ -1593,8 +1593,10 @@ void ItemUseOutOfBattle_TownMap(u8 taskId)
 
 static void ItemUseOnFieldCB_Cut(u8 taskId)
 {
+    // EventScript_CutTree picks the Pokémon or the item path itself, the same way
+    // the other field move tools let their script decide.
     LockPlayerFieldControls();
-    ScriptContext_SetupScript(FieldMove_EventScript_Cut);
+    ScriptContext_SetupScript(EventScript_CutTree);
     DestroyTask(taskId);
 }
 
@@ -1699,9 +1701,11 @@ static void ItemUseOnFieldCB_Strength(u8 taskId)
 
 void ItemUseOutOfBattle_Flash(u8 taskId)
 {
-    // We only check for the badge here. The script will handle
-    // checking if the cave is actually dark.
-    if (IsFieldMoveUnlocked(FIELD_MOVE_FLASH) == TRUE)
+    // Mirrors the conditions SetUpFieldMove_Flash uses for the party menu:
+    // the badge, a cave, and a cave that is still dark.
+    if (IsFieldMoveUnlocked(FIELD_MOVE_FLASH) == TRUE
+     && gMapHeader.cave == TRUE
+     && !FlagGet(FLAG_SYS_USE_FLASH))
     {
         sItemUseOnFieldCB = ItemUseOnFieldCB_Flash;
         SetUpItemUseOnFieldCallback(taskId);
