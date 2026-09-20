@@ -874,7 +874,7 @@
 	    setvar VAR_0x8005, FRONTIER_DATA_SELECTED_MON_ORDER
 	    special CallFrontierUtilFunc
 		@ Use trainerbattle with wrapper - it will handle dotrainerbattle automatically
-	    trainerbattle LOCALID_NONE, \trainer, NULL, \lose_text, _selectmons_wrapper_\@, LOCALID_NONE, TRAINER_NONE, NULL, NULL, NULL, NULL, NULL, FALSE, TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, TRUE
+	    trainerbattle LOCALID_NONE, \trainer, NULL, \lose_text, _selectmons_wrapper_\@, LOCALID_NONE, TRAINER_NONE, NULL, NULL, NULL, NULL, NULL, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE
 	    end
 	_selectmons_wrapper_\@:
 	    @ This runs after battle - restore party and route to user's script
