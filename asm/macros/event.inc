@@ -2435,6 +2435,23 @@
 	callnative Script_ToggleFakeRtc, requests_effects=1
 	.endm
 
+	@ After a hardware fade to black (fadescreenswapbuffers), keeps the text layer
+	@ bright so a msgbox stays readable over the darkened screen. Undone by the
+	@ next fadescreenswapbuffers.
+	.macro keeptextabovefade
+	callnative Script_KeepTextAboveFade, requests_effects=1
+	.endm
+
+	@ When OW_USE_FAKE_RTC is true, winds the clock forward to the canonical time
+	@ for the given time of day (TIME_MORNING/TIME_DAY/TIME_EVENING/TIME_NIGHT) and
+	@ refreshes the day/night tint. Never winds backwards, so a time that has
+	@ already passed today lands on it tomorrow. Wrap in fadescreenswapbuffers so
+	@ the tint change is hidden behind a fade.
+	.macro settimeofday timeOfDay:req
+	callnative ScrCmd_settimeofday, requests_effects=1
+	.4byte \timeOfDay
+	.endm
+
 	@ When OW_USE_FAKE_RTC is true, adds a specified amount of time.
 	.macro addtime days:req, hours:req, minutes:req
 	callnative ScrCmd_addtime, requests_effects=1

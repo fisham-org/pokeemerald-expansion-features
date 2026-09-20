@@ -200,33 +200,72 @@ Debug_EventScript_Text_OffensiveIVs:
 Debug_EventScript_Text_DefensiveIVs:
 	.string "HP IVs: {STR_VAR_1}, DEF IVs: {STR_VAR_2}, SPDEF IVs: {STR_VAR_3}$"
 
-Debug_EventScript_Script_1::
-	release
-	end
+@ ============================================================================
+@ TIME MANAGEMENT TEST SCRIPTS
+@ ============================================================================
+@ These cover what test/time_skip.c cannot: the day/night tint on arrival, the
+@ fade, and the rest menu itself.
 
+@ --- Rest menu, callable from anywhere rather than walking to a Pokemon Center
+Debug_EventScript_Script_1::
+	goto EventScript_RestSpot
+
+@ --- Jump to each band behind the same fade the real scripts use, so the tint
+@ --- on arrival is exactly what a player would see, then report where we landed
 Debug_EventScript_Script_2::
-	release
-	end
+	fadescreenswapbuffers FADE_TO_BLACK
+	settimeofday TIME_MORNING
+	fadescreenswapbuffers FADE_FROM_BLACK
+	goto Debug_Time_Report
 
 Debug_EventScript_Script_3::
-	release
-	end
+	fadescreenswapbuffers FADE_TO_BLACK
+	settimeofday TIME_DAY
+	fadescreenswapbuffers FADE_FROM_BLACK
+	goto Debug_Time_Report
 
 Debug_EventScript_Script_4::
-	release
-	end
+	fadescreenswapbuffers FADE_TO_BLACK
+	settimeofday TIME_EVENING
+	fadescreenswapbuffers FADE_FROM_BLACK
+	goto Debug_Time_Report
 
 Debug_EventScript_Script_5::
-	release
-	end
+	fadescreenswapbuffers FADE_TO_BLACK
+	settimeofday TIME_NIGHT
+	fadescreenswapbuffers FADE_FROM_BLACK
+	goto Debug_Time_Report
 
+@ --- Read out the clock without changing it. Leave this open and watch the
+@ --- minutes to confirm the rate: one in-game minute per 3 real seconds at 20x.
 Debug_EventScript_Script_6::
+	goto Debug_Time_Report
+
+@ --- Freeze / unfreeze the clock. OW_FLAG_PAUSE_TIME ships as 0, which makes
+@ --- pausefakertc a silent no-op, so this is worth checking after assigning it.
+Debug_EventScript_Script_7::
+	togglefakertc
+	goto_if_set OW_FLAG_PAUSE_TIME, Debug_Time_ReportPaused
+	msgbox Debug_Time_Text_Resumed, MSGBOX_DEFAULT
+	goto Debug_Time_Report
+
+Debug_Time_ReportPaused::
+	msgbox Debug_Time_Text_Paused, MSGBOX_DEFAULT
+	goto Debug_Time_Report
+
+Debug_Time_Report::
+	callnative DebugMenu_CalculateTime
+	msgbox Debug_EventScript_TellTheTime_Text_0, MSGBOX_DEFAULT
+	callnative DebugMenu_CalculateTimeOfDay
+	msgbox DebugEventScript_PrintWeekday_Text_0, MSGBOX_DEFAULT
 	release
 	end
 
-Debug_EventScript_Script_7::
-	release
-	end
+Debug_Time_Text_Paused:
+	.string "Clock PAUSED.$"
+
+Debug_Time_Text_Resumed:
+	.string "Clock RESUMED.$"
 
 Debug_EventScript_Script_8::
 	release

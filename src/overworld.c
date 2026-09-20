@@ -1216,9 +1216,19 @@ static u16 GetNightMusicFromTrack(u16 track)
 {
     if (GetTimeOfDay() != TIME_NIGHT)
         return track;
+    // Maps can carry a track outside the table's range - MUS_DUMMY (0) most
+    // obviously - which would index hundreds of entries before the table.
+    if (track < START_MUS || track >= END_MUS)
+        return track;
     if (sNightMusicTable[track - START_MUS] >= START_MUS && sNightMusicTable[track - START_MUS] <= END_MUS)
         return sNightMusicTable[track - START_MUS];
     return track;
+}
+
+// Exposes the static lookup so tests can cover the out-of-range guard.
+u16 Test_GetNightMusicFromTrack(u16 track)
+{
+    return GetNightMusicFromTrack(track);
 }
 
 u16 GetLocationMusic(struct WarpData *warp)
@@ -1950,6 +1960,10 @@ void CB2_NewGame(void)
 #if OW_USE_FAKE_RTC
     // Wall clock now track local time so we set it to 10AM to match initial wall clock time
     RtcCalcLocalTimeOffset(0, 10, 0, 0);
+    // FLAG_SYS_CLOCK_SET is otherwise only set by the Littleroot wall clock, so a
+    // hack with a custom intro never sets it and DoTimeBasedEvents() never fires -
+    // no berry growth and no daily rollover, ever.
+    InitTimeBasedEvents();
 #endif
 }
 
