@@ -316,6 +316,22 @@ TEST("Party menu lists Dig only when the mon knows it")
     EXPECT_EQ(PartyMenuListsFieldMove(0, FIELD_MOVE_DIG), TRUE);
 }
 
+TEST("Party menu lists Fly once for a mon that already knows it")
+{
+    u8 fieldMoves[8];
+    u32 count;
+
+    ZeroPlayerPartyMons();
+    UnlockFieldMove(FIELD_MOVE_FLY);
+    RUN_OVERWORLD_SCRIPT(
+        givemon SPECIES_TAILLOW, 5;
+    );
+    TeachSlotMove(0, MOVE_FLY);
+    count = Test_GetPartyMenuFieldMoves(gParties[B_TRAINER_PLAYER], 0, fieldMoves);
+    EXPECT_EQ(count, 1);
+    EXPECT_EQ(fieldMoves[0], FIELD_MOVE_FLY);
+}
+
 TEST("Party menu lists no field moves for an egg")
 {
     u8 fieldMoves[8];

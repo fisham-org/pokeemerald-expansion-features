@@ -1,6 +1,7 @@
 #include "global.h"
 #include "event_data.h"
 #include "field_move.h"
+#include "field_move_tools.h"
 #include "fldeff.h"
 #include "fldeff_misc.h"
 #include "party_menu.h"
@@ -216,11 +217,11 @@ bool8 CanUseFly(void)
         return FALSE;
 
     // If they have the badge, check for a Pokémon that can learn Fly.
-    for (i = 0; i < gPlayerPartyCount; i++)
+    for (i = 0; i < gPartiesCount[B_TRAINER_PLAYER]; i++)
     {
-        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+        if (!GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_IS_EGG))
         {
-            u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES);
+            u16 species = GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_SPECIES);
             if (CanLearnTeachableMove(species, MOVE_FLY))
             {
                 sFieldMoveSource = FIELD_MOVE_SOURCE_POKEMON;
@@ -230,7 +231,7 @@ bool8 CanUseFly(void)
     }
 
     // If no Pokémon is found, check for the Fly Tool item.
-    if (CheckBagHasItem(ITEM_FLY_TOOL, 1))
+    if (FieldMoveTool_HasKeyItem(FIELD_MOVE_FLY))
     {
         sFieldMoveSource = FIELD_MOVE_SOURCE_ITEM;
         return TRUE; // Found the item
@@ -254,11 +255,11 @@ bool8 CanUseFlash(void)
         return FALSE;
 
     // 2. Check for a Pokémon that can learn Flash
-    for (i = 0; i < gPlayerPartyCount; i++)
+    for (i = 0; i < gPartiesCount[B_TRAINER_PLAYER]; i++)
     {
-        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+        if (!GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_IS_EGG))
         {
-            u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES);
+            u16 species = GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_SPECIES);
             if (CanLearnTeachableMove(species, MOVE_FLASH))
             {
                 sFieldMoveSource = FIELD_MOVE_SOURCE_POKEMON;
@@ -268,7 +269,7 @@ bool8 CanUseFlash(void)
     }
 
     // 3. Check for the item
-    if (CheckBagHasItem(ITEM_FLASH_TOOL, 1))
+    if (FieldMoveTool_HasKeyItem(FIELD_MOVE_FLASH))
     {
         sFieldMoveSource = FIELD_MOVE_SOURCE_ITEM;
         return TRUE;

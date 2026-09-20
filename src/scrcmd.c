@@ -16,6 +16,7 @@
 #include "field_door.h"
 #include "field_effect.h"
 #include "field_move.h"
+#include "field_move_tools.h"
 #include "event_object_lock.h"
 #include "event_object_movement.h"
 #include "event_scripts.h"
@@ -2291,32 +2292,6 @@ bool8 ScrCmd_setmonmove(struct ScriptContext *ctx)
     return FALSE;
 }
 
-static u16 GetKeyItemForFieldMove(u16 move)
-{
-    switch (move)
-    {
-        case MOVE_CUT:
-            return ITEM_CUT_TOOL;
-        case MOVE_FLY:
-            return ITEM_FLY_TOOL;
-        case MOVE_SURF:
-            return ITEM_SURF_TOOL;
-        case MOVE_STRENGTH:
-            return ITEM_STRENGTH_TOOL;
-        case MOVE_FLASH:
-            return ITEM_FLASH_TOOL;
-        case MOVE_ROCK_SMASH:
-            return ITEM_ROCK_SMASH_TOOL;
-        case MOVE_WATERFALL:
-            return ITEM_WATERFALL_TOOL;
-        case MOVE_DIVE:
-            return ITEM_DIVE_TOOL;
-        // Add more cases here for future tools
-        default:
-            return ITEM_NONE;
-    }
-}
-
 // Checks if a field move can be used via either a Pokémon or a key item
 // Return values in gSpecialVar_Result:
 //   0-5: Party slot index of a Pokémon that can use the move
@@ -2336,7 +2311,7 @@ bool8 ScrCmd_checkfieldmove(struct ScriptContext *ctx)
         return FALSE;
 
     move = FieldMove_GetMoveId(fieldMove);
-    keyItem = GetKeyItemForFieldMove(move);
+    keyItem = FieldMoveTool_GetKeyItem(fieldMove);
 
     // 1. Check the party. Field moves with a key item alternative only need a mon
     // that could learn them, the rest still require a mon that knows the move.

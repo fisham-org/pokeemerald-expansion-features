@@ -19,6 +19,7 @@
 #include "field_control_avatar.h"
 #include "field_effect.h"
 #include "field_move.h"
+#include "field_move_tools.h"
 #include "field_player_avatar.h"
 #include "field_screen_effect.h"
 #include "field_specials.h"
@@ -2947,77 +2948,19 @@ static void SetPartyMonSelectionActions(struct Pokemon *mons, u8 slotId, u8 acti
     }
 }
 
-// Field moves that can be used via items and should be excluded from the party menu
-static const u16 sItemBasedFieldMoves[] =
-{
-    MOVE_CUT,
-    MOVE_SURF,
-    MOVE_STRENGTH,
-    MOVE_ROCK_SMASH,
-    MOVE_DIVE,
-    MOVE_WATERFALL,
-};
-
-// Check if a field move should be excluded from the party menu (because it has an item alternative)
-static bool8 IsFieldMoveExcludedFromPartyMenu(u16 moveId)
-{
-    u32 i;
-    for (i = 0; i < ARRAY_COUNT(sItemBasedFieldMoves); i++)
-    {
-        if (sItemBasedFieldMoves[i] == moveId)
-            return TRUE;
-    }
-    return FALSE;
-}
-
 static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
-// modified for field move implementation
 {
-    u8 i, j;
+    u8 fieldMoves[MAX_MON_MOVES];
+    u32 numFieldMoves;
 
     sPartyMenuInternal->numActions = 0;
     AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_SUMMARY);
 
-    u16 species = GetMonData(&mons[slotId], MON_DATA_SPECIES);
-
-    if (!GetMonData(&mons[slotId], MON_DATA_IS_EGG))
-    {
-        // Loop through all possible field moves
-        for (i = 0; i < FIELD_MOVES_COUNT; i++)
-        {
-            u16 moveId = FieldMove_GetMoveId(i);
-
-            if (!FieldMove_IsVisible(i))
-                continue;
-
-            // Case 1: Fly and Flash - show if learnable and badge obtained
-            if (moveId == MOVE_FLY || moveId == MOVE_FLASH)
-            {
-                if (IsFieldMoveUnlocked(i) && CanLearnTeachableMove(species, moveId))
-                {
-                    AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, i + MENU_FIELD_MOVES);
-                }
-            }
-            // Case 2: Item-based field moves - excluded from party menu
-            else if (IsFieldMoveExcludedFromPartyMenu(moveId))
-            {
-                // Do nothing, effectively removing them from the menu.
-            }
-            // Case 3: All other field moves (Dig, Soft-Boiled, etc.)
-            else
-            {
-                // Use the original logic: check if the Pokémon knows the move.
-                for (j = 0; j < MAX_MON_MOVES; j++)
-                {
-                    if (GetMonData(&mons[slotId], MON_DATA_MOVE1 + j) == moveId)
-                    {
-                        AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, i + MENU_FIELD_MOVES);
-                        break; // Move found, stop checking this Pokémon's moves
-                    }
-                }
-            }
-        }
-    }
+    // Add field moves to action list. Which ones are listed depends on OW_FIELD_MOVE_TOOLS,
+    // see gFieldMoveTools in src/field_move_tools.c.
+    numFieldMoves = FieldMoveTool_GetPartyMenuFieldMoves(&mons[slotId], fieldMoves);
+    for (u32 i = 0; i < numFieldMoves; i++)
+        AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, fieldMoves[i] + MENU_FIELD_MOVES);
 
     if (!InBattlePike())
     {
