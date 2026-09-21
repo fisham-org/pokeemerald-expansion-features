@@ -28,6 +28,7 @@
 #include "config/map_preview_screen.h"
 #include "config/overworld.h"
 #include "config/pokemon.h"
+#include "config/dex_minigames.h"
 #include "config/summary_screen.h"
 #include "config/wild_encounter.h"
 

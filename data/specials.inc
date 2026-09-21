@@ -638,3 +638,11 @@ gSpecials::
 	def_special UpdateTrainerCardPhotoIcons
 	def_special StickerManGetBragFlags
 	def_special CheckAddCoins
+	def_special GetPokedokuStatus
+	def_special PreparePokedoku
+	def_special OpenPokedoku, waitstate=1
+	def_special ClaimPokedokuReward
+	def_special GetSquirdleStatus
+	def_special PrepareSquirdle
+	def_special OpenSquirdle, waitstate=1
+	def_special ClaimSquirdleReward

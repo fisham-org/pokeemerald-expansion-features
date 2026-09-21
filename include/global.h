@@ -254,6 +254,47 @@ struct NPCFollower
 #include "constants/items.h"
 #define ITEM_FLAGS_COUNT ((ITEMS_COUNT / 8) + ((ITEMS_COUNT % 8) ? 1 : 0))
 
+#include "constants/dex_minigames.h"
+struct PokedokuSave
+{
+    u16 day;                            // RTC day count of the stored board
+    u16 lastFinishedDay;
+    u16 guesses[POKEDOKU_NUM_CELLS];    // Species guessed in each cell, SPECIES_NONE if not attempted
+    u8 criteria[POKEDOKU_GRID_SIZE * 2]; // Rows then columns
+    u16 correctMask:POKEDOKU_NUM_CELLS;
+    u16 active:1;                       // day/criteria hold a board
+    u16 finished:1;
+    u16 rewardPending:1;
+    u16 answerPool:2;                   // DEX_POOL_* the board was made from
+    u16 padding:2;
+    u16 played;
+    u16 perfect;
+    u16 streak;
+    u16 bestStreak;
+    u16 perfectStreak;
+    u16 bestRarity;                     // Lowest rarity score, 0 if none yet
+};
+
+struct SquirdleSave
+{
+    u16 day;                                // RTC day count of the stored puzzle
+    u16 lastWinDay;
+    u16 target;                             // Species
+    u16 guesses[SQUIRDLE_MAX_GUESSES];      // Species, in order
+    u8 numGuesses:4;
+    u8 active:1;                            // day/target hold a puzzle
+    u8 finished:1;
+    u8 won:1;
+    u8 rewardPending:1;
+    u8 answerPool:2;                        // DEX_POOL_* the target was picked from
+    u8 padding:6;
+    u16 played;                             // Daily puzzles with at least one guess
+    u16 wins;
+    u16 streak;                             // Consecutive days won
+    u16 bestStreak;
+    u8 winsByGuesses[SQUIRDLE_MAX_GUESSES]; // Index 0 is a win on the first guess. Each stops at 255
+};
+
 struct SaveBlock3
 {
 #if OW_USE_FAKE_RTC
@@ -271,6 +312,12 @@ struct SaveBlock3
     u8 dexNavChain;
 #if APRICORN_TREE_COUNT > 0
     u8 apricornTrees[NUM_APRICORN_TREE_BYTES];
+#endif
+#if POKEDOKU_ENABLED
+    struct PokedokuSave pokedoku;
+#endif
+#if SQUIRDLE_ENABLED
+    struct SquirdleSave squirdle;
 #endif
 }; /* max size 1624 bytes */
 
