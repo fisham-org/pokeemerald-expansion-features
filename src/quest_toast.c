@@ -6,6 +6,7 @@
 #include "overworld.h"
 #include "palette.h"
 #include "quest.h"
+#include "quest_note.h"
 #include "quest_toast.h"
 #include "region_map.h"
 #include "sound.h"
@@ -45,8 +46,8 @@ STATIC_ASSERT(TOAST_BASE_BLOCK + TOAST_WIDTH * TOAST_HEIGHT <= FIELD_BG0_TILE_LI
 struct QuestToast
 {
     u8 type;
-    u8 questId;
     u8 objective;
+    u16 id;             // quest, or note for lead and profile toasts
 };
 
 enum ToastSoundType
@@ -72,13 +73,15 @@ static const u16 sToastPalette[] = INCGFX_U16("graphics/quest_log/toast.png", ".
 // Label and sound per toast type
 static const struct ToastInfo sToastInfo[QUEST_TOAST_TYPE_COUNT] =
 {
-    [QUEST_TOAST_LEAD]      = { COMPOUND_STRING("New lead"),        SE_PIN,          TOAST_SOUND_SE },
-    [QUEST_TOAST_AVAILABLE] = { COMPOUND_STRING("Quest available"), SE_PIN,          TOAST_SOUND_SE },
-    [QUEST_TOAST_STARTED]   = { COMPOUND_STRING("Quest started"),   MUS_LEVEL_UP,    TOAST_SOUND_FANFARE },
-    [QUEST_TOAST_UPDATED]   = { COMPOUND_STRING("Quest updated"),   SE_SUCCESS,      TOAST_SOUND_SE },
-    [QUEST_TOAST_PROGRESS]  = { NULL,                               0,               TOAST_SOUND_NONE },
-    [QUEST_TOAST_COMPLETE]  = { COMPOUND_STRING("Quest complete"),  MUS_OBTAIN_ITEM, TOAST_SOUND_FANFARE },
-    [QUEST_TOAST_CLOSED]    = { COMPOUND_STRING("Quest closed"),    SE_PC_OFF,       TOAST_SOUND_SE },
+    [QUEST_TOAST_NEW_LEAD]      = { COMPOUND_STRING("New lead"),        SE_PIN,          TOAST_SOUND_SE },
+    [QUEST_TOAST_AVAILABLE]     = { COMPOUND_STRING("Quest available"), SE_PIN,          TOAST_SOUND_SE },
+    [QUEST_TOAST_STARTED]       = { COMPOUND_STRING("Quest started"),   MUS_LEVEL_UP,    TOAST_SOUND_FANFARE },
+    [QUEST_TOAST_UPDATED]       = { COMPOUND_STRING("Quest updated"),   SE_SUCCESS,      TOAST_SOUND_SE },
+    [QUEST_TOAST_PROGRESS]      = { NULL,                               0,               TOAST_SOUND_NONE },
+    [QUEST_TOAST_COMPLETE]      = { COMPOUND_STRING("Quest complete"),  MUS_OBTAIN_ITEM, TOAST_SOUND_FANFARE },
+    [QUEST_TOAST_CLOSED]        = { COMPOUND_STRING("Quest closed"),    SE_PC_OFF,       TOAST_SOUND_SE },
+    [QUEST_TOAST_TASK_COMPLETE] = { COMPOUND_STRING("Task complete"),   SE_SUCCESS,      TOAST_SOUND_SE },
+    [QUEST_TOAST_PROFILE]       = { COMPOUND_STRING("Profile updated"), SE_PIN,          TOAST_SOUND_SE },
 };
 
 static const u8 sToastTextColors[3] = {TOAST_FILL_COLOR, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_GRAY};
@@ -86,9 +89,14 @@ static const u8 sToastProgressColors[3] = {TOAST_FILL_COLOR, TEXT_COLOR_BLUE, TE
 
 static void Task_QuestToast(u8 taskId);
 
-void QuestToast_Queue(u32 type, u32 questId, u32 objective)
+static bool32 IsNoteToast(u32 type)
 {
-    if (!Quest_IsValid(questId))
+    return type == QUEST_TOAST_NEW_LEAD || type == QUEST_TOAST_PROFILE;
+}
+
+void QuestToast_Queue(u32 type, u32 id, u32 objective)
+{
+    if (IsNoteToast(type) ? !QuestNote_IsValid(id) : !Quest_IsValid(id))
         return;
 
     // Drop the oldest queued toast, but never the one on screen
@@ -101,7 +109,7 @@ void QuestToast_Queue(u32 type, u32 questId, u32 objective)
     }
 
     sToastQueue[sToastQueueCount].type = type;
-    sToastQueue[sToastQueueCount].questId = questId;
+    sToastQueue[sToastQueueCount].id = id;
     sToastQueue[sToastQueueCount].objective = objective;
     sToastQueueCount++;
 }
@@ -109,6 +117,14 @@ void QuestToast_Queue(u32 type, u32 questId, u32 objective)
 u32 QuestToast_GetQueueCount(void)
 {
     return sToastQueueCount;
+}
+
+// QUEST_TOAST_TYPE_COUNT if there is no toast at that position
+u32 QuestToast_GetQueuedType(u32 index)
+{
+    if (index >= sToastQueueCount)
+        return QUEST_TOAST_TYPE_COUNT;
+    return sToastQueue[index].type;
 }
 
 void QuestToast_ClearQueue(void)
@@ -159,7 +175,7 @@ static void CopyAreaName(u8 *dest, u16 map)
 
 static void DrawToast(u32 windowId, const struct QuestToast *toast)
 {
-    const struct Quest *quest = Quest_GetInfo(toast->questId);
+    const struct Quest *quest = IsNoteToast(toast->type) ? NULL : Quest_GetInfo(toast->id);
     const u32 textX = TOAST_ICON_SIZE + 8;
     u32 width = TOAST_WIDTH * 8;
     u32 height = TOAST_HEIGHT * 8;
@@ -175,15 +191,15 @@ static void DrawToast(u32 windowId, const struct QuestToast *toast)
                            4, (height - TOAST_ICON_SIZE) / 2, TOAST_ICON_SIZE, TOAST_ICON_SIZE);
 
     // The stage may have moved on since a progress toast was queued
-    if (toast->type == QUEST_TOAST_PROGRESS && toast->objective < Quest_GetCurrentStage(toast->questId)->objectiveCount)
+    if (toast->type == QUEST_TOAST_PROGRESS && toast->objective < Quest_GetCurrentStage(toast->id)->objectiveCount)
     {
-        const struct QuestObjective *objective = &Quest_GetCurrentStage(toast->questId)->objectives[toast->objective];
+        const struct QuestObjective *objective = &Quest_GetCurrentStage(toast->id)->objectives[toast->objective];
         u16 current, target;
 
         AddTextPrinterParameterized4(windowId, FONT_SMALL, textX, 3, 0, 0, sToastTextColors, TEXT_SKIP_DRAW, quest->name);
         AddTextPrinterParameterized4(windowId, FONT_SMALL, textX, 17, 0, 0, sToastTextColors, TEXT_SKIP_DRAW, objective->text);
 
-        if (Quest_IsObjectiveDone(toast->questId, toast->objective))
+        if (Quest_IsObjectiveDone(toast->id, toast->objective))
             StringCopy(gStringVar3, COMPOUND_STRING("Done!"));
         else if (Quest_GetConditionProgress(&objective->condition, &current, &target))
         {
@@ -200,11 +216,15 @@ static void DrawToast(u32 windowId, const struct QuestToast *toast)
     {
         const u8 *line2;
 
-        // Lead names stay hidden; show the lead's area instead
-        if (toast->type == QUEST_TOAST_LEAD)
+        // A lead shows the area it points to; a profile update shows the character
+        if (toast->type == QUEST_TOAST_NEW_LEAD)
         {
-            CopyAreaName(gStringVar1, quest->leadMap);
+            CopyAreaName(gStringVar1, QuestNote_GetInfo(toast->id)->targetMap);
             line2 = gStringVar1;
+        }
+        else if (toast->type == QUEST_TOAST_PROFILE)
+        {
+            line2 = QuestSubject_GetInfo(QuestNote_GetInfo(toast->id)->subject)->name;
         }
         else
         {

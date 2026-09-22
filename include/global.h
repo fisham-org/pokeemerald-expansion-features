@@ -261,7 +261,7 @@ struct QuestSaveEntry
     u8 status:3;        // QUEST_STATUS_*
     u8 outcome:2;
     u8 unread:1;        // "new" badge in the log
-    u8 unused:2;
+    u8 path:2;          // chosen path, see setquestpath
     u8 objectivesDone;  // bit per objective of the current stage
 } PACKED;
 
@@ -285,6 +285,9 @@ struct SaveBlock3
 #endif
     struct QuestSaveEntry quests[QUEST_MAX];
     u8 trackedQuest; // quest id + 1; 0 if nothing tracked
+    u8 notesKnown[NOTE_MAX / 8];
+    u8 subjectsUnread[SUBJECT_MAX / 8];
+    u16 trackedNote; // note id + 1; 0 if no lead is pinned
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

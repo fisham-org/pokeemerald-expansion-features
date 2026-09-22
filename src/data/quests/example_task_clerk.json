@@ -1,0 +1,12 @@
+{
+  "id": "QUEST_EXAMPLE_TASK_CLERK",
+  "kind": "task",
+  "parent": "QUEST_EXAMPLE_ERRAND",
+  "tags": ["EXAMPLE_OLDALE_HELP"],
+  "name": "Sort the Shelves",
+  "giver": { "map": "MAP_OLDALE_TOWN_MART", "localid": "LOCALID_OLDALE_MART_CLERK" },
+  "objective": {
+    "text": "Sort the Mart shelves",
+    "target": { "map": "MAP_OLDALE_TOWN_MART", "localid": "LOCALID_OLDALE_MART_CLERK" }
+  }
+}

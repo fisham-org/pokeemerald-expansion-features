@@ -1,0 +1,4 @@
+[
+  { "id": "SUBJECT_EXAMPLE_BIRCH", "name": "Prof. Birch", "graphics": "OBJ_EVENT_GFX_PROF_BIRCH" },
+  { "id": "SUBJECT_EXAMPLE_MART_EMPLOYEE", "name": "Mart Employee", "graphics": "OBJ_EVENT_GFX_MART_EMPLOYEE" }
+]

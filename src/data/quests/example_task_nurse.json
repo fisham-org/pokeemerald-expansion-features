@@ -1,0 +1,12 @@
+{
+  "id": "QUEST_EXAMPLE_TASK_NURSE",
+  "kind": "task",
+  "parent": "QUEST_EXAMPLE_ERRAND",
+  "tags": ["EXAMPLE_OLDALE_HELP"],
+  "name": "Check on the Nurse",
+  "giver": { "map": "MAP_OLDALE_TOWN_POKEMON_CENTER_1F", "localid": "LOCALID_OLDALE_NURSE" },
+  "objective": {
+    "text": "Help the nurse restock",
+    "target": { "map": "MAP_OLDALE_TOWN_POKEMON_CENTER_1F", "localid": "LOCALID_OLDALE_NURSE" }
+  }
+}

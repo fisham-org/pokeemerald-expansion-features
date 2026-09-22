@@ -16,11 +16,22 @@
  * pin on the Town Map. Both are driven by quest definitions.
  *
  * Graphics (placeholders):
- *   graphics/quest_log/markers.png  9 frames of 16x16: (story, pokemon, side) x (turn-in, available, target)
+ *   graphics/quest_log/markers.png  6 frames of 16x16: (main, side) x (turn-in, available, target)
  *   graphics/quest_log/pin.png      16x16 Town Map pin
  */
 
+static bool32 IsNpcInList(const struct QuestNpc *npcs, u32 count, u16 map, u32 localId)
+{
+    for (u32 i = 0; i < count; i++)
+    {
+        if (npcs[i].map == map && npcs[i].localId == localId)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 // Marker priority: lower value wins. See enum QuestMarkerType.
+// Tasks get markers only once their parent quest has started.
 u32 QuestMarkers_GetType(u32 localId, u32 mapNum, u32 mapGroup, u8 *category)
 {
     u16 map = (mapGroup << 8) | mapNum;
@@ -35,13 +46,13 @@ u32 QuestMarkers_GetType(u32 localId, u32 mapNum, u32 mapGroup, u8 *category)
         const struct QuestStage *stage;
         u32 status = Quest_GetStatus(questId);
 
-        if (!Quest_IsValid(questId))
+        if (!Quest_IsValid(questId) || !Quest_IsShown(questId))
             continue;
         quest = Quest_GetInfo(questId);
 
-        if (status == QUEST_STATUS_LEAD || status == QUEST_STATUS_AVAILABLE)
+        if (status == QUEST_STATUS_AVAILABLE)
         {
-            if (quest->giverMap == map && quest->giverLocalId == localId
+            if (IsNpcInList(quest->givers, quest->giverCount, map, localId)
              && (best == QUEST_MARKER_NONE || best > QUEST_MARKER_AVAILABLE))
             {
                 best = QUEST_MARKER_AVAILABLE;
@@ -51,7 +62,7 @@ u32 QuestMarkers_GetType(u32 localId, u32 mapNum, u32 mapGroup, u8 *category)
         else if (status == QUEST_STATUS_ACTIVE)
         {
             stage = Quest_GetCurrentStage(questId);
-            if (stage->turnInMap == map && stage->turnInLocalId == localId && Quest_IsTurnInReady(questId))
+            if (IsNpcInList(stage->turnIns, stage->turnInCount, map, localId) && Quest_IsTurnInReady(questId))
             {
                 *category = quest->category;
                 return QUEST_MARKER_TURN_IN;
@@ -99,9 +110,6 @@ static const struct SpriteFrameImage sPicTable_QuestMarker[] =
     overworld_frame(sMarkerGfx, 2, 2, 3),
     overworld_frame(sMarkerGfx, 2, 2, 4),
     overworld_frame(sMarkerGfx, 2, 2, 5),
-    overworld_frame(sMarkerGfx, 2, 2, 6),
-    overworld_frame(sMarkerGfx, 2, 2, 7),
-    overworld_frame(sMarkerGfx, 2, 2, 8),
 };
 
 static const union AnimCmd sAnim_Marker0[] = { ANIMCMD_FRAME(0, 1), ANIMCMD_END };
@@ -110,16 +118,12 @@ static const union AnimCmd sAnim_Marker2[] = { ANIMCMD_FRAME(2, 1), ANIMCMD_END 
 static const union AnimCmd sAnim_Marker3[] = { ANIMCMD_FRAME(3, 1), ANIMCMD_END };
 static const union AnimCmd sAnim_Marker4[] = { ANIMCMD_FRAME(4, 1), ANIMCMD_END };
 static const union AnimCmd sAnim_Marker5[] = { ANIMCMD_FRAME(5, 1), ANIMCMD_END };
-static const union AnimCmd sAnim_Marker6[] = { ANIMCMD_FRAME(6, 1), ANIMCMD_END };
-static const union AnimCmd sAnim_Marker7[] = { ANIMCMD_FRAME(7, 1), ANIMCMD_END };
-static const union AnimCmd sAnim_Marker8[] = { ANIMCMD_FRAME(8, 1), ANIMCMD_END };
 
 // Anim index = category * 3 + (marker type - 1)
 static const union AnimCmd *const sAnims_QuestMarker[] =
 {
     sAnim_Marker0, sAnim_Marker1, sAnim_Marker2,
     sAnim_Marker3, sAnim_Marker4, sAnim_Marker5,
-    sAnim_Marker6, sAnim_Marker7, sAnim_Marker8,
 };
 
 static void SpriteCB_QuestMarker(struct Sprite *sprite);
@@ -264,7 +268,7 @@ static const struct SpriteTemplate sSpriteTemplate_QuestPin =
     .callback = SpriteCallbackDummy,
 };
 
-// Draws the tracked quest's target on the non-zoomed Town Map (field_region_map.c).
+// Draws the tracked quest's target, or the pinned lead's, on the non-zoomed Town Map (field_region_map.c).
 void QuestPin_CreateTownMapSprite(void)
 {
     const struct RegionMapLocation *location;

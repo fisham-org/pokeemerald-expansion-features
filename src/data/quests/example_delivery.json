@@ -1,6 +1,7 @@
 {
   "id": "QUEST_EXAMPLE_DELIVERY",
   "category": "SIDE",
+  "tags": ["TOWN"],
   "name": "Flyer Run",
   "icon": { "type": "ITEM", "value": "ITEM_POTION" },
   "giver": { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_OLDALE_MART_EMPLOYEE" },

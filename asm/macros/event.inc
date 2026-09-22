@@ -3016,29 +3016,41 @@
 	@ Quests (see include/quest.h and src/data/quests/*.json)
 	@ ============================================================
 
-	@ Hidden -> Lead. Shows a "New lead" toast.
-	.macro addlead quest:req
-	callnative ScrCmd_addlead, requests_effects=1
-	.2byte \quest
-	.endm
-
-	@ Hidden or Lead -> Available. Shows a "Quest available" toast.
+	@ Hidden -> Available. Shows a "Quest available" toast.
 	.macro unlockquest quest:req
 	callnative ScrCmd_unlockquest, requests_effects=1
 	.2byte \quest
 	.endm
 
-	@ Hidden, Lead or Available -> Active at stage 0. Shows a "Quest started" toast.
-	.macro startquest quest:req
+	@ Hidden or Available -> Active. Starts at stage 0 on path 0 unless a later stage (and path) is given,
+	@ for a player who enters the quest partway. Shows one "Quest started" toast.
+	.macro startquest quest:req, stage=0, path=0
 	callnative ScrCmd_startquest, requests_effects=1
 	.2byte \quest
+	.byte \stage
+	.byte \path
 	.endm
 
-	@ Moves an active quest forward to the given stage. Lower or equal stages are ignored.
+	@ Moves an active quest forward to the given stage, which must be on the quest's path.
+	@ Lower or equal stages are ignored.
 	.macro setqueststage quest:req, stage:req
 	callnative ScrCmd_setqueststage, requests_effects=1
 	.2byte \quest
 	.byte \stage
+	.endm
+
+	@ Moves an active quest from the default path (0) to another path. Only works once. No toast.
+	.macro setquestpath quest:req, path:req
+	callnative ScrCmd_setquestpath, requests_effects=1
+	.2byte \quest
+	.byte \path
+	.endm
+
+	@ Ticks objective n (index in the current stage). For objectives with no condition that a script checks itself.
+	.macro completeobjective quest:req, objective:req
+	callnative ScrCmd_completeobjective, requests_effects=1
+	.2byte \quest
+	.byte \objective
 	.endm
 
 	@ Completes the quest with the given outcome, closing any quests listed in the outcome's "closes".
@@ -3048,7 +3060,12 @@
 	.byte \outcome
 	.endm
 
-	@ Lead, Available or Active -> Closed.
+	@ Completes a task. Tasks have a single outcome.
+	.macro completetask quest:req
+	completequest \quest, 0
+	.endm
+
+	@ Available or Active -> Closed.
 	.macro closequest quest:req
 	callnative ScrCmd_closequest, requests_effects=1
 	.2byte \quest
@@ -3137,6 +3154,21 @@
 	call_if TRUE, \dest
 	.endm
 
+	@ Branches if the quest is on the given path.
+	.macro goto_if_quest_path quest:req, path:req, dest:req
+	callnative ScrCmd_checkquestpath, requests_effects=1
+	.2byte \quest
+	.byte \path
+	goto_if TRUE, \dest
+	.endm
+
+	.macro call_if_quest_path quest:req, path:req, dest:req
+	callnative ScrCmd_checkquestpath, requests_effects=1
+	.2byte \quest
+	.byte \path
+	call_if TRUE, \dest
+	.endm
+
 	@ Branches if objective n (index in the current stage) is done.
 	.macro goto_if_objective_done quest:req, objective:req, dest:req
 	callnative ScrCmd_checkobjectivedone, requests_effects=1
@@ -3149,6 +3181,24 @@
 	callnative ScrCmd_checkobjectivedone, requests_effects=1
 	.2byte \quest
 	.byte \objective
+	call_if TRUE, \dest
+	.endm
+
+	@ Marks a note as learned. Shows a "New lead" toast for an open lead, or "Profile updated" for a note about a character.
+	.macro takenote note:req
+	callnative ScrCmd_takenote, requests_effects=1
+	.2byte \note
+	.endm
+
+	.macro goto_if_note_known note:req, dest:req
+	callnative ScrCmd_checknoteknown, requests_effects=1
+	.2byte \note
+	goto_if TRUE, \dest
+	.endm
+
+	.macro call_if_note_known note:req, dest:req
+	callnative ScrCmd_checknoteknown, requests_effects=1
+	.2byte \note
 	call_if TRUE, \dest
 	.endm
 

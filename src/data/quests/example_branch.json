@@ -1,0 +1,55 @@
+{
+  "id": "QUEST_EXAMPLE_BRANCH",
+  "category": "SIDE",
+  "tags": ["TOWN"],
+  "name": "Lost Doll",
+  "icon": { "type": "OBJECT", "value": "OBJ_EVENT_GFX_TWIN" },
+  "giver": [
+    { "map": "MAP_LITTLEROOT_TOWN", "localid": "LOCALID_LITTLEROOT_TWIN" },
+    { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_OLDALE_MART_EMPLOYEE" }
+  ],
+  "summary": "A girl in Littleroot Town lost her doll somewhere on Route 101.",
+  "stages": [
+    {
+      "id": "STAGE_BRANCH_ASK",
+      "title": "Ask Around",
+      "journal": "The girl last saw her doll on the way to Oldale Town.",
+      "objectives": [
+        { "text": "Ask in Oldale Town", "target": { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_OLDALE_MART_EMPLOYEE" } }
+      ]
+    },
+    {
+      "id": "STAGE_BRANCH_SEARCH",
+      "title": "Search the Route",
+      "journal": "You searched Route 101 and found the doll in the grass.",
+      "paths": [0],
+      "objectives": [
+        { "text": "Search Route 101", "target": { "map": "MAP_ROUTE101" } }
+      ]
+    },
+    {
+      "id": "STAGE_BRANCH_HANDED_IN",
+      "title": "Already Found",
+      "journal": "The Mart employee had already picked the doll up.",
+      "paths": [1],
+      "objectives": [
+        { "text": "Collect the doll", "target": { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_OLDALE_MART_EMPLOYEE" } }
+      ]
+    },
+    {
+      "id": "STAGE_BRANCH_RETURN",
+      "title": "Return the Doll",
+      "journal": "The girl was happy to have her doll back.",
+      "objectives": [
+        { "text": "Return the doll", "target": { "map": "MAP_LITTLEROOT_TOWN", "localid": "LOCALID_LITTLEROOT_TWIN" } }
+      ],
+      "turn_in": [
+        { "map": "MAP_LITTLEROOT_TOWN", "localid": "LOCALID_LITTLEROOT_TWIN" },
+        { "map": "MAP_LITTLEROOT_TOWN", "localid": "LOCALID_LITTLEROOT_MOM" }
+      ]
+    }
+  ],
+  "outcomes": [
+    { "id": "OUTCOME_BRANCH_DONE", "summary": "The doll is home." }
+  ]
+}

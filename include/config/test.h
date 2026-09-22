@@ -1138,6 +1138,10 @@
 #define QUEST_TOWN_MAP_PIN               TRUE
 #undef QUEST_START_MENU_UNREAD
 #define QUEST_START_MENU_UNREAD          TRUE
+#undef QUEST_LEADS
+#define QUEST_LEADS                      TRUE
+#undef QUEST_PROFILES
+#define QUEST_PROFILES                   TRUE
 
 // Vars
 #undef B_VAR_DIFFICULTY

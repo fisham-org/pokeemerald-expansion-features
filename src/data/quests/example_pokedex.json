@@ -1,0 +1,31 @@
+{
+  "id": "QUEST_EXAMPLE_POKEDEX",
+  "category": "MAIN",
+  "name": "Regional Pokédex",
+  "icon": { "type": "ITEM", "value": "ITEM_POKE_BALL" },
+  "giver": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_AIDE" },
+  "summary": "Catch Pokémon to fill the regional Pokédex.",
+  "stages": [
+    {
+      "id": "STAGE_POKEDEX_5",
+      "title": "First Entries",
+      "journal": "You caught your first five Pokémon.",
+      "objectives": [
+        { "text": "Catch Pokémon", "condition": { "dex_count": 5, "dex": "regional", "state": "caught" } }
+      ],
+      "turn_in": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_AIDE" }
+    },
+    {
+      "id": "STAGE_POKEDEX_10",
+      "title": "Growing Collection",
+      "journal": "You caught ten Pokémon.",
+      "objectives": [
+        { "text": "Catch Pokémon", "condition": { "dex_count": 10, "dex": "regional", "state": "caught" } }
+      ],
+      "turn_in": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_AIDE" }
+    }
+  ],
+  "outcomes": [
+    { "id": "OUTCOME_POKEDEX_DONE", "summary": "The first milestones are done." }
+  ]
+}

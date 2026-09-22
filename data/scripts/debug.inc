@@ -201,7 +201,9 @@ Debug_EventScript_Text_DefensiveIVs:
 	.string "HP IVs: {STR_VAR_1}, DEF IVs: {STR_VAR_2}, SPDEF IVs: {STR_VAR_3}$"
 
 Debug_EventScript_Script_1::
-      addlead QUEST_EXAMPLE_SIGHTING
+      takenote NOTE_EXAMPLE_FLYER_RUMOUR
+      takenote NOTE_EXAMPLE_BIRCH_SHADOW
+      takenote NOTE_EXAMPLE_BIRCH_FIELDWORK
       unlockquest QUEST_EXAMPLE_DELIVERY
       release
       end
@@ -213,22 +215,27 @@ Debug_EventScript_Script_2::
       end
 
 Debug_EventScript_Script_3::
-      setqueststage QUEST_EXAMPLE_ERRAND, STAGE_ERRAND_REPORT
+      setqueststage QUEST_EXAMPLE_ERRAND, STAGE_ERRAND_HELP
       release
       end
 
 Debug_EventScript_Script_4::
-      completequest QUEST_EXAMPLE_ERRAND, OUTCOME_ERRAND_SKIPPED
+      startquest QUEST_EXAMPLE_TASK_NURSE
+      completetask QUEST_EXAMPLE_TASK_NURSE
       release
       end
 
 Debug_EventScript_Script_5::
-	release
-	end
+      startquest QUEST_EXAMPLE_BRANCH
+      setquestpath QUEST_EXAMPLE_BRANCH, 1
+      setqueststage QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_HANDED_IN
+      release
+      end
 
 Debug_EventScript_Script_6::
-	release
-	end
+      completequest QUEST_EXAMPLE_ERRAND, OUTCOME_ERRAND_SKIPPED
+      release
+      end
 
 Debug_EventScript_Script_7::
 	release

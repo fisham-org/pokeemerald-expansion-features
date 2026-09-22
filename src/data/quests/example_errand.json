@@ -1,6 +1,6 @@
 {
   "id": "QUEST_EXAMPLE_ERRAND",
-  "category": "STORY",
+  "category": "MAIN",
   "name": "Lab Errand",
   "icon": { "type": "OBJECT", "value": "OBJ_EVENT_GFX_PROF_BIRCH" },
   "giver": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_BIRCH" },
@@ -29,6 +29,18 @@
           "optional": true,
           "reveal": { "flag": "FLAG_VISITED_OLDALE_TOWN" },
           "condition": { "item": "ITEM_ANTIDOTE", "count": 1 }
+        }
+      ],
+      "turn_in": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_BIRCH" }
+    },
+    {
+      "id": "STAGE_ERRAND_HELP",
+      "title": "Lend a Hand",
+      "journal": "Prof. Birch asked you to help out around Oldale Town.",
+      "objectives": [
+        {
+          "text": "Help in Oldale Town",
+          "condition": { "quests_complete": { "tag": "EXAMPLE_OLDALE_HELP", "count": 1 } }
         }
       ],
       "turn_in": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_BIRCH" }

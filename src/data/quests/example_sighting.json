@@ -1,12 +1,10 @@
 {
   "id": "QUEST_EXAMPLE_SIGHTING",
-  "category": "POKEMON",
+  "category": "SIDE",
+  "tags": ["LEGENDARY"],
   "name": "Strange Shadow",
   "icon": { "type": "PKMN", "value": "SPECIES_WOBBUFFET" },
-  "lead": {
-    "hint": "Someone saw a strange blue shadow in the grass on Route 102.",
-    "map": "MAP_ROUTE102"
-  },
+  "giver": { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_FOOTPRINTS_MAN" },
   "summary": "Find out what is lurking in the grass on Route 102.",
   "rewards": [
     { "item": "ITEM_GREAT_BALL", "count": 3 }
