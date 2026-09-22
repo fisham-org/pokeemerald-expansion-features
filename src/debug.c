@@ -54,7 +54,6 @@
 #include "tv.h"
 #include "pokemon_summary_screen.h"
 #include "quest.h"
-#include "quest_note.h"
 #include "quest_toast.h"
 #include "wild_encounter.h"
 #include "constants/abilities.h"
@@ -443,7 +442,6 @@ static const struct DebugSelection sQuestStatusSelection;
 static const struct DebugSelection sQuestStageSelection;
 static const struct DebugSelection sQuestOutcomeSelection;
 static const struct DebugSelection sQuestPathSelection;
-static const struct DebugSelection sQuestNoteSelection;
 static const struct DebugSelection sQuestObjectiveSelection;
 static const struct DebugSelection sQuestTrackSelection;
 static void DebugAction_Quests_Untrack(u8 taskId);
@@ -790,7 +788,6 @@ static const struct DebugMenuOption sDebugMenu_Actions_Quests[] =
     { COMPOUND_STRING("Toggle objective…"),  DebugAction_Selection_Init, &sQuestObjectiveSelection },
     { COMPOUND_STRING("Track quest…"),       DebugAction_Selection_Init, &sQuestTrackSelection },
     { COMPOUND_STRING("Untrack quest"),      DebugAction_Quests_Untrack },
-    { COMPOUND_STRING("Toggle note…"),       DebugAction_Selection_Init, &sQuestNoteSelection },
     { COMPOUND_STRING("Fire test toast"),    DebugAction_Quests_TestToast },
     { COMPOUND_STRING("Check progress"),     DebugAction_Quests_CheckProgress },
     { COMPOUND_STRING("Reset all quests"),   DebugAction_Quests_ResetAll },
@@ -4840,11 +4837,6 @@ static u32 DebugQuest_MaxOutcome(u8 taskId)
     return Quest_IsValid(questId) ? Quest_GetInfo(questId)->outcomeCount - 1 : 0;
 }
 
-static u32 DebugQuest_MaxNoteId(u8 taskId)
-{
-    return NOTE_COUNT ? NOTE_COUNT - 1 : 0;
-}
-
 static u32 DebugQuest_MaxObjective(u8 taskId)
 {
     u32 questId = DebugSelection_GetData(taskId, 0);
@@ -4906,22 +4898,6 @@ static void DebugSelectionStep_UpdateQuestPath(u8 taskId, u8 digits, u32 min, u3
     DebugNativeStep_PrintWindowSelection(taskId);
 }
 
-// Line 1: note id and the start of its text. Line 2: known or not.
-static void DebugSelectionStep_UpdateQuestNote(u8 taskId, u8 digits, u32 min, u32 max)
-{
-    u32 noteId = gTasks[taskId].tInput;
-    u8 *end = ConvertIntToDecimalStringN(gStringVar1, noteId, STR_CONV_MODE_LEADING_ZEROS, 3);
-
-    *end++ = CHAR_SPACE;
-    if (QuestNote_IsValid(noteId))
-        *StringCopyN(end, QuestNote_GetInfo(noteId)->text, 10) = EOS;
-    else
-        StringCopy(end, COMPOUND_STRING("(none)"));
-    StringCopy(gStringVar2, QuestNote_IsKnown(noteId) ? COMPOUND_STRING("Known") : COMPOUND_STRING("Unknown"));
-    StringCopy(gStringVar3, QuestNote_IsLead(noteId) ? COMPOUND_STRING("Lead") : COMPOUND_STRING(""));
-    DebugNativeStep_PrintWindowSelection(taskId);
-}
-
 static void DebugSelectionStep_UpdateQuestObjective(u8 taskId, u8 digits, u32 min, u32 max)
 {
     u32 questId = DebugSelection_GetData(taskId, 0);
@@ -4967,12 +4943,6 @@ static bool32 DebugSelection_QuestOutcome_Complete(u8 taskId)
 static bool32 DebugSelection_QuestPath_Complete(u8 taskId)
 {
     Quest_DebugSetPath(DebugSelection_GetData(taskId, 0), DebugSelection_GetData(taskId, 1));
-    return DebugQuest_RepeatSelection(taskId);
-}
-
-static bool32 DebugSelection_QuestNote_Complete(u8 taskId)
-{
-    QuestNote_DebugToggle(DebugSelection_GetData(taskId, 0));
     return DebugQuest_RepeatSelection(taskId);
 }
 
@@ -5043,15 +5013,6 @@ static const struct DebugSelectionStep sQuestPathSelectionStep = {
     .digits = 1
 };
 
-static const struct DebugSelectionStep sQuestNoteSelectionStep = {
-    .stepUpdate = DebugSelectionStep_UpdateQuestNote,
-    .stepConfirm = DebugSelectionStep_GenericInputConfirm,
-    .minValue = 0,
-    .maxFunc = DebugQuest_MaxNoteId,
-    .useMaxFunc = TRUE,
-    .digits = 3
-};
-
 static const struct DebugSelectionStep sQuestObjectiveSelectionStep = {
     .stepUpdate = DebugSelectionStep_UpdateQuestObjective,
     .stepConfirm = DebugSelectionStep_GenericInputConfirm,
@@ -5093,14 +5054,6 @@ static const struct DebugSelection sQuestPathSelection = {
     .maxSteps = 2,
 };
 
-static const struct DebugSelection sQuestNoteSelection = {
-    .onInit = Debug_CreateInputDisplayWindow,
-    .onCancel = DebugSelectionStep_ReturnToQuestsMenu,
-    .onComplete = DebugSelection_QuestNote_Complete,
-    .steps = {&sQuestNoteSelectionStep},
-    .maxSteps = 1,
-};
-
 static const struct DebugSelection sQuestObjectiveSelection = {
     .onInit = Debug_CreateInputDisplayWindow,
     .onCancel = DebugSelectionStep_ReturnToQuestsMenu,
@@ -5138,7 +5091,6 @@ static void DebugAction_Quests_CheckProgress(u8 taskId)
 static void DebugAction_Quests_ResetAll(u8 taskId)
 {
     Quest_ResetAll();
-    QuestNote_ResetAll();
     PlaySE(SE_SUCCESS);
 }
 

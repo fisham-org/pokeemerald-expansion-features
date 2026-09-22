@@ -52,12 +52,6 @@ enum QuestIconType
     QUEST_ICON_PKMN,
 };
 
-enum QuestRewardType
-{
-    QUEST_REWARD_ITEM,
-    QUEST_REWARD_MONEY,
-};
-
 struct QuestCondition
 {
     u8 type;            // enum QuestConditionType
@@ -88,19 +82,11 @@ struct QuestObjective
 struct QuestStage
 {
     const u8 *title;    // NULL for a removed stage placeholder
-    const u8 *journal;  // NULL for no journal entry
     const struct QuestObjective *objectives;
     const struct QuestNpc *turnIns;
     u8 objectiveCount;
     u8 turnInCount;
     u8 paths;           // bit per path this stage is on
-};
-
-struct QuestReward
-{
-    u8 type;            // enum QuestRewardType
-    u16 item;
-    u32 amount;         // item count or money
 };
 
 struct QuestOutcome
@@ -114,16 +100,16 @@ struct Quest
 {
     const u8 *name;
     const u8 *summary;
+    const u8 *giverName; // NULL for none
     u8 category;
     u8 iconType;
     u16 icon;
     u8 parent;          // QUEST_NONE unless this is a task
     bool8 isTask;
     const struct QuestNpc *givers;
-    const struct QuestReward *rewards;
     const struct QuestStage *stages;
     const struct QuestOutcome *outcomes;
-    u8 giverCount, rewardCount, stageCount, outcomeCount;
+    u8 giverCount, stageCount, outcomeCount;
 };
 
 extern const struct Quest gQuests[];
@@ -140,7 +126,6 @@ u8 Quest_GetStage(u32 questId);
 u8 Quest_GetOutcome(u32 questId);
 u8 Quest_GetPath(u32 questId);
 bool8 Quest_IsStageOnPath(u32 questId, u32 stage, u32 path);
-bool8 Quest_IsStagePassed(u32 questId, u32 stage);
 bool8 Quest_IsShown(u32 questId);
 bool8 Quest_IsUnread(u32 questId);
 void Quest_ClearUnread(u32 questId);
@@ -181,7 +166,7 @@ u8 Quest_FindPartyMatch(u32 key, u32 value); // PARTY_SIZE if none
 void Quest_CheckProgress(void);
 void Quest_InitProgressCache(void);
 
-// Guidance. The tracked target is the tracked quest's, or the pinned lead's.
+// Guidance. The tracked target is the tracked quest's.
 bool8 Quest_GetTarget(u32 questId, u16 *map, u8 *localId);
 bool8 Quest_GetTrackedTarget(u16 *map, u8 *localId);
 u16 Quest_GetMapSec(u16 map);

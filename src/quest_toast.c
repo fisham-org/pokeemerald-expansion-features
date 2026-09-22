@@ -6,15 +6,12 @@
 #include "overworld.h"
 #include "palette.h"
 #include "quest.h"
-#include "quest_note.h"
 #include "quest_toast.h"
-#include "region_map.h"
 #include "sound.h"
 #include "string_util.h"
 #include "task.h"
 #include "text.h"
 #include "window.h"
-#include "constants/region_map_sections.h"
 #include "constants/songs.h"
 
 #if QUEST_TOASTS
@@ -23,9 +20,10 @@
  * Toasts are small non-blocking windows at the top of the field screen that announce quest changes.
  * Toasts queue behind each other and behind the map name popup.
  *
- * Graphics (placeholders): graphics/quest_log/toast.png holds one 16x16 icon per toast type, stacked
- * vertically. Its palette is loaded into BG palette 13, which is unused in the overworld (palette 14
- * is the map name popup and std windows, 15 the message box). Indices 1-9 double as text colors.
+ * Graphics: graphics/quest_log/toast_frame.png is the paper behind the toast, and toast.png holds one
+ * 16x16 icon per toast type, stacked vertically. Both share toast.png's palette, which is loaded into
+ * BG palette 13, unused in the overworld (palette 14 is the map name popup and std windows, 15 the
+ * message box). Indices 1-9 double as text colors.
  */
 
 #define TOAST_QUEUE_SIZE        4
@@ -40,14 +38,12 @@
 #define TOAST_BASE_BLOCK        0x260
 #define FIELD_BG0_TILE_LIMIT    0x300
 STATIC_ASSERT(TOAST_BASE_BLOCK + TOAST_WIDTH * TOAST_HEIGHT <= FIELD_BG0_TILE_LIMIT, QuestToastFitsInFieldBg0)
-#define TOAST_FILL_COLOR        1
-#define TOAST_BORDER_COLOR      15
 
 struct QuestToast
 {
     u8 type;
     u8 objective;
-    u16 id;             // quest, or note for lead and profile toasts
+    u16 id;             // quest
 };
 
 enum ToastSoundType
@@ -67,13 +63,13 @@ struct ToastInfo
 static EWRAM_DATA struct QuestToast sToastQueue[TOAST_QUEUE_SIZE] = {0};
 static EWRAM_DATA u8 sToastQueueCount = 0;
 
+static const u8 sToastFrameGfx[] = INCGFX_U8("graphics/quest_log/toast_frame.png", ".4bpp");
 static const u8 sToastIconGfx[] = INCGFX_U8("graphics/quest_log/toast.png", ".4bpp");
 static const u16 sToastPalette[] = INCGFX_U16("graphics/quest_log/toast.png", ".gbapal");
 
 // Label and sound per toast type
 static const struct ToastInfo sToastInfo[QUEST_TOAST_TYPE_COUNT] =
 {
-    [QUEST_TOAST_NEW_LEAD]      = { COMPOUND_STRING("New lead"),        SE_PIN,          TOAST_SOUND_SE },
     [QUEST_TOAST_AVAILABLE]     = { COMPOUND_STRING("Quest available"), SE_PIN,          TOAST_SOUND_SE },
     [QUEST_TOAST_STARTED]       = { COMPOUND_STRING("Quest started"),   MUS_LEVEL_UP,    TOAST_SOUND_FANFARE },
     [QUEST_TOAST_UPDATED]       = { COMPOUND_STRING("Quest updated"),   SE_SUCCESS,      TOAST_SOUND_SE },
@@ -81,22 +77,17 @@ static const struct ToastInfo sToastInfo[QUEST_TOAST_TYPE_COUNT] =
     [QUEST_TOAST_COMPLETE]      = { COMPOUND_STRING("Quest complete"),  MUS_OBTAIN_ITEM, TOAST_SOUND_FANFARE },
     [QUEST_TOAST_CLOSED]        = { COMPOUND_STRING("Quest closed"),    SE_PC_OFF,       TOAST_SOUND_SE },
     [QUEST_TOAST_TASK_COMPLETE] = { COMPOUND_STRING("Task complete"),   SE_SUCCESS,      TOAST_SOUND_SE },
-    [QUEST_TOAST_PROFILE]       = { COMPOUND_STRING("Profile updated"), SE_PIN,          TOAST_SOUND_SE },
 };
 
-static const u8 sToastTextColors[3] = {TOAST_FILL_COLOR, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_GRAY};
-static const u8 sToastProgressColors[3] = {TOAST_FILL_COLOR, TEXT_COLOR_BLUE, TEXT_COLOR_LIGHT_BLUE};
+// Transparent background so the text sits on the paper texture
+static const u8 sToastTextColors[3] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_GRAY};
+static const u8 sToastProgressColors[3] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_BLUE, TEXT_COLOR_LIGHT_BLUE};
 
 static void Task_QuestToast(u8 taskId);
 
-static bool32 IsNoteToast(u32 type)
-{
-    return type == QUEST_TOAST_NEW_LEAD || type == QUEST_TOAST_PROFILE;
-}
-
 void QuestToast_Queue(u32 type, u32 id, u32 objective)
 {
-    if (IsNoteToast(type) ? !QuestNote_IsValid(id) : !Quest_IsValid(id))
+    if (!Quest_IsValid(id))
         return;
 
     // Drop the oldest queued toast, but never the one on screen
@@ -164,27 +155,15 @@ static void PlayToastSound(u32 type)
     }
 }
 
-static void CopyAreaName(u8 *dest, u16 map)
-{
-    u16 mapSec = Quest_GetMapSec(map);
-    if (mapSec >= MAPSEC_NONE)
-        StringCopy(dest, COMPOUND_STRING("???"));
-    else
-        GetMapName(dest, mapSec, 0);
-}
-
 static void DrawToast(u32 windowId, const struct QuestToast *toast)
 {
-    const struct Quest *quest = IsNoteToast(toast->type) ? NULL : Quest_GetInfo(toast->id);
+    const struct Quest *quest = Quest_GetInfo(toast->id);
     const u32 textX = TOAST_ICON_SIZE + 8;
     u32 width = TOAST_WIDTH * 8;
     u32 height = TOAST_HEIGHT * 8;
 
-    FillWindowPixelBuffer(windowId, PIXEL_FILL(TOAST_FILL_COLOR));
-    FillWindowPixelRect(windowId, PIXEL_FILL(TOAST_BORDER_COLOR), 0, 0, width, 1);
-    FillWindowPixelRect(windowId, PIXEL_FILL(TOAST_BORDER_COLOR), 0, height - 1, width, 1);
-    FillWindowPixelRect(windowId, PIXEL_FILL(TOAST_BORDER_COLOR), 0, 0, 1, height);
-    FillWindowPixelRect(windowId, PIXEL_FILL(TOAST_BORDER_COLOR), width - 1, 0, 1, height);
+    FillWindowPixelBuffer(windowId, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
+    BlitBitmapRectToWindow(windowId, sToastFrameGfx, 0, 0, width, height, 0, 0, width, height);
 
     BlitBitmapRectToWindow(windowId, sToastIconGfx, 0, toast->type * TOAST_ICON_SIZE,
                            TOAST_ICON_SIZE, TOAST_ICON_SIZE * QUEST_TOAST_TYPE_COUNT,
@@ -214,25 +193,9 @@ static void DrawToast(u32 windowId, const struct QuestToast *toast)
     }
     else
     {
-        const u8 *line2;
-
-        // A lead shows the area it points to; a profile update shows the character
-        if (toast->type == QUEST_TOAST_NEW_LEAD)
-        {
-            CopyAreaName(gStringVar1, QuestNote_GetInfo(toast->id)->targetMap);
-            line2 = gStringVar1;
-        }
-        else if (toast->type == QUEST_TOAST_PROFILE)
-        {
-            line2 = QuestSubject_GetInfo(QuestNote_GetInfo(toast->id)->subject)->name;
-        }
-        else
-        {
-            line2 = quest->name;
-        }
         AddTextPrinterParameterized4(windowId, FONT_SMALL, textX, 3, 0, 0, sToastTextColors, TEXT_SKIP_DRAW,
                                      sToastInfo[toast->type].label ? sToastInfo[toast->type].label : sToastInfo[QUEST_TOAST_UPDATED].label);
-        AddTextPrinterParameterized4(windowId, FONT_NARROW, textX, 15, 0, 0, sToastTextColors, TEXT_SKIP_DRAW, line2);
+        AddTextPrinterParameterized4(windowId, FONT_NARROW, textX, 15, 0, 0, sToastTextColors, TEXT_SKIP_DRAW, quest->name);
     }
 }
 

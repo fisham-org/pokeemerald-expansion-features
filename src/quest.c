@@ -6,7 +6,6 @@
 #include "pokemon.h"
 #include "quest.h"
 #include "quest_guidance.h"
-#include "quest_note.h"
 #include "quest_toast.h"
 #include "script.h"
 #include "string_util.h"
@@ -97,21 +96,6 @@ bool8 Quest_IsStageOnPath(u32 questId, u32 stage, u32 path)
     return (gQuests[questId].stages[stage].paths >> path) & 1;
 }
 
-// A stage belongs in the journal once the quest has moved past it on the path the player took.
-bool8 Quest_IsStagePassed(u32 questId, u32 stage)
-{
-    u32 status = Quest_GetStatus(questId);
-    u32 current = Quest_GetStage(questId);
-
-    if (!Quest_IsStageOnPath(questId, stage, Quest_GetPath(questId)))
-        return FALSE;
-    if (status == QUEST_STATUS_COMPLETE)
-        return stage <= current;
-    if (status == QUEST_STATUS_ACTIVE || status == QUEST_STATUS_CLOSED)
-        return stage < current;
-    return FALSE;
-}
-
 // A task stays out of sight (no toasts, markers or unread mark) until its parent quest has started.
 bool8 Quest_IsShown(u32 questId)
 {
@@ -133,7 +117,7 @@ void Quest_ClearUnread(u32 questId)
         GetEntry(questId)->unread = FALSE;
 }
 
-// Tasks are listed under their parent, so only listed quests and profiles count.
+// Tasks are listed under their parent, so only listed quests count.
 bool8 Quest_HasUnread(void)
 {
     for (u32 i = 0; i < QUEST_COUNT; i++)
@@ -141,7 +125,7 @@ bool8 Quest_HasUnread(void)
         if (Quest_IsValid(i) && !gQuests[i].isTask && Quest_IsShown(i) && GetEntry(i)->unread)
             return TRUE;
     }
-    return QUEST_PROFILES && QuestSubject_HasAnyUnread();
+    return FALSE;
 }
 
 bool8 Quest_IsObjectiveDone(u32 questId, u32 objective)
@@ -216,7 +200,6 @@ u8 Quest_GetTracked(void)
 }
 
 // Pass QUEST_NONE to untrack. Only active quests can be tracked.
-// A tracked quest and a pinned lead share the Town Map pin, so tracking one clears the other.
 bool8 Quest_SetTracked(u32 questId)
 {
     if (questId == QUEST_NONE)
@@ -227,7 +210,6 @@ bool8 Quest_SetTracked(u32 questId)
     if (Quest_GetStatus(questId) != QUEST_STATUS_ACTIVE)
         return FALSE;
     gSaveBlock3Ptr->trackedQuest = questId + 1;
-    gSaveBlock3Ptr->trackedNote = 0;
     return TRUE;
 }
 
@@ -704,18 +686,10 @@ bool8 Quest_GetTarget(u32 questId, u16 *map, u8 *localId)
 bool8 Quest_GetTrackedTarget(u16 *map, u8 *localId)
 {
     u32 questId = Quest_GetTracked();
-    u32 noteId;
 
     if (questId != QUEST_NONE)
         return Quest_GetTarget(questId, map, localId);
 
-    noteId = QuestNote_GetTracked();
-    if (noteId != NOTE_NONE)
-    {
-        *map = gQuestNotes[noteId].targetMap;
-        *localId = gQuestNotes[noteId].targetLocalId;
-        return TRUE;
-    }
     *map = MAP_UNDEFINED;
     *localId = LOCALID_NONE;
     return FALSE;
@@ -843,20 +817,6 @@ void ScrCmd_checkquestpath(struct ScriptContext *ctx)
     u32 path = ScriptReadByte(ctx);
     Script_RequestEffects(SCREFF_V1);
     ctx->comparisonResult = (Quest_GetPath(questId) == path);
-}
-
-void ScrCmd_takenote(struct ScriptContext *ctx)
-{
-    u32 noteId = VarGet(ScriptReadHalfword(ctx));
-    RequestStateChangeEffects();
-    QuestNote_Take(noteId);
-}
-
-void ScrCmd_checknoteknown(struct ScriptContext *ctx)
-{
-    u32 noteId = VarGet(ScriptReadHalfword(ctx));
-    Script_RequestEffects(SCREFF_V1);
-    ctx->comparisonResult = QuestNote_IsKnown(noteId);
 }
 
 void ScrCmd_checkobjectivedone(struct ScriptContext *ctx)

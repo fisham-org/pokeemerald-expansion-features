@@ -3184,24 +3184,6 @@
 	call_if TRUE, \dest
 	.endm
 
-	@ Marks a note as learned. Shows a "New lead" toast for an open lead, or "Profile updated" for a note about a character.
-	.macro takenote note:req
-	callnative ScrCmd_takenote, requests_effects=1
-	.2byte \note
-	.endm
-
-	.macro goto_if_note_known note:req, dest:req
-	callnative ScrCmd_checknoteknown, requests_effects=1
-	.2byte \note
-	goto_if TRUE, \dest
-	.endm
-
-	.macro call_if_note_known note:req, dest:req
-	callnative ScrCmd_checknoteknown, requests_effects=1
-	.2byte \note
-	call_if TRUE, \dest
-	.endm
-
 	@ Writes the quest's name to the specified buffer.
 	.macro bufferquestname stringVarId:req, quest:req
 	callnative ScrCmd_bufferquestname, requests_effects=1

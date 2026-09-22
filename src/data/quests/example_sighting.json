@@ -6,14 +6,11 @@
   "icon": { "type": "PKMN", "value": "SPECIES_WOBBUFFET" },
   "giver": { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_FOOTPRINTS_MAN" },
   "summary": "Find out what is lurking in the grass on Route 102.",
-  "rewards": [
-    { "item": "ITEM_GREAT_BALL", "count": 3 }
-  ],
+  "giver_name": "Footprints Man",
   "stages": [
     {
       "id": "STAGE_SIGHTING_INVESTIGATE",
       "title": "Investigate",
-      "journal": "The shadow on Route 102 turned out to be a Wobbuffet.",
       "objectives": [
         {
           "text": "Bring a Psychic-type Pokémon",

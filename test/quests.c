@@ -5,7 +5,6 @@
 #include "pokemon.h"
 #include "quest.h"
 #include "quest_guidance.h"
-#include "quest_note.h"
 #include "quest_toast.h"
 #include "event_object_movement.h"
 #include "sprite.h"
@@ -500,22 +499,6 @@ TEST("setquestpath leaves the default path once and setqueststage stays on the p
     EXPECT(Quest_SetStage(QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_RETURN));
 }
 
-TEST("The journal lists only passed stages on the quest's path")
-{
-    Quest_Start(QUEST_EXAMPLE_BRANCH);
-    Quest_SetPath(QUEST_EXAMPLE_BRANCH, 1);
-    Quest_SetStage(QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_RETURN);
-
-    EXPECT(Quest_IsStagePassed(QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_ASK));
-    EXPECT(!Quest_IsStagePassed(QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_SEARCH));
-    EXPECT(Quest_IsStagePassed(QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_HANDED_IN));
-    EXPECT(!Quest_IsStagePassed(QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_RETURN));
-
-    Quest_Complete(QUEST_EXAMPLE_BRANCH, OUTCOME_BRANCH_DONE);
-    EXPECT(Quest_IsStagePassed(QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_RETURN));
-    EXPECT(!Quest_IsStagePassed(QUEST_EXAMPLE_BRANCH, STAGE_BRANCH_SEARCH));
-}
-
 TEST("Every giver and every turn-in gets a marker")
 {
     const struct Quest *quest = Quest_GetInfo(QUEST_EXAMPLE_BRANCH);
@@ -604,106 +587,6 @@ TEST("A task shows markers and a Task complete toast once its parent has started
     EXPECT_EQ(Quest_GetStatus(QUEST_EXAMPLE_TASK_CLERK), QUEST_STATUS_COMPLETE);
     EXPECT_EQ(QuestToast_GetQueueCount(), 1);
     EXPECT_EQ(QuestToast_GetQueuedType(0), QUEST_TOAST_TASK_COMPLETE);
-}
-
-#endif
-
-// *******************************
-// Notes, leads and profiles. These use the example notes in src/data/notes.
-
-#if defined(NOTE_EXAMPLE_FLYER_RUMOUR) && defined(NOTE_EXAMPLE_BIRCH_FIELDWORK) && defined(QUEST_EXAMPLE_DELIVERY)
-
-TEST("takenote learns a note once and marks the character's profile unread")
-{
-    u32 subject = QuestNote_GetInfo(NOTE_EXAMPLE_BIRCH_FIELDWORK)->subject;
-
-    ASSUME(subject != SUBJECT_NONE);
-    ASSUME(!QuestNote_IsLead(NOTE_EXAMPLE_BIRCH_FIELDWORK));
-
-    EXPECT(!QuestSubject_IsKnown(subject));
-    QuestToast_ClearQueue();
-    EXPECT(QuestNote_Take(NOTE_EXAMPLE_BIRCH_FIELDWORK));
-    EXPECT(!QuestNote_Take(NOTE_EXAMPLE_BIRCH_FIELDWORK));
-    EXPECT(QuestNote_IsKnown(NOTE_EXAMPLE_BIRCH_FIELDWORK));
-    EXPECT(QuestSubject_IsKnown(subject));
-    EXPECT(QuestSubject_IsUnread(subject));
-    EXPECT(Quest_HasUnread());
-    EXPECT_EQ(QuestToast_GetQueueCount(), 1);
-    EXPECT_EQ(QuestToast_GetQueuedType(0), QUEST_TOAST_PROFILE);
-
-    QuestSubject_ClearUnread(subject);
-    EXPECT(!Quest_HasUnread());
-}
-
-TEST("A lead resolves on its condition and cannot get stuck")
-{
-    ASSUME(QuestNote_IsLead(NOTE_EXAMPLE_FLYER_RUMOUR));
-    ASSUME(QuestNote_GetInfo(NOTE_EXAMPLE_FLYER_RUMOUR)->resolvedBy.id == QUEST_EXAMPLE_DELIVERY);
-
-    QuestToast_ClearQueue();
-    EXPECT(!QuestNote_IsOpenLead(NOTE_EXAMPLE_FLYER_RUMOUR));
-    QuestNote_Take(NOTE_EXAMPLE_FLYER_RUMOUR);
-    EXPECT(QuestNote_IsOpenLead(NOTE_EXAMPLE_FLYER_RUMOUR));
-    EXPECT_EQ(QuestToast_GetQueuedType(0), QUEST_TOAST_NEW_LEAD);
-
-    // Closed counts as resolved too, so the lead never gets stuck
-    Quest_Unlock(QUEST_EXAMPLE_DELIVERY);
-    EXPECT(QuestNote_IsOpenLead(NOTE_EXAMPLE_FLYER_RUMOUR));
-    Quest_Close(QUEST_EXAMPLE_DELIVERY);
-    EXPECT(!QuestNote_IsOpenLead(NOTE_EXAMPLE_FLYER_RUMOUR));
-}
-
-TEST("A lead that is already resolved gives no New lead toast")
-{
-    ASSUME(QuestNote_GetInfo(NOTE_EXAMPLE_FLYER_RUMOUR)->subject == SUBJECT_NONE);
-
-    Quest_Start(QUEST_EXAMPLE_DELIVERY);
-    QuestToast_ClearQueue();
-    QuestNote_Take(NOTE_EXAMPLE_FLYER_RUMOUR);
-    EXPECT(QuestNote_IsKnown(NOTE_EXAMPLE_FLYER_RUMOUR));
-    EXPECT_EQ(QuestToast_GetQueueCount(), 0);
-}
-
-TEST("A pinned lead shares the Town Map pin with the tracked quest")
-{
-    const struct QuestNote *note = QuestNote_GetInfo(NOTE_EXAMPLE_FLYER_RUMOUR);
-    u16 map;
-    u8 localId;
-
-    EXPECT(!QuestNote_SetTracked(NOTE_EXAMPLE_FLYER_RUMOUR));
-    QuestNote_Take(NOTE_EXAMPLE_FLYER_RUMOUR);
-    EXPECT(QuestNote_SetTracked(NOTE_EXAMPLE_FLYER_RUMOUR));
-    EXPECT(Quest_GetTrackedTarget(&map, &localId));
-    EXPECT_EQ(map, note->targetMap);
-    EXPECT_EQ(localId, note->targetLocalId);
-
-    // Tracking a quest unpins the lead
-    Quest_Start(QUEST_EXAMPLE_ERRAND);
-    Quest_SetTracked(QUEST_EXAMPLE_ERRAND);
-    EXPECT_EQ(QuestNote_GetTracked(), NOTE_NONE);
-
-    // A lead stops being pinned once it resolves
-    QuestNote_SetTracked(NOTE_EXAMPLE_FLYER_RUMOUR);
-    EXPECT_EQ(Quest_GetTracked(), QUEST_NONE);
-    Quest_Start(QUEST_EXAMPLE_DELIVERY);
-    EXPECT_EQ(QuestNote_GetTracked(), NOTE_NONE);
-}
-
-TEST("takenote and goto_if_note_known work from scripts")
-{
-    RUN_OVERWORLD_SCRIPT(
-        setvar VAR_RESULT, 0;
-        goto_if_note_known NOTE_EXAMPLE_BIRCH_FIELDWORK, NoteKnownTooEarly;
-        takenote NOTE_EXAMPLE_BIRCH_FIELDWORK;
-        goto_if_note_known NOTE_EXAMPLE_BIRCH_FIELDWORK, NoteKnown;
-        end;
-    NoteKnown:
-        setvar VAR_RESULT, 1;
-        end;
-    NoteKnownTooEarly:
-        setvar VAR_RESULT, 2;
-    );
-    EXPECT_EQ(VarGet(VAR_RESULT), 1);
 }
 
 #endif

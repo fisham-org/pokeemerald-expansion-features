@@ -1,7 +1,7 @@
 #ifndef GUARD_CONSTANTS_QUEST_TYPES_H
 #define GUARD_CONSTANTS_QUEST_TYPES_H
 
-// Hand-written quest constants. Quest, stage, outcome, note and subject ids are generated
+// Hand-written quest constants. Quest, stage and outcome ids are generated
 // into constants/quests.h by tools/quests/quests_to_header.py.
 // These are #defines (not enums) so event scripts and tests can use them.
 
@@ -10,11 +10,6 @@
 #define QUEST_MAX_OUTCOMES          4   // Bounded by the 2-bit outcome field.
 #define QUEST_MAX_PATHS             4   // Bounded by the 2-bit path field.
 #define QUEST_NONE                  0xFF
-
-#define NOTE_MAX                    256 // Save bits. Do not lower once saves exist.
-#define SUBJECT_MAX                 64  // Save bits. Do not lower once saves exist.
-#define NOTE_NONE                   0xFFFF
-#define SUBJECT_NONE                0xFF
 
 // enum QuestStatus. Ordered so "status at least ACTIVE" also covers finished quests.
 #define QUEST_STATUS_HIDDEN         0 // not in the log

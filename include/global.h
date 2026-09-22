@@ -285,9 +285,6 @@ struct SaveBlock3
 #endif
     struct QuestSaveEntry quests[QUEST_MAX];
     u8 trackedQuest; // quest id + 1; 0 if nothing tracked
-    u8 notesKnown[NOTE_MAX / 8];
-    u8 subjectsUnread[SUBJECT_MAX / 8];
-    u16 trackedNote; // note id + 1; 0 if no lead is pinned
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

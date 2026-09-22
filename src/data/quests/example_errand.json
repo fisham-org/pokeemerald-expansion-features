@@ -5,15 +5,11 @@
   "icon": { "type": "OBJECT", "value": "OBJ_EVENT_GFX_PROF_BIRCH" },
   "giver": { "map": "MAP_LITTLEROOT_TOWN_PROFESSOR_BIRCHS_LAB", "localid": "LOCALID_BIRCHS_LAB_BIRCH" },
   "summary": "Prof. Birch needs supplies before he heads out on fieldwork.",
-  "rewards": [
-    { "item": "ITEM_POKE_BALL", "count": 5 },
-    { "money": 500 }
-  ],
+  "giver_name": "Prof. Birch",
   "stages": [
     {
       "id": "STAGE_ERRAND_SUPPLIES",
       "title": "Gather Supplies",
-      "journal": "Prof. Birch asked for Potions and news from Oldale Town.",
       "objectives": [
         {
           "text": "Get 3 Potions",
@@ -36,7 +32,6 @@
     {
       "id": "STAGE_ERRAND_HELP",
       "title": "Lend a Hand",
-      "journal": "Prof. Birch asked you to help out around Oldale Town.",
       "objectives": [
         {
           "text": "Help in Oldale Town",
@@ -48,7 +43,6 @@
     {
       "id": "STAGE_ERRAND_REPORT",
       "title": "Report Back",
-      "journal": "The supplies were handed over to Prof. Birch.",
       "objectives": [
         {
           "text": "Talk to the lab aide",

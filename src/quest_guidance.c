@@ -15,7 +15,7 @@
  * Guidance: NPC markers above quest givers, turn-ins and objective targets, and the tracked quest's
  * pin on the Town Map. Both are driven by quest definitions.
  *
- * Graphics (placeholders):
+ * Graphics:
  *   graphics/quest_log/markers.png  6 frames of 16x16 stacked vertically (16x96), so each frame is 4
  *                                   consecutive tiles: (main, side) x (turn-in, available, target)
  *   graphics/quest_log/pin.png      16x16 Town Map pin
@@ -269,7 +269,7 @@ static const struct SpriteTemplate sSpriteTemplate_QuestPin =
     .callback = SpriteCallbackDummy,
 };
 
-// Draws the tracked quest's target, or the pinned lead's, on the non-zoomed Town Map (field_region_map.c).
+// Draws the tracked quest's target on the non-zoomed Town Map (field_region_map.c).
 void QuestPin_CreateTownMapSprite(void)
 {
     const struct RegionMapLocation *location;

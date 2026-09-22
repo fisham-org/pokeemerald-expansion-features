@@ -3,17 +3,14 @@
   "category": "SIDE",
   "tags": ["TOWN"],
   "name": "Flyer Run",
-  "icon": { "type": "ITEM", "value": "ITEM_POTION" },
+  "icon": { "type": "OBJECT", "value": "OBJ_EVENT_GFX_MART_EMPLOYEE" },
   "giver": { "map": "MAP_OLDALE_TOWN", "localid": "LOCALID_OLDALE_MART_EMPLOYEE" },
   "summary": "Hand out flyers for the Oldale Town Poké Mart.",
-  "rewards": [
-    { "item": "ITEM_POTION", "count": 2 }
-  ],
+  "giver_name": "Mart Employee",
   "stages": [
     {
       "id": "STAGE_DELIVERY_FLYERS",
       "title": "Spread the Word",
-      "journal": "The Mart employee gave you a stack of flyers.",
       "objectives": [
         {
           "text": "Hand out flyers",

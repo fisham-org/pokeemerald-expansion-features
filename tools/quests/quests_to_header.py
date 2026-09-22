@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
 """
-Generates quest and note constants and data tables from JSON.
+Generates quest constants and data tables from JSON.
 
-Quests:
   src/data/quests/order.json     quest ids (position = id = save slot)
   src/data/quests/*.json         one quest per file
-Notes:
-  src/data/notes/order.json      note ids (position = id = save bit)
-  src/data/notes/subjects.json   characters that notes can be about (position = id = save bit)
-  src/data/notes/*.json          arrays of notes
 
 Stage ids are the array position inside each quest file.
 
 Outputs:
-  include/constants/quests.h  QUEST_*, STAGE_*, OUTCOME_*, NOTE_*, SUBJECT_* and counts
-  src/data/quests.h           const quest, note and subject tables and strings
+  include/constants/quests.h  QUEST_*, STAGE_*, OUTCOME_* and counts
+  src/data/quests.h           const quest tables and strings
 """
 
 import glob
@@ -25,9 +20,6 @@ import sys
 
 DATA_DIR = "src/data/quests"
 ORDER_FILE = os.path.join(DATA_DIR, "order.json")
-NOTES_DIR = "src/data/notes"
-NOTES_ORDER_FILE = os.path.join(NOTES_DIR, "order.json")
-SUBJECTS_FILE = os.path.join(NOTES_DIR, "subjects.json")
 TYPES_HEADER = "include/constants/quest_types.h"
 CONSTANTS_OUT = "include/constants/quests.h"
 DATA_OUT = "src/data/quests.h"
@@ -43,13 +35,11 @@ DEX_KINDS = ("regional", "national")
 QUEST_OPS = {"status_ge": "STATUS_GE", "status": "STATUS_EQ", "stage_ge": "STAGE_GE", "outcome": "OUTCOME"}
 STATUSES = ("HIDDEN", "AVAILABLE", "ACTIVE", "COMPLETE", "CLOSED")
 
-QUEST_KEYS = {"id", "category", "kind", "parent", "tags", "name", "icon", "giver", "summary", "rewards",
+QUEST_KEYS = {"id", "category", "kind", "parent", "tags", "name", "icon", "giver", "giver_name", "summary",
               "stages", "outcomes", "objective", "turn_in"}
-STAGE_KEYS = {"id", "title", "journal", "objectives", "turn_in", "paths"}
+STAGE_KEYS = {"id", "title", "objectives", "turn_in", "paths"}
 OBJECTIVE_KEYS = {"text", "target", "condition", "optional", "reveal"}
 OUTCOME_KEYS = {"id", "summary", "closes"}
-NOTE_KEYS = {"id", "text", "subject", "points_to", "resolved_by"}
-SUBJECT_KEYS = {"id", "name", "graphics"}
 
 ID_PATTERN = r"[A-Z_][A-Z0-9_]*"
 
@@ -285,7 +275,7 @@ def expand_task(q, where):
     if "objective" in q:
         if "stages" in q:
             error(f"{where}: a task has either 'objective' or 'stages', not both")
-        stage = {"title": q["name"], "journal": None, "objectives": [q["objective"]]}
+        stage = {"title": q["name"], "objectives": [q["objective"]]}
         if "turn_in" in q:
             stage["turn_in"] = q["turn_in"]
         q["stages"] = [stage]
@@ -304,8 +294,6 @@ def main():
     max_objectives = read_define(types_text, "QUEST_MAX_OBJECTIVES")
     max_outcomes = read_define(types_text, "QUEST_MAX_OUTCOMES")
     max_paths = read_define(types_text, "QUEST_MAX_PATHS")
-    note_max = read_define(types_text, "NOTE_MAX")
-    subject_max = read_define(types_text, "SUBJECT_MAX")
 
     gen = Generator()
     slots, order_names = read_order(ORDER_FILE, "QUEST_")
@@ -341,8 +329,6 @@ def main():
             continue
         q = gen.quests[qid]
         where = q["_path"]
-        if "lead" in q:
-            error(f"{where}: 'lead' was removed; leads are notes now (see {NOTES_DIR})")
         kind = q.get("kind", "quest")
         if kind not in ("quest", "task"):
             error(f"{where}: kind must be 'quest' or 'task'")
@@ -366,7 +352,7 @@ def main():
     for tag, members in gen.tags.items():
         gen.data.append(f"static const u16 sQuestTag_{tag}[] = {{ {', '.join(members)} }};\n")
 
-    # Shared id namespace check (QUEST_*, STAGE_*, OUTCOME_*, NOTE_*, SUBJECT_*)
+    # Shared id namespace check (QUEST_*, STAGE_*, OUTCOME_*)
     all_ids = {}
     for name in order_names:
         if name:
@@ -445,7 +431,7 @@ def main():
                 stage_inits.append(f"    [{s_index}] = {{ .title = NULL }}, // removed {stage['removed']}")
                 continue
             check_keys(stage, STAGE_KEYS, s_where)
-            required = ["title", "journal", "objectives"] + ([] if is_task else ["id"])
+            required = ["title", "objectives"] + ([] if is_task else ["id"])
             for req in required:
                 if req not in stage:
                     error(f"{s_where}: missing '{req}'")
@@ -503,7 +489,6 @@ def main():
                 f"    [{s_index}] =\n"
                 "    {\n"
                 f"        .title = {c_string(stage['title'])},\n"
-                f"        .journal = {c_string_or_null(stage['journal'])},\n"
                 f"        .objectives = {obj_array if objective_inits else 'NULL'},\n"
                 f"        .turnIns = {turn_in_array},\n"
                 f"        .objectiveCount = {len(objective_inits)},\n"
@@ -540,24 +525,6 @@ def main():
                 f".closes = {closes_array}, .closesCount = {len(closes)} }},")
         gen.data.append(f"static const struct QuestOutcome sQuestOutcomes_{tag}[] =\n{{\n" + "\n".join(outcome_inits) + "\n};\n")
 
-        # Rewards
-        rewards = q.get("rewards", [])
-        reward_inits = []
-        for r_index, reward in enumerate(rewards):
-            r_where = f"{where}: reward {r_index}"
-            if "item" in reward:
-                check_keys(reward, {"item", "count"}, r_where)
-                reward_inits.append(f"    {{ .type = QUEST_REWARD_ITEM, .item = {reward['item']}, .amount = {reward.get('count', 1)} }},")
-            elif "money" in reward:
-                check_keys(reward, {"money"}, r_where)
-                reward_inits.append(f"    {{ .type = QUEST_REWARD_MONEY, .amount = {reward['money']} }},")
-            else:
-                error(f"{r_where}: needs 'item' or 'money'")
-        rewards_array = "NULL"
-        if reward_inits:
-            rewards_array = f"sQuestRewards_{tag}"
-            gen.data.append(f"static const struct QuestReward {rewards_array}[] =\n{{\n" + "\n".join(reward_inits) + "\n};\n")
-
         # Givers
         givers = npc_list(q.get("giver"), f"{where}: giver")
         givers_array = "NULL"
@@ -571,17 +538,16 @@ def main():
             "    {\n"
             f"        .name = {c_string(q['name'])},\n"
             f"        .summary = {c_string(q['summary'])},\n"
+            f"        .giverName = {c_string_or_null(q.get('giver_name'))},\n"
             f"        .category = QUEST_CATEGORY_{q['category']},\n"
             f"        .iconType = QUEST_ICON_{icon.get('type', 'OBJECT')},\n"
             f"        .icon = {icon.get('value', 0)},\n"
             f"        .parent = {parent},\n"
             f"        .isTask = {'TRUE' if is_task else 'FALSE'},\n"
             f"        .givers = {givers_array},\n"
-            f"        .rewards = {rewards_array},\n"
             f"        .stages = sQuestStages_{tag},\n"
             f"        .outcomes = sQuestOutcomes_{tag},\n"
             f"        .giverCount = {len(givers)},\n"
-            f"        .rewardCount = {len(reward_inits)},\n"
             f"        .stageCount = {len(stages)},\n"
             f"        .outcomeCount = {len(outcome_inits)},\n"
             "    },")
@@ -594,91 +560,6 @@ def main():
             continue
         if not set(q.get("tags", [])) & gen.counted_tags.get(q["parent"], set()):
             error(f"{q['_path']}: parent {q['parent']} has no quests_complete objective for any of this task's tags")
-
-    # Notes and subjects
-    note_slots, note_names = [], []
-    subject_inits = []
-    note_inits = []
-    if os.path.exists(NOTES_ORDER_FILE):
-        note_slots, note_names = read_order(NOTES_ORDER_FILE, "NOTE_")
-
-    # Subjects are listed in order in one file; position = id
-    subject_entries = load_json(SUBJECTS_FILE) if os.path.exists(SUBJECTS_FILE) else []
-    subject_entries = subject_entries if isinstance(subject_entries, list) else []
-    for s_index, subject in enumerate(subject_entries):
-        s_where = f"{SUBJECTS_FILE}: entry {s_index}"
-        if isinstance(subject, dict) and "removed" in subject:
-            claim(subject["removed"], s_where)
-            continue
-        if not isinstance(subject, dict) or any(k not in subject for k in SUBJECT_KEYS):
-            error(f"{s_where}: needs {', '.join(sorted(SUBJECT_KEYS))}")
-            continue
-        check_keys(subject, SUBJECT_KEYS, s_where)
-        claim(subject["id"], s_where)
-        subject_inits.append(f"    [{subject['id']}] = {{ .name = {c_string(subject['name'])}, .graphicsId = {subject['graphics']} }},")
-    subject_slots = [s["id"] if isinstance(s, dict) and "id" in s else None for s in subject_entries]
-    subject_names = [s.get("id", s.get("removed")) if isinstance(s, dict) else None for s in subject_entries]
-    if len(subject_slots) > subject_max:
-        error(f"{SUBJECTS_FILE}: {len(subject_slots)} subjects exceeds SUBJECT_MAX ({subject_max})")
-    if len(note_slots) > note_max:
-        error(f"{NOTES_ORDER_FILE}: {len(note_slots)} notes exceeds NOTE_MAX ({note_max})")
-
-    notes = {}
-    for path in sorted(glob.glob(os.path.join(NOTES_DIR, "*.json"))):
-        if os.path.abspath(path) in (os.path.abspath(NOTES_ORDER_FILE), os.path.abspath(SUBJECTS_FILE)):
-            continue
-        entries = load_json(path)
-        if entries is None:
-            continue
-        if not isinstance(entries, list):
-            error(f"{path}: must be a list of notes")
-            continue
-        for i, note in enumerate(entries):
-            n_where = f"{path}: note {i}"
-            if not isinstance(note, dict) or "id" not in note:
-                error(f"{n_where}: missing 'id'")
-                continue
-            if note["id"] in notes:
-                error(f"{n_where}: duplicate note id {note['id']}")
-                continue
-            if note["id"] not in note_slots:
-                error(f"{n_where}: {note['id']} is not listed in {NOTES_ORDER_FILE}")
-            note["_where"] = n_where
-            notes[note["id"]] = note
-
-    for nid in note_slots:
-        if nid is not None and nid not in notes:
-            error(f"{NOTES_ORDER_FILE}: {nid} has no note (mark it {{ \"removed\": \"{nid}\" }} if deleted)")
-
-    for nid in note_slots:
-        if nid is None or nid not in notes:
-            continue
-        note = notes[nid]
-        n_where = note["_where"]
-        check_keys(note, NOTE_KEYS | {"_where"}, n_where)
-        claim(nid, n_where)
-        if "text" not in note:
-            error(f"{n_where}: missing 'text'")
-            continue
-        subject = note.get("subject", "SUBJECT_NONE")
-        if subject != "SUBJECT_NONE" and subject not in subject_slots:
-            error(f"{n_where}: unknown subject {subject}")
-        t_map, t_local = ("MAP_UNDEFINED", "LOCALID_NONE")
-        if "points_to" in note:
-            t_map, t_local = npc_ref(note["points_to"], f"{n_where} points_to")
-            if "resolved_by" not in note:
-                error(f"{n_where}: a lead (points_to) needs 'resolved_by'")
-        elif "resolved_by" in note:
-            error(f"{n_where}: 'resolved_by' is only for leads (notes with points_to)")
-        note_inits.append(
-            f"    [{nid}] =\n"
-            "    {\n"
-            f"        .text = {c_string(note['text'])},\n"
-            f"        .targetMap = {t_map},\n"
-            f"        .targetLocalId = {t_local},\n"
-            f"        .subject = {subject},\n"
-            f"        .resolvedBy = {gen.condition(note.get('resolved_by'), n_where + ' resolved_by')},\n"
-            "    },")
 
     if errors:
         for e in errors:
@@ -700,10 +581,6 @@ def main():
         f.write('#include "constants/quest_types.h"\n\n')
         write_ids(f, order_names, slots)
         f.write(f"\n#define QUEST_COUNT {len(slots)}\n\n")
-        write_ids(f, subject_names, subject_slots)
-        f.write(f"\n#define SUBJECT_COUNT {len(subject_slots)}\n\n")
-        write_ids(f, note_names, note_slots)
-        f.write(f"\n#define NOTE_COUNT {len(note_slots)}\n\n")
         f.write("\n".join(constants))
         f.write("\n#endif // GUARD_CONSTANTS_QUESTS_H\n")
 
@@ -713,13 +590,6 @@ def main():
         # At least one (empty, invalid) entry so the table still compiles with no quests
         f.write("\nconst struct Quest gQuests[QUEST_COUNT > 0 ? QUEST_COUNT : 1] =\n{\n")
         f.write("\n".join(quest_inits))
-        f.write("\n};\n")
-        # At least one entry so the tables exist when there is no content
-        f.write("\nconst struct QuestSubject gQuestSubjects[SUBJECT_COUNT > 0 ? SUBJECT_COUNT : 1] =\n{\n")
-        f.write("\n".join(subject_inits))
-        f.write("\n};\n")
-        f.write("\nconst struct QuestNote gQuestNotes[NOTE_COUNT > 0 ? NOTE_COUNT : 1] =\n{\n")
-        f.write("\n".join(note_inits))
         f.write("\n};\n")
 
 

@@ -4,7 +4,6 @@
 // Order matches the icons in graphics/quest_log/toast.png
 enum QuestToastType
 {
-    QUEST_TOAST_NEW_LEAD,       // id is a note
     QUEST_TOAST_AVAILABLE,
     QUEST_TOAST_STARTED,
     QUEST_TOAST_UPDATED,
@@ -12,12 +11,10 @@ enum QuestToastType
     QUEST_TOAST_COMPLETE,
     QUEST_TOAST_CLOSED,
     QUEST_TOAST_TASK_COMPLETE,
-    QUEST_TOAST_PROFILE,        // id is a note
     QUEST_TOAST_TYPE_COUNT,
 };
 
 #if QUEST_TOASTS
-// id is a quest, or a note for QUEST_TOAST_NEW_LEAD and QUEST_TOAST_PROFILE
 void QuestToast_Queue(u32 type, u32 id, u32 objective);
 void QuestToast_Update(void);
 u32 QuestToast_GetQueueCount(void);
