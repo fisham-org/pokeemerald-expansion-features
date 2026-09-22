@@ -15,6 +15,13 @@
 #include "window.h"
 #include "constants/songs.h"
 
+// The first SQUIRDLE_NUM_COLUMNS attributes listed in SQUIRDLE_COLUMNS
+#define FIRST_COLUMNS(...) FIRST_COLUMNS_(__VA_ARGS__)
+#define FIRST_COLUMNS_(a, b, c, d, e, ...) a, b, c, d, e
+STATIC_ASSERT(SQUIRDLE_NUM_COLUMNS == 5, FirstColumnsTakesFive);
+
+static const u8 sColumnAttributes[SQUIRDLE_NUM_COLUMNS] = { FIRST_COLUMNS(SQUIRDLE_COLUMNS) };
+
 static void GetTypes(const struct DexPool *pool, u32 dex, u32 *type1, u32 *type2)
 {
     const struct SpeciesInfo *info = &gSpeciesInfo[pool->species[dex]];
@@ -53,16 +60,18 @@ void Squirdle_Compare(const struct DexPool *pool, u32 guessDex, u32 targetDex, u
     clues[SQUIRDLE_ATTR_TYPE_2] = CompareType(guessType2, targetType2, targetType1);
     clues[SQUIRDLE_ATTR_HEIGHT] = CompareValues(guess->height, target->height);
     clues[SQUIRDLE_ATTR_WEIGHT] = CompareValues(guess->weight, target->weight);
+    clues[SQUIRDLE_ATTR_BST] = CompareValues(GetSpeciesBaseStatTotal(pool->species[guessDex]), GetSpeciesBaseStatTotal(pool->species[targetDex]));
+    clues[SQUIRDLE_ATTR_COLOR] = (guess->bodyColor == target->bodyColor) ? SQUIRDLE_CLUE_CORRECT : SQUIRDLE_CLUE_WRONG;
 }
 
-// Solved when every attribute matches, so a different species with identical clues also wins
+// Solved when every shown attribute matches, so a different species with identical clues also wins
 bool32 Squirdle_IsSolved(const u8 *clues)
 {
     u32 i;
 
-    for (i = 0; i < SQUIRDLE_ATTR_COUNT; i++)
+    for (i = 0; i < SQUIRDLE_NUM_COLUMNS; i++)
     {
-        if (clues[i] != SQUIRDLE_CLUE_CORRECT)
+        if (clues[sColumnAttributes[i]] != SQUIRDLE_CLUE_CORRECT)
             return FALSE;
     }
     return TRUE;
@@ -84,6 +93,7 @@ u32 Squirdle_GetDailyTarget(const struct DexPool *pool, u32 day)
 #define LOG_LEFT        4
 #define BOX_HEIGHT      2
 #define ICON_X          16
+#define SCREEN_WIDTH    30
 
 enum SquirdleMode
 {
@@ -111,6 +121,7 @@ struct SquirdleUi
     u8 scroll; // First visible row
     u8 rowIconSpriteIds[VISIBLE_ROWS];
     u8 targetIconSpriteId;
+    u8 columnX[SQUIRDLE_NUM_COLUMNS + 1]; // Left tile of each column, then the screen edge
     bool8 practice;
     bool8 showStats;
 };
@@ -129,14 +140,43 @@ static const struct WindowTemplate sWindowTemplates[] =
     DUMMY_WIN_TEMPLATE
 };
 
-// Box column and width in tiles, for each attribute
-static const struct { u8 x; u8 width; const u8 *label; } sColumns[SQUIRDLE_ATTR_COUNT] =
+// Minimum box width in tiles, for each attribute. Columns are laid out left to right from LOG_LEFT,
+// and the last one stretches to the screen edge.
+#define WIDTH_SQUIRDLE_ATTR_GEN    4
+#define WIDTH_SQUIRDLE_ATTR_TYPE_1 6
+#define WIDTH_SQUIRDLE_ATTR_TYPE_2 6
+#define WIDTH_SQUIRDLE_ATTR_HEIGHT 5
+#define WIDTH_SQUIRDLE_ATTR_WEIGHT 5
+#define WIDTH_SQUIRDLE_ATTR_BST    4
+#define WIDTH_SQUIRDLE_ATTR_COLOR  5
+
+#define COLUMNS_WIDTH(...) COLUMNS_WIDTH_(__VA_ARGS__)
+#define COLUMNS_WIDTH_(a, b, c, d, e, ...) (WIDTH_##a + WIDTH_##b + WIDTH_##c + WIDTH_##d + WIDTH_##e)
+STATIC_ASSERT(COLUMNS_WIDTH(SQUIRDLE_COLUMNS) <= SCREEN_WIDTH - LOG_LEFT, SquirdleColumnsTooWideForScreen);
+
+static const struct { u8 width; const u8 *label; } sColumns[SQUIRDLE_ATTR_COUNT] =
 {
-    [SQUIRDLE_ATTR_GEN]    = { 4,  4, COMPOUND_STRING("Gen") },
-    [SQUIRDLE_ATTR_TYPE_1] = { 8,  6, COMPOUND_STRING("Type 1") },
-    [SQUIRDLE_ATTR_TYPE_2] = { 14, 6, COMPOUND_STRING("Type 2") },
-    [SQUIRDLE_ATTR_HEIGHT] = { 20, 5, COMPOUND_STRING("Hgt (m)") },
-    [SQUIRDLE_ATTR_WEIGHT] = { 25, 5, COMPOUND_STRING("Wgt (kg)") },
+    [SQUIRDLE_ATTR_GEN]    = { WIDTH_SQUIRDLE_ATTR_GEN,    COMPOUND_STRING("Gen") },
+    [SQUIRDLE_ATTR_TYPE_1] = { WIDTH_SQUIRDLE_ATTR_TYPE_1, COMPOUND_STRING("Type 1") },
+    [SQUIRDLE_ATTR_TYPE_2] = { WIDTH_SQUIRDLE_ATTR_TYPE_2, COMPOUND_STRING("Type 2") },
+    [SQUIRDLE_ATTR_HEIGHT] = { WIDTH_SQUIRDLE_ATTR_HEIGHT, COMPOUND_STRING("Hgt (m)") },
+    [SQUIRDLE_ATTR_WEIGHT] = { WIDTH_SQUIRDLE_ATTR_WEIGHT, COMPOUND_STRING("Wgt (kg)") },
+    [SQUIRDLE_ATTR_BST]    = { WIDTH_SQUIRDLE_ATTR_BST,    COMPOUND_STRING("BST") },
+    [SQUIRDLE_ATTR_COLOR]  = { WIDTH_SQUIRDLE_ATTR_COLOR,  COMPOUND_STRING("Color") },
+};
+
+static const u8 *const sColorNames[] =
+{
+    [BODY_COLOR_RED]    = COMPOUND_STRING("Red"),
+    [BODY_COLOR_BLUE]   = COMPOUND_STRING("Blue"),
+    [BODY_COLOR_YELLOW] = COMPOUND_STRING("Yellow"),
+    [BODY_COLOR_GREEN]  = COMPOUND_STRING("Green"),
+    [BODY_COLOR_BLACK]  = COMPOUND_STRING("Black"),
+    [BODY_COLOR_BROWN]  = COMPOUND_STRING("Brown"),
+    [BODY_COLOR_PURPLE] = COMPOUND_STRING("Purple"),
+    [BODY_COLOR_GRAY]   = COMPOUND_STRING("Gray"),
+    [BODY_COLOR_WHITE]  = COMPOUND_STRING("White"),
+    [BODY_COLOR_PINK]   = COMPOUND_STRING("Pink"),
 };
 
 static const u8 sClueBoxPalettes[] =
@@ -320,6 +360,11 @@ static bool32 Squirdle_Init(void)
     if (!sUi->practice)
         GetDailyStatus(&sUi->today);
 
+    sUi->columnX[0] = LOG_LEFT;
+    for (i = 0; i < SQUIRDLE_NUM_COLUMNS; i++)
+        sUi->columnX[i + 1] = sUi->columnX[i] + sColumns[sColumnAttributes[i]].width;
+    sUi->columnX[SQUIRDLE_NUM_COLUMNS] = SCREEN_WIDTH;
+
     for (i = 0; i < VISIBLE_ROWS; i++)
         sUi->rowIconSpriteIds[i] = SPRITE_NONE;
     sUi->targetIconSpriteId = SPRITE_NONE;
@@ -335,8 +380,8 @@ static void Squirdle_Draw(void)
 
     FillWindowPixelBuffer(WIN_HEADERS, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
     DexGame_PrintText(WIN_HEADERS, FONT_SMALL_NARROW, 4, 3, DEX_FONT_WHITE, COMPOUND_STRING("Guess"));
-    for (i = 0; i < SQUIRDLE_ATTR_COUNT; i++)
-        DexGame_PrintText(WIN_HEADERS, FONT_SMALL_NARROW, sColumns[i].x * 8 + 3, 3, DEX_FONT_WHITE, sColumns[i].label);
+    for (i = 0; i < SQUIRDLE_NUM_COLUMNS; i++)
+        DexGame_PrintText(WIN_HEADERS, FONT_SMALL_NARROW, sUi->columnX[i] * 8 + 3, 3, DEX_FONT_WHITE, sColumns[sColumnAttributes[i]].label);
     CopyWindowToVram(WIN_HEADERS, COPYWIN_GFX);
 
     DrawTitle();
@@ -507,8 +552,9 @@ static u8 *FormatTenths(u8 *dest, u32 value)
     return ConvertIntToDecimalStringN(dest, value % 10, STR_CONV_MODE_LEFT_ALIGN, 1);
 }
 
-static void PrintClue(u32 row, u32 attribute, u32 dex, u32 clue)
+static void PrintClue(u32 row, u32 column, u32 dex, u32 clue)
 {
+    u32 attribute = sColumnAttributes[column];
     const struct SpeciesInfo *info = &gSpeciesInfo[sUi->pool->species[dex]];
     u32 type1, type2;
     u8 *end = gStringVar4;
@@ -531,13 +577,19 @@ static void PrintClue(u32 row, u32 attribute, u32 dex, u32 clue)
     case SQUIRDLE_ATTR_WEIGHT:
         end = FormatTenths(end, info->weight);
         break;
+    case SQUIRDLE_ATTR_BST:
+        end = ConvertIntToDecimalStringN(end, GetSpeciesBaseStatTotal(sUi->pool->species[dex]), STR_CONV_MODE_LEFT_ALIGN, 4);
+        break;
+    case SQUIRDLE_ATTR_COLOR:
+        end = StringCopy(end, sColorNames[info->bodyColor]);
+        break;
     }
     if (clue == SQUIRDLE_CLUE_HIGHER)
         StringCopy(end, COMPOUND_STRING("{UP_ARROW}"));
     else if (clue == SQUIRDLE_CLUE_LOWER)
         StringCopy(end, COMPOUND_STRING("{DOWN_ARROW}"));
 
-    DexGame_PrintText(WIN_LOG, FONT_SMALL_NARROW, (sColumns[attribute].x - LOG_LEFT) * 8 + 4,
+    DexGame_PrintText(WIN_LOG, FONT_SMALL_NARROW, (sUi->columnX[column] - LOG_LEFT) * 8 + 4,
                       row * ROW_HEIGHT * 8 + 18, DEX_FONT_DARK, gStringVar4);
 }
 
@@ -556,8 +608,8 @@ static void DrawRow(u32 row, u32 index)
     {
         StringCopy(end, COMPOUND_STRING("{A_BUTTON} Guess"));
         DexGame_PrintText(WIN_LOG, FONT_NORMAL, 0, textY, DEX_FONT_GRAY, gStringVar4);
-        for (i = 0; i < SQUIRDLE_ATTR_COUNT; i++)
-            DexGame_DrawBox(sColumns[i].x, boxY, sColumns[i].width, BOX_HEIGHT, DEX_BOX_EMPTY);
+        for (i = 0; i < SQUIRDLE_NUM_COLUMNS; i++)
+            DexGame_DrawBox(sUi->columnX[i], boxY, sUi->columnX[i + 1] - sUi->columnX[i], BOX_HEIGHT, DEX_BOX_EMPTY);
         return;
     }
 
@@ -567,10 +619,12 @@ static void DrawRow(u32 row, u32 index)
     sUi->rowIconSpriteIds[row] = DexGame_CreateIcon(sUi->pool->species[dex], ICON_X, (LOG_TOP + row * ROW_HEIGHT) * 8 + 16);
 
     Squirdle_Compare(sUi->pool, dex, GetTargetDex(), clues);
-    for (i = 0; i < SQUIRDLE_ATTR_COUNT; i++)
+    for (i = 0; i < SQUIRDLE_NUM_COLUMNS; i++)
     {
-        DexGame_DrawBox(sColumns[i].x, boxY, sColumns[i].width, BOX_HEIGHT, sClueBoxPalettes[clues[i]]);
-        PrintClue(row, i, dex, clues[i]);
+        u32 clue = clues[sColumnAttributes[i]];
+
+        DexGame_DrawBox(sUi->columnX[i], boxY, sUi->columnX[i + 1] - sUi->columnX[i], BOX_HEIGHT, sClueBoxPalettes[clue]);
+        PrintClue(row, i, dex, clue);
     }
 }
 

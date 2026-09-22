@@ -10,8 +10,13 @@ enum SquirdleAttribute
     SQUIRDLE_ATTR_TYPE_2,
     SQUIRDLE_ATTR_HEIGHT,
     SQUIRDLE_ATTR_WEIGHT,
+    SQUIRDLE_ATTR_BST,
+    SQUIRDLE_ATTR_COLOR,
     SQUIRDLE_ATTR_COUNT
 };
+
+// How many of the attributes in SQUIRDLE_COLUMNS are shown
+#define SQUIRDLE_NUM_COLUMNS 5
 
 enum SquirdleClue
 {

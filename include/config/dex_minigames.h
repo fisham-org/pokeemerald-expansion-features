@@ -15,8 +15,13 @@
 #define POKEDOKU_POPULARITY_TRAINERS    0      // How many trainers in this game use the species
 #define POKEDOKU_POPULARITY_WILD        0      // How common the species is in this game's wild encounters
 
-// Squirdle: guess a mystery Pokémon from generation, type, height and weight clues.
+// Squirdle: guess a mystery Pokémon from clues about its attributes.
 #define SQUIRDLE_ENABLED                TRUE
 #define SQUIRDLE_DEFAULT_ANSWER_POOL    DEX_POOL_ALL // Answer pool used by Squirdle_EventScript_Terminal. The target is always from the answer pool.
+// Squirdle's clue columns, left to right. Only the first 5 are used, so reorder the list to pick them.
+// Available: SQUIRDLE_ATTR_GEN, _TYPE_1, _TYPE_2, _HEIGHT, _WEIGHT, _BST (base stat total), _COLOR (Pokédex color).
+// The 5 columns must fit on screen, which fails the build for both types + height + weight + color.
+#define SQUIRDLE_COLUMNS                SQUIRDLE_ATTR_GEN, SQUIRDLE_ATTR_TYPE_1, SQUIRDLE_ATTR_TYPE_2, SQUIRDLE_ATTR_BST, SQUIRDLE_ATTR_COLOR, \
+                                        SQUIRDLE_ATTR_HEIGHT, SQUIRDLE_ATTR_WEIGHT
 
 #endif // GUARD_CONFIG_DEX_MINIGAMES_H

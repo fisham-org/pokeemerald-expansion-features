@@ -24,6 +24,24 @@ TEST("Squirdle compares generation, height and weight directionally")
     Free(pool);
 }
 
+TEST("Squirdle compares base stat total directionally and color exactly")
+{
+    struct DexPool *pool = DexPool_Create(DEX_POOL_ALL);
+    u8 clues[SQUIRDLE_ATTR_COUNT];
+
+    // Guess Charizard (534 BST, Red) for Blaziken (530 BST, Red)
+    Squirdle_Compare(pool, NATIONAL_DEX_CHARIZARD, NATIONAL_DEX_BLAZIKEN, clues);
+    EXPECT_EQ(clues[SQUIRDLE_ATTR_BST], SQUIRDLE_CLUE_LOWER);
+    EXPECT_EQ(clues[SQUIRDLE_ATTR_COLOR], SQUIRDLE_CLUE_CORRECT);
+
+    // Guess Squirtle (314 BST, Blue) for Charizard (534 BST, Red)
+    Squirdle_Compare(pool, NATIONAL_DEX_SQUIRTLE, NATIONAL_DEX_CHARIZARD, clues);
+    EXPECT_EQ(clues[SQUIRDLE_ATTR_BST], SQUIRDLE_CLUE_HIGHER);
+    EXPECT_EQ(clues[SQUIRDLE_ATTR_COLOR], SQUIRDLE_CLUE_WRONG);
+
+    Free(pool);
+}
+
 TEST("Squirdle marks a type in the target's other slot")
 {
     struct DexPool *pool = DexPool_Create(DEX_POOL_ALL);
