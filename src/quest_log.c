@@ -1,6 +1,7 @@
 #include "global.h"
 #include "bg.h"
 #include "decompress.h"
+#include "event_data.h"
 #include "event_object_movement.h"
 #include "field_effect.h"
 #include "gpu_regs.h"
@@ -47,16 +48,14 @@
  *   unread.png             start menu unread mark, blitted into the start menu window
  */
 
-#define LIST_ROWS           5
-#define LIST_ROW_HEIGHT     24
-#define LIST_TOP_PADDING    4
+#define LIST_ROWS_MAX       8   // compact layout; see sListLayouts
+#define LIST_SKIP           5   // entries moved by Left/Right on the list
 #define LIST_WINDOW_Y       16
 #define BODY_WINDOW_Y       48
 #define BODY_HEIGHT         96
 #define BODY_LINE_HEIGHT    12
 #define BODY_REWARDS_Y      72
 #define BODY_TEXT_WIDTH     232
-#define LEAD_TEXT_WIDTH     164
 #define MAX_REWARD_ICONS    4
 #define MAX_LIST            (NOTE_MAX > QUEST_MAX ? NOTE_MAX : QUEST_MAX)
 
@@ -125,7 +124,8 @@ struct QuestLogState
     u8 scrollArrowsTaskId;
     u16 *scrollArrowsTarget;
     u8 scrollArrowsMax;
-    u8 rowIcons[LIST_ROWS];
+    const struct ListLayout *layout;
+    u8 rowIcons[LIST_ROWS_MAX];
     u8 headerIcon;
     u8 rewardIcons[MAX_REWARD_ICONS];
     u16 list[MAX_LIST]; // quest, note or subject ids, depending on the tab
@@ -139,6 +139,26 @@ struct BodyWriter
     s32 top;        // content y at the top of the visible area
     s32 bottom;     // content y at the bottom of the visible area
     bool32 draw;    // FALSE while measuring
+};
+
+// Row metrics for the list pages. Offsets are from the top of the row.
+struct ListLayout
+{
+    u8 rows;
+    u8 rowHeight;
+    u8 textX;       // left edge of names and lead text
+    u8 nameY;       // FONT_NARROW name
+    u8 infoY;       // FONT_SMALL_NARROW area or note count
+    u8 badgeY;
+    bool8 icons;
+};
+
+// Icons: 32 px rows so 16x32 overworld sprites and 32x32 Pokémon icons fit inside a row.
+// Compact: 16 px rows with no sprites.
+static const struct ListLayout sListLayouts[] =
+{
+    [FALSE] = { .rows = 4, .rowHeight = 32, .textX = 32, .nameY = 8, .infoY = 10, .badgeY = 12, .icons = TRUE },
+    [TRUE]  = { .rows = 8, .rowHeight = 16, .textX = 4,  .nameY = 0, .infoY = 2,  .badgeY = 4,  .icons = FALSE },
 };
 
 static EWRAM_DATA struct QuestLogState *sQuestLog = NULL;
@@ -273,6 +293,15 @@ static void RemoveScrollArrows(void);
 // *******************************
 // Entry points
 
+// The config picks the default; the layout flag, if set up, switches to the other one.
+static bool32 IsCompactLayout(void)
+{
+    bool32 compact = QUEST_LOG_COMPACT;
+    if (QUEST_LOG_LAYOUT_FLAG != 0 && FlagGet(QUEST_LOG_LAYOUT_FLAG))
+        compact = !compact;
+    return compact;
+}
+
 void QuestLog_Open(MainCallback returnCallback)
 {
     sQuestLog = AllocZeroed(sizeof(*sQuestLog));
@@ -282,6 +311,7 @@ void QuestLog_Open(MainCallback returnCallback)
         return;
     }
     sQuestLog->savedCallback = returnCallback;
+    sQuestLog->layout = &sListLayouts[IsCompactLayout()];
     sQuestLog->scrollArrowsTaskId = TASK_NONE;
     sQuestLog->headerIcon = SPRITE_NONE;
     memset(sQuestLog->rowIcons, SPRITE_NONE, sizeof(sQuestLog->rowIcons));
@@ -563,22 +593,23 @@ static void DestroyIcon(u8 *spriteId)
 {
     struct Sprite *sprite;
     u32 paletteNum;
-    u16 tileStart = 0;
+    bool32 usingSheet;
+    u16 tileStart;
 
     if (*spriteId == SPRITE_NONE)
         return;
 
     sprite = &gSprites[*spriteId];
     paletteNum = sprite->oam.paletteNum;
-    if (sprite->usingSheet)
-        tileStart = sprite->sheetTileStart;
+    usingSheet = sprite->usingSheet;
+    tileStart = sprite->sheetTileStart;
 
     if (sprite->callback == SpriteCB_MonIcon)
         FreeAndDestroyMonIconSprite(sprite);
     else
         DestroySprite(sprite);
 
-    if (tileStart)
+    if (usingSheet)
         FieldEffectFreeTilesIfUnused(tileStart);
     FieldEffectFreePaletteIfUnused(paletteNum);
     *spriteId = SPRITE_NONE;
@@ -586,7 +617,7 @@ static void DestroyIcon(u8 *spriteId)
 
 static void DestroyRowIcons(void)
 {
-    for (u32 i = 0; i < LIST_ROWS; i++)
+    for (u32 i = 0; i < LIST_ROWS_MAX; i++)
         DestroyIcon(&sQuestLog->rowIcons[i]);
 }
 
@@ -747,12 +778,14 @@ static void ClampListCursor(void)
         sQuestLog->cursor = sQuestLog->listCount - 1;
     if (sQuestLog->cursor < sQuestLog->scroll)
         sQuestLog->scroll = sQuestLog->cursor;
-    if (sQuestLog->cursor >= sQuestLog->scroll + LIST_ROWS)
-        sQuestLog->scroll = sQuestLog->cursor - LIST_ROWS + 1;
-    if (sQuestLog->listCount <= LIST_ROWS)
+    u32 rows = sQuestLog->layout->rows;
+
+    if (sQuestLog->cursor >= sQuestLog->scroll + rows)
+        sQuestLog->scroll = sQuestLog->cursor - rows + 1;
+    if (sQuestLog->listCount <= rows)
         sQuestLog->scroll = 0;
-    else if (sQuestLog->scroll > sQuestLog->listCount - LIST_ROWS)
-        sQuestLog->scroll = sQuestLog->listCount - LIST_ROWS;
+    else if (sQuestLog->scroll > sQuestLog->listCount - rows)
+        sQuestLog->scroll = sQuestLog->listCount - rows;
 }
 
 static void AddToList(u32 id)
@@ -815,29 +848,47 @@ static void DrawTabs(void)
     CopyWindowToVram(WIN_TABS, COPYWIN_FULL);
 }
 
-static void DrawQuestRow(u32 questId, u32 row, u32 y)
+static s16 GetRowIconY(u32 y)
 {
-    u32 badge = GetBadge(questId);
-
-    Print(WIN_LIST, FONT_NARROW, Quest_GetInfo(questId)->name, 32, y + 4, COLOR_DARK);
-    CopyQuestAreaName(gStringVar1, questId);
-    Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar1, 120, y + 6, COLOR_BLUE);
-    if (badge != GFX_NONE)
-        BlitWindowGfx(WIN_LIST, badge, 200, y + 8);
-    sQuestLog->rowIcons[row] = CreateQuestIcon(questId, 16, LIST_WINDOW_Y + y + LIST_ROW_HEIGHT / 2, row);
+    return LIST_WINDOW_Y + y + sQuestLog->layout->rowHeight / 2;
 }
 
+static void DrawQuestRow(u32 questId, u32 row, u32 y)
+{
+    const struct ListLayout *layout = sQuestLog->layout;
+    u32 badge = GetBadge(questId);
+
+    Print(WIN_LIST, FONT_NARROW, Quest_GetInfo(questId)->name, layout->textX, y + layout->nameY, COLOR_DARK);
+    CopyQuestAreaName(gStringVar1, questId);
+    Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar1, 120, y + layout->infoY, COLOR_BLUE);
+    if (badge != GFX_NONE)
+        BlitWindowGfx(WIN_LIST, badge, 200, y + layout->badgeY);
+    if (layout->icons)
+        sQuestLog->rowIcons[row] = CreateQuestIcon(questId, 16, GetRowIconY(y), row);
+}
+
+// Icons: area above one line of text. Compact: one line of text only; the area is on the detail page.
 static void DrawLeadRow(u32 noteId, u32 row, u32 y)
 {
+    const struct ListLayout *layout = sQuestLog->layout;
     const struct QuestNote *note = QuestNote_GetInfo(noteId);
+    u32 textWidth = 196 - layout->textX;
 
-    CopyMapAreaName(gStringVar1, note->targetMap);
-    Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar1, 32, y + 1, COLOR_BLUE);
-    CopyFirstLine(gStringVar2, note->text, FONT_SMALL_NARROW, LEAD_TEXT_WIDTH);
-    Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar2, 32, y + 12, COLOR_DARK);
+    if (layout->icons)
+    {
+        CopyMapAreaName(gStringVar1, note->targetMap);
+        Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar1, layout->textX, y + 4, COLOR_BLUE);
+        CopyFirstLine(gStringVar2, note->text, FONT_SMALL_NARROW, textWidth);
+        Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar2, layout->textX, y + 16, COLOR_DARK);
+        sQuestLog->rowIcons[row] = CreateSubjectIcon(note->subject, 16, GetRowIconY(y));
+    }
+    else
+    {
+        CopyFirstLine(gStringVar2, note->text, FONT_SMALL_NARROW, textWidth);
+        Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar2, layout->textX, y + layout->infoY, COLOR_DARK);
+    }
     if (QuestNote_GetTracked() == noteId)
-        BlitWindowGfx(WIN_LIST, GFX_BADGE_TRACKED, 200, y + 8);
-    sQuestLog->rowIcons[row] = CreateSubjectIcon(note->subject, 16, LIST_WINDOW_Y + y + LIST_ROW_HEIGHT / 2);
+        BlitWindowGfx(WIN_LIST, GFX_BADGE_TRACKED, 200, y + layout->badgeY);
 }
 
 static u32 CountSubjectNotes(u32 subjectId)
@@ -850,13 +901,16 @@ static u32 CountSubjectNotes(u32 subjectId)
 
 static void DrawProfileRow(u32 subjectId, u32 row, u32 y)
 {
-    Print(WIN_LIST, FONT_NARROW, QuestSubject_GetInfo(subjectId)->name, 32, y + 4, COLOR_DARK);
+    const struct ListLayout *layout = sQuestLog->layout;
+
+    Print(WIN_LIST, FONT_NARROW, QuestSubject_GetInfo(subjectId)->name, layout->textX, y + layout->nameY, COLOR_DARK);
     ConvertIntToDecimalStringN(gStringVar1, CountSubjectNotes(subjectId), STR_CONV_MODE_LEFT_ALIGN, 3);
     StringExpandPlaceholders(gStringVar2, sText_Notes);
-    Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar2, 120, y + 6, COLOR_BLUE);
+    Print(WIN_LIST, FONT_SMALL_NARROW, gStringVar2, 120, y + layout->infoY, COLOR_BLUE);
     if (QuestSubject_IsUnread(subjectId))
-        BlitWindowGfx(WIN_LIST, GFX_BADGE_NEW, 200, y + 8);
-    sQuestLog->rowIcons[row] = CreateSubjectIcon(subjectId, 16, LIST_WINDOW_Y + y + LIST_ROW_HEIGHT / 2);
+        BlitWindowGfx(WIN_LIST, GFX_BADGE_NEW, 200, y + layout->badgeY);
+    if (layout->icons)
+        sQuestLog->rowIcons[row] = CreateSubjectIcon(subjectId, 16, GetRowIconY(y));
 }
 
 static const u8 *GetEmptyListText(void)
@@ -883,14 +937,14 @@ static void DrawList(void)
         Print(WIN_LIST, FONT_NORMAL, text, (240 - GetStringWidth(FONT_NORMAL, text, 0)) / 2, 56, COLOR_DARK);
     }
 
-    for (u32 row = 0; row < LIST_ROWS && sQuestLog->scroll + row < sQuestLog->listCount; row++)
+    for (u32 row = 0; row < sQuestLog->layout->rows && sQuestLog->scroll + row < sQuestLog->listCount; row++)
     {
         u32 index = sQuestLog->scroll + row;
         u32 id = sQuestLog->list[index];
-        u32 y = LIST_TOP_PADDING + row * LIST_ROW_HEIGHT;
+        u32 y = row * sQuestLog->layout->rowHeight;
 
         if (index == sQuestLog->cursor)
-            FillWindowPixelRect(WIN_LIST, PIXEL_FILL(PIXEL_HIGHLIGHT), 0, y, 240, LIST_ROW_HEIGHT);
+            FillWindowPixelRect(WIN_LIST, PIXEL_FILL(PIXEL_HIGHLIGHT), 0, y, 240, sQuestLog->layout->rowHeight);
 
         switch (sQuestLog->tab)
         {
@@ -908,7 +962,7 @@ static void DrawList(void)
 
     CopyWindowToVram(WIN_LIST, COPYWIN_FULL);
     SetScrollArrows(&sQuestLog->scroll,
-                    sQuestLog->listCount > LIST_ROWS ? sQuestLog->listCount - LIST_ROWS : 0,
+                    sQuestLog->listCount > sQuestLog->layout->rows ? sQuestLog->listCount - sQuestLog->layout->rows : 0,
                     LIST_WINDOW_Y + 4, LIST_WINDOW_Y + 124);
 }
 
@@ -1046,6 +1100,20 @@ static void Task_QuestLogListInput(u8 taskId)
             DrawList();
         }
     }
+    else if (JOY_REPEAT(DPAD_LEFT) && sQuestLog->cursor > 0)
+    {
+        PlaySE(SE_SELECT);
+        sQuestLog->cursor = sQuestLog->cursor > LIST_SKIP ? sQuestLog->cursor - LIST_SKIP : 0;
+        ClampListCursor();
+        DrawList();
+    }
+    else if (JOY_REPEAT(DPAD_RIGHT) && sQuestLog->cursor + 1 < sQuestLog->listCount)
+    {
+        PlaySE(SE_SELECT);
+        sQuestLog->cursor = min(sQuestLog->cursor + LIST_SKIP, sQuestLog->listCount - 1);
+        ClampListCursor();
+        DrawList();
+    }
     else if (JOY_NEW(L_BUTTON) || JOY_NEW(R_BUTTON))
     {
         PlaySE(SE_SELECT);
@@ -1117,7 +1185,7 @@ static void DrawQuestHeader(u32 questId)
         Print(WIN_HEADER, FONT_SMALL, gStringVar1, 0, 28, COLOR_GRAY);
     }
 
-    sQuestLog->headerIcon = CreateQuestIcon(questId, 20, 20, LIST_ROWS);
+    sQuestLog->headerIcon = CreateQuestIcon(questId, 20, 20, LIST_ROWS_MAX);
 }
 
 static void DrawRewards(u32 questId, u32 y)
@@ -1142,7 +1210,7 @@ static void DrawRewards(u32 questId, u32 y)
         }
         else if (icon < MAX_REWARD_ICONS)
         {
-            sQuestLog->rewardIcons[icon] = CreateItemIcon(reward->item, x + 12, BODY_WINDOW_Y + y + 12, LIST_ROWS + 1 + icon);
+            sQuestLog->rewardIcons[icon] = CreateItemIcon(reward->item, x + 12, BODY_WINDOW_Y + y + 12, LIST_ROWS_MAX + 1 + icon);
             icon++;
             ConvertIntToDecimalStringN(gStringVar1, reward->amount, STR_CONV_MODE_LEFT_ALIGN, 3);
             StringExpandPlaceholders(gStringVar2, COMPOUND_STRING("×{STR_VAR_1}"));

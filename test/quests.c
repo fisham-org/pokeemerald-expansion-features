@@ -7,6 +7,8 @@
 #include "quest_guidance.h"
 #include "quest_note.h"
 #include "quest_toast.h"
+#include "event_object_movement.h"
+#include "sprite.h"
 #include "test/overworld_script.h"
 #include "test/test.h"
 #include "constants/abilities.h"
@@ -702,6 +704,47 @@ TEST("takenote and goto_if_note_known work from scripts")
         setvar VAR_RESULT, 2;
     );
     EXPECT_EQ(VarGet(VAR_RESULT), 1);
+}
+
+#endif
+
+#if QUEST_NPC_MARKERS && defined(QUEST_EXAMPLE_TASK_CLERK)
+
+TEST("A marker sprite is created above its NPC and follows it")
+{
+    const struct QuestNpc *giver = &Quest_GetInfo(QUEST_EXAMPLE_TASK_CLERK)->givers[0];
+    struct ObjectEvent *objectEvent = &gObjectEvents[1];
+    u32 markerId = MAX_SPRITES;
+    u8 npcSpriteId;
+
+    Quest_Start(QUEST_EXAMPLE_ERRAND);
+    Quest_Unlock(QUEST_EXAMPLE_TASK_CLERK);
+    FreeAllSpritePalettes();
+    ResetSpriteData();
+
+    npcSpriteId = CreateObjectGraphicsSprite(OBJ_EVENT_GFX_MART_EMPLOYEE, SpriteCallbackDummy, 40, 60, 0);
+    memset(objectEvent, 0, sizeof(*objectEvent));
+    objectEvent->active = TRUE;
+    objectEvent->localId = giver->localId;
+    objectEvent->mapNum = MAP_NUM(giver->map);
+    objectEvent->mapGroup = MAP_GROUP(giver->map);
+    objectEvent->spriteId = npcSpriteId;
+
+    QuestMarkers_OnObjectSpawn(1);
+    for (u32 i = 0; i < MAX_SPRITES; i++)
+    {
+        if (gSprites[i].inUse && i != npcSpriteId)
+            markerId = i;
+    }
+    EXPECT_NE(markerId, MAX_SPRITES);
+
+    gSprites[npcSpriteId].x = 56;
+    AnimateSprites();
+    EXPECT(gSprites[markerId].inUse);
+    EXPECT_EQ(gSprites[markerId].x, 56);
+    EXPECT_LT(gSprites[markerId].y, gSprites[npcSpriteId].y + gSprites[npcSpriteId].centerToCornerVecY);
+    // The marker's palette is really loaded, not a fallback slot
+    EXPECT_NE(GetSpritePaletteTagByPaletteNum((u32)gSprites[markerId].oam.paletteNum), TAG_NONE);
 }
 
 #endif

@@ -16,7 +16,8 @@
  * pin on the Town Map. Both are driven by quest definitions.
  *
  * Graphics (placeholders):
- *   graphics/quest_log/markers.png  6 frames of 16x16: (main, side) x (turn-in, available, target)
+ *   graphics/quest_log/markers.png  6 frames of 16x16 stacked vertically (16x96), so each frame is 4
+ *                                   consecutive tiles: (main, side) x (turn-in, available, target)
  *   graphics/quest_log/pin.png      16x16 Town Map pin
  */
 
