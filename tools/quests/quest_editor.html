@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quest Editor</title>
+<style>
+:root {
+  --bg: #f6f3ee; --panel: #fffdf9; --panel-2: #f1ece4; --border: #ddd3c4; --text: #2d2118; --muted: #7a6a5c;
+  --accent: #3050c8; --accent-soft: #e3e9fb; --danger: #c0392b; --danger-soft: #fbe6e3; --ok: #287a48; --ok-soft: #e1f3e8;
+  --warn: #9a6a00; --main: #3050c8; --side: #8a5a2b; --task: #6b7d2b; --input: #ffffff;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1714; --panel: #231e1a; --panel-2: #2c2621; --border: #3d342c; --text: #eee6dc; --muted: #a8998a;
+    --accent: #8aa2ff; --accent-soft: #2a3150; --danger: #ff8a7a; --danger-soft: #472622; --ok: #6fd39a; --ok-soft: #1f3a2a;
+    --warn: #e0b04a; --main: #8aa2ff; --side: #e0a46a; --task: #b8cb6a; --input: #1b1714;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+header { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--panel); }
+header h1 { font-size: 15px; margin: 0 12px 0 0; }
+.spacer { flex: 1; }
+button { font: inherit; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.danger { color: var(--danger); }
+button.small { padding: 1px 7px; font-size: 12px; }
+button:disabled { opacity: .5; cursor: default; }
+.pill { border-radius: 999px; padding: 3px 10px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.bad { background: var(--danger-soft); color: var(--danger); }
+.pill.idle { background: var(--panel-2); color: var(--muted); }
+.layout { display: grid; grid-template-columns: 260px 1fr; min-height: 0; }
+aside { border-right: 1px solid var(--border); background: var(--panel); overflow: auto; padding: 10px; }
+aside input { width: 100%; margin-bottom: 8px; }
+.group { margin: 10px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.qitem { padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; gap: 6px; align-items: baseline; }
+.qitem:hover { background: var(--panel-2); }
+.qitem.active { background: var(--accent-soft); }
+.qitem .id { color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qitem .name { white-space: nowrap; }
+.qitem.task { padding-left: 22px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex: none; align-self: center; }
+main { overflow: auto; min-width: 0; }
+.tabs { display: flex; gap: 2px; padding: 8px 14px 0; border-bottom: 1px solid var(--border); background: var(--panel); position: sticky; top: 0; z-index: 2; }
+.tab { padding: 6px 12px; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; cursor: pointer; color: var(--muted); }
+.tab.active { background: var(--bg); border-color: var(--border); color: var(--text); margin-bottom: -1px; }
+.content { padding: 14px 18px 60px; max-width: 1100px; }
+.toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.toolbar h2 { margin: 0; font-size: 18px; }
+.toolbar .file { color: var(--muted); font-family: ui-monospace, monospace; font-size: 12px; }
+section.card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+section.card > h3 { margin: 0 0 10px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+section.card > h3 .hint { font-weight: normal; color: var(--muted); }
+.sub { border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin: 8px 0; background: var(--bg); }
+.sub .sub { background: var(--panel); }
+.sub-head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 8px; }
+label.f { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--muted); }
+label.f.grow { flex: 1; min-width: 200px; }
+label.check { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+input, select, textarea { font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border); border-radius: 5px; padding: 4px 6px; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+input.mono, select.mono { font-family: ui-monospace, monospace; font-size: 12px; }
+input.invalid { border-color: var(--danger); }
+textarea { width: 100%; min-height: 48px; resize: vertical; }
+.w-id { width: 300px; } .w-map { width: 380px; } .w-sm { width: 80px; } .w-md { width: 200px; }
+.muted { color: var(--muted); }
+.note { color: var(--muted); font-size: 12px; margin: 4px 0 0; }
+.warn { color: var(--warn); font-size: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; font-size: 12px; font-family: ui-monospace, monospace; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.rel { display: grid; grid-template-columns: 150px 1fr; gap: 6px 10px; align-items: start; }
+.rel .k { color: var(--muted); }
+#messages { position: fixed; right: 14px; bottom: 14px; width: min(560px, calc(100vw - 28px)); max-height: 40vh; overflow: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.18); padding: 10px 12px; display: none; z-index: 5; }
+#messages.show { display: block; }
+#messages li { margin: 3px 0; cursor: pointer; }
+#messages li:hover { color: var(--accent); }
+.empty { color: var(--muted); padding: 40px; text-align: center; }
+svg text { fill: var(--text); font: 12px system-ui, sans-serif; }
+svg .nid { fill: var(--muted); font: 10px ui-monospace, monospace; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 10px; color: var(--muted); font-size: 12px; }
+.legend span::before { content: ""; display: inline-block; width: 18px; height: 0; border-top: 2px solid currentColor; vertical-align: middle; margin-right: 5px; }
+.legend .l-task { color: var(--task); } .legend .l-req { color: var(--accent); } .legend .l-count { color: var(--side); }
+.legend .l-close { color: var(--danger); } .legend .l-close::before { border-top-style: dashed; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Quest Editor</h1>
+  <button id="btnNewQuest">New quest</button>
+  <button id="btnNewTask">New task</button>
+  <span class="spacer"></span>
+  <span id="validation" class="pill idle" title="Show validation messages">Not validated</span>
+  <button id="btnValidate">Validate</button>
+</header>
+<div class="layout">
+  <aside>
+    <input id="search" type="search" placeholder="Search quests…">
+    <div id="list"></div>
+  </aside>
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="editor">Editor</div>
+      <div class="tab" data-tab="chains">Chains</div>
+      <div class="tab" data-tab="help">Help</div>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+<div id="messages"></div>
+<div id="datalists"></div>
+
+<script>
+"use strict";
+
+// *******************************
+// State
+
+const S = {
+  order: [], quests: {}, constants: null,
+  current: null,      // { data, file, oldId } ; oldId null for a new quest
+  dirty: false, tab: "editor", search: "", validation: null,
+};
+
+const CATEGORY_LABELS = { MAIN: "MAIN (QUESTS tab)", SIDE: "SIDE (TASKS tab)" };
+const STATUSES = ["HIDDEN", "AVAILABLE", "ACTIVE", "COMPLETE", "CLOSED"];
+const COND_TYPES = {
+  "": "None",
+  flag: "Flag is set",
+  var: "Variable compares",
+  item: "Has items",
+  party: "Party member matches",
+  dex: "Pokédex entry",
+  dex_count: "Pokédex count",
+  quest: "Another quest's state",
+  quests_complete: "Quests with a tag complete",
+  flags_count: "Several flags set",
+};
+const MAX_PATHS = 4, MAX_OBJECTIVES = 6, MAX_OUTCOMES = 4;
+const QUEST_KEY_ORDER = ["id", "kind", "parent", "category", "tags", "name", "icon", "giver", "summary", "giver_name", "objective", "turn_in", "stages", "outcomes"];
+const STAGE_KEY_ORDER = ["id", "removed", "title", "paths", "objectives", "turn_in"];
+const OBJECTIVE_KEY_ORDER = ["text", "target", "optional", "reveal", "condition"];
+const OUTCOME_KEY_ORDER = ["id", "summary", "closes"];
+
+// *******************************
+// Helpers
+
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === undefined || v === null || v === false) continue;
+    if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "class") e.className = v;
+    else if (k === "value") e.value = v;
+    else if (v === true) e.setAttribute(k, "");
+    else e.setAttribute(k, v);
+  }
+  for (const c of children.flat()) {
+    if (c === null || c === undefined || c === false) continue;
+    e.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  }
+  return e;
+}
+const clone = (v) => JSON.parse(JSON.stringify(v));
+const asList = (v) => (v === undefined || v === null ? [] : Array.isArray(v) ? v : [v]);
+const slug = (s) => (s || "").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+const shortId = (qid) => (qid || "").replace(/^QUEST_/, "");
+const isId = (s) => /^[A-Z_][A-Z0-9_]*$/.test(s || "");
+
+function markDirty() {
+  S.dirty = true;
+  const t = document.getElementById("dirtyNote");
+  if (t) t.textContent = "Unsaved changes";
+  renderList();
+}
+
+function orderNames() {
+  return S.order.map((e) => (typeof e === "string" ? e : e.removed));
+}
+
+function allQuests() {
+  // Saved quests, with the one being edited swapped in
+  const out = {};
+  for (const [id, q] of Object.entries(S.quests)) out[id] = q.data;
+  if (S.current) {
+    if (S.current.oldId) delete out[S.current.oldId];
+    out[S.current.data.id] = S.current.data;
+  }
+  return out;
+}
+
+function questLabel(id) {
+  const q = allQuests()[id];
+  return q ? `${q.name || id}` : id;
+}
+
+function stageIdsOf(qid) {
+  const q = allQuests()[qid];
+  return q ? asList(q.stages).filter((s) => s.id).map((s) => s.id) : [];
+}
+function outcomeIdsOf(qid) {
+  const q = allQuests()[qid];
+  return q ? asList(q.outcomes).filter((o) => o.id).map((o) => o.id) : [];
+}
+function allTags() {
+  const tags = new Set();
+  for (const q of Object.values(allQuests())) for (const t of asList(q.tags)) tags.add(t);
+  return [...tags].sort();
+}
+function questsWithTag(tag) {
+  return Object.entries(allQuests()).filter(([, q]) => asList(q.tags).includes(tag)).map(([id]) => id);
+}
+
+// Every condition in a quest, with where it is
+function conditionsOf(q) {
+  const out = [];
+  const visit = (obj, where) => {
+    if (!obj) return;
+    if (obj.condition) out.push({ cond: obj.condition, where });
+    if (obj.reveal) out.push({ cond: obj.reveal, where: where + " (reveal)" });
+  };
+  if (q.objective) visit(q.objective, "objective");
+  asList(q.stages).forEach((s, si) => asList(s.objectives).forEach((o, oi) => visit(o, `stage ${si} objective ${oi}`)));
+  return out;
+}
+
+function condType(c) {
+  if (!c || typeof c !== "object") return "";
+  if ("dex_count" in c) return "dex_count";
+  for (const k of ["flag", "var", "item", "party", "dex", "quest", "quests_complete", "flags_count"]) if (k in c) return k;
+  return "";
+}
+
+// Canonical key order so saved files look like the hand-written ones
+function ordered(obj, keys) {
+  const out = {};
+  for (const k of keys) if (k in obj) out[k] = obj[k];
+  for (const k of Object.keys(obj)) if (!(k in out)) out[k] = obj[k];
+  return out;
+}
+
+function cleanNpc(n) {
+  if (!n || !n.map) return null;
+  const out = { map: n.map };
+  if (n.localid) out.localid = n.localid;
+  return out;
+}
+function cleanNpcList(v) {
+  const list = asList(v).map(cleanNpc).filter(Boolean);
+  return list.length === 0 ? undefined : list.length === 1 ? list[0] : list;
+}
+function cleanCondition(c) {
+  if (!c || !condType(c)) return undefined;
+  const out = clone(c);
+  if (out.quests_complete && (out.quests_complete.count === "" || out.quests_complete.count === null)) delete out.quests_complete.count;
+  if ("count" in out && (out.count === "" || out.count === null)) delete out.count;
+  return out;
+}
+function cleanObjective(o) {
+  const out = { ...o };
+  const target = cleanNpc(o.target);
+  if (target) out.target = target; else delete out.target;
+  if (!o.optional) delete out.optional;
+  const reveal = cleanCondition(o.reveal), cond = cleanCondition(o.condition);
+  if (reveal) out.reveal = reveal; else delete out.reveal;
+  if (cond) out.condition = cond; else delete out.condition;
+  return ordered(out, OBJECTIVE_KEY_ORDER);
+}
+
+// Tidies the edited quest into the JSON the generator expects
+function cleanQuest(src) {
+  const q = clone(src);
+  const isTask = q.kind === "task";
+  if (!isTask) { delete q.kind; delete q.parent; }
+  if (!asList(q.tags).length) delete q.tags;
+  if (!q.giver_name) delete q.giver_name;
+  const giver = cleanNpcList(q.giver);
+  if (giver) q.giver = giver; else delete q.giver;
+  if (q.objective) {
+    q.objective = cleanObjective(q.objective);
+    const turnIn = cleanNpcList(q.turn_in);
+    if (turnIn) q.turn_in = turnIn; else delete q.turn_in;
+  } else {
+    delete q.turn_in;
+  }
+  if (q.stages) {
+    q.stages = q.stages.map((s) => {
+      if (s.removed) return { removed: s.removed };
+      const st = { ...s };
+      if (isTask && !st.id) delete st.id;
+      if (!st.paths || st.paths.length === MAX_PATHS) delete st.paths;
+      st.objectives = asList(st.objectives).map(cleanObjective);
+      const turnIn = cleanNpcList(st.turn_in);
+      if (turnIn) st.turn_in = turnIn; else delete st.turn_in;
+      return ordered(st, STAGE_KEY_ORDER);
+    });
+  }
+  if (q.outcomes) {
+    q.outcomes = q.outcomes.map((o) => {
+      const out = { ...o };
+      if (!asList(out.closes).length) delete out.closes;
+      if (isTask && !out.id) delete out.id;
+      return ordered(out, OUTCOME_KEY_ORDER);
+    });
+    if (isTask && q.outcomes.length === 1 && !q.outcomes[0].id && q.outcomes[0].summary === "Done." && !q.outcomes[0].closes) delete q.outcomes;
+  }
+  if (isTask) {
+    if (!q.summary) delete q.summary;
+    if (q.category === "SIDE") delete q.category;
+    if (q.icon && (!q.icon.value || (q.icon.type === "ITEM" && q.icon.value === "ITEM_NONE"))) delete q.icon;
+  }
+  return ordered(q, QUEST_KEY_ORDER);
+}
+
+// *******************************
+// API
+
+async function api(path, body) {
+  const res = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  return res.json();
+}
+
+async function loadState() {
+  const state = await api("/api/state");
+  S.order = state.order;
+  S.quests = state.quests;
+  if (state.loadErrors.length) showMessages({ ok: false, messages: state.loadErrors });
+}
+
+function setValidation(v) {
+  S.validation = v;
+  const pill = document.getElementById("validation");
+  pill.className = "pill " + (v.ok ? "ok" : "bad");
+  pill.textContent = v.ok ? "Valid" : `${v.messages.length} error${v.messages.length === 1 ? "" : "s"}`;
+  if (!v.ok) showMessages(v);
+  else document.getElementById("messages").classList.remove("show");
+}
+
+function showMessages(v) {
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
+  box.append(
+    el("div", { class: "sub-head" }, v.ok ? "No problems found" : "Problems found by quests_to_header.py",
+      el("span", { class: "spacer" }), el("button", { class: "small", onclick: () => box.classList.remove("show") }, "Close")),
+    el("ul", {}, v.messages.map((m) => el("li", { onclick: () => openFromMessage(m) }, m))));
+  box.classList.add("show");
+}
+
+function openFromMessage(msg) {
+  const m = msg.match(/([a-z0-9_]+\.json)/);
+  if (!m) return;
+  const entry = Object.entries(S.quests).find(([, q]) => q.file === m[1]);
+  if (entry) selectQuest(entry[0]);
+}
+
+async function validateNow() {
+  setValidation(await api("/api/validate"));
+}
+
+// *******************************
+// Sidebar
+
+function renderList() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const quests = allQuests();
+  const q = S.search.toLowerCase();
+  const match = (id) => !q || id.toLowerCase().includes(q) || (quests[id].name || "").toLowerCase().includes(q);
+  const ids = orderNames().filter((id) => quests[id]);
+  if (S.current && !S.current.oldId && !ids.includes(S.current.data.id)) ids.push(S.current.data.id);
+  const tasksOf = (pid) => ids.filter((id) => quests[id].kind === "task" && quests[id].parent === pid);
+  const currentId = S.current ? S.current.data.id : null;
+
+  const item = (id, isTask) => {
+    const data = quests[id];
+    const color = isTask ? "var(--task)" : data.category === "MAIN" ? "var(--main)" : "var(--side)";
+    return el("div", { class: "qitem" + (isTask ? " task" : "") + (id === currentId ? " active" : ""), onclick: () => selectQuest(id), title: id },
+      el("span", { class: "dot", style: `background:${color}` }),
+      el("span", { class: "name" }, (data.name || "(unnamed)") + (id === currentId && S.dirty ? " •" : "")),
+      el("span", { class: "id" }, shortId(id)));
+  };
+
+  for (const [cat, label] of [["MAIN", "Main quests · QUESTS tab"], ["SIDE", "Side quests · TASKS tab"]]) {
+    const top = ids.filter((id) => quests[id].kind !== "task" && (quests[id].category || "SIDE") === cat);
+    list.append(el("div", { class: "group" }, label));
+    for (const id of top) {
+      const tasks = tasksOf(id).filter(match);
+      if (match(id) || tasks.length) list.append(item(id, false));
+      for (const t of tasks) list.append(item(t, true));
+    }
+  }
+  const orphans = ids.filter((id) => quests[id].kind === "task" && !quests[quests[id].parent]);
+  if (orphans.length) {
+    list.append(el("div", { class: "group" }, "Tasks without a parent"));
+    orphans.filter(match).forEach((id) => list.append(item(id, true)));
+  }
+  const removed = S.order.filter((e) => typeof e !== "string").map((e) => e.removed);
+  if (removed.length) list.append(el("div", { class: "group" }, `Removed ids (slots kept): ${removed.length}`));
+}
+
+// *******************************
+// Selecting, creating, saving
+
+function confirmDiscard() {
+  return !S.dirty || confirm("Discard unsaved changes to this quest?");
+}
+
+function selectQuest(id) {
+  if (S.current && S.current.data.id === id && S.current.oldId !== null) { S.tab = "editor"; render(); return; }
+  if (!confirmDiscard()) return;
+  const entry = S.quests[id];
+  if (!entry) return;
+  S.current = { data: clone(entry.data), file: entry.file, oldId: id };
+  S.dirty = false;
+  S.tab = "editor";
+  render();
+}
+
+function newQuest(isTask) {
+  if (!confirmDiscard()) return;
+  const names = new Set(orderNames());
+  let n = 1, id;
+  do { id = isTask ? `QUEST_NEW_TASK_${n}` : `QUEST_NEW_QUEST_${n}`; n++; } while (names.has(id) || S.quests[id]);
+  const data = isTask
+    ? { id, kind: "task", parent: "", tags: [], name: "New Task", giver: { map: "", localid: "" }, objective: { text: "" } }
+    : { id, category: "SIDE", name: "New Quest", icon: { type: "OBJECT", value: "" }, giver: { map: "", localid: "" },
+        summary: "", giver_name: "",
+        stages: [{ id: `STAGE_${shortId(id)}_1`, title: "", objectives: [{ text: "" }] }],
+        outcomes: [{ id: `OUTCOME_${shortId(id)}_DONE`, summary: "" }] };
+  S.current = { data, file: null, oldId: null, autoId: true };
+  S.dirty = true;
+  S.tab = "editor";
+  render();
+}
+
+// Blank fields that quests_to_header.py --check accepts but that fail to compile or show nothing in game
+function blankFields(q) {
+  const out = [];
+  const isTask = q.kind === "task";
+  if (!q.name) out.push("name");
+  if (!isTask && !(q.icon && q.icon.value)) out.push("icon sprite");
+  if (!isTask && !asList(q.giver).length) out.push("giver map");
+  const objectives = q.objective ? [q.objective] : asList(q.stages).flatMap((s) => asList(s.objectives));
+  asList(q.stages).forEach((s, i) => { if (!s.removed && !s.title) out.push(`stage ${i} title`); });
+  if (objectives.some((o) => !o.text)) out.push("objective text");
+  if (asList(q.outcomes).some((o) => !o.summary)) out.push("outcome summary");
+  return out;
+}
+
+async function saveCurrent() {
+  const data = cleanQuest(S.current.data);
+  if (!isId(data.id) || !data.id.startsWith("QUEST_")) { alert("The quest id must look like QUEST_SOMETHING."); return; }
+  const blanks = blankFields(data);
+  if (blanks.length && !confirm(`These are still empty: ${blanks.join(", ")}.\n\nSave anyway?`)) return;
+  if (S.current.oldId && S.current.oldId !== data.id &&
+      !confirm(`Rename ${S.current.oldId} to ${data.id}?\n\nThe save slot is kept and other quest files are updated, but map scripts that use the old id must be changed by hand.`)) return;
+  const res = await api("/api/save", { data, file: S.current.file, oldId: S.current.oldId });
+  if (res.error) { alert(res.error); return; }
+  await loadState();
+  S.current = { data: clone(S.quests[data.id].data), file: res.file, oldId: data.id };
+  S.dirty = false;
+  if (res.updatedReferences && res.updatedReferences.length) alert(`Updated references in: ${res.updatedReferences.join(", ")}`);
+  setValidation(res.validation);
+  render();
+}
+
+async function deleteCurrent() {
+  if (!S.current.oldId) { S.current = null; S.dirty = false; render(); return; }
+  const id = S.current.oldId;
+  const refs = (await api("/api/references", { id })).references;
+  const refNote = refs.length ? `\n\nThese quests still refer to it and will fail validation: ${refs.join(", ")}` : "";
+  if (!confirm(`Delete ${id}?\n\nIts file is deleted and its order.json entry becomes { "removed": "${id}" }, so the save slot is never reused.${refNote}`)) return;
+  const res = await api("/api/delete", { id });
+  if (res.error) { alert(res.error); return; }
+  await loadState();
+  S.current = null;
+  S.dirty = false;
+  setValidation(res.validation);
+  render();
+}
+
+// *******************************
+// Form building blocks
+
+// Text/number input bound to obj[key]
+function field(obj, key, opts = {}) {
+  const input = el("input", {
+    class: (opts.mono ? "mono " : "") + (opts.cls || ""),
+    type: opts.number ? "number" : "text",
+    value: obj[key] ?? "",
+    placeholder: opts.placeholder,
+    list: opts.list,
+    min: opts.min,
+    oninput: (e) => {
+      let v = e.target.value;
+      if (opts.upper) { v = v.toUpperCase(); if (e.target.value !== v) e.target.value = v; }
+      if (opts.number) v = v === "" ? "" : Number(v);
+      obj[key] = v;
+      if (opts.idCheck) e.target.classList.toggle("invalid", v !== "" && !isId(v));
+      if (opts.onchange) opts.onchange(v);
+      markDirty();
+    },
+    onchange: opts.rerender ? () => render() : undefined,
+  });
+  if (opts.idCheck && obj[key] && !isId(obj[key])) input.classList.add("invalid");
+  return opts.label ? el("label", { class: "f" + (opts.grow ? " grow" : "") }, opts.label, input) : input;
+}
+
+function textarea(obj, key, label, placeholder) {
+  return el("label", { class: "f grow" }, label,
+    el("textarea", { placeholder, oninput: (e) => { obj[key] = e.target.value; markDirty(); } }, obj[key] ?? ""));
+}
+
+function select(obj, key, options, opts = {}) {
+  const s = el("select", {
+    class: opts.mono ? "mono" : "",
+    onchange: (e) => { obj[key] = e.target.value; if (opts.onchange) opts.onchange(e.target.value); markDirty(); if (opts.rerender !== false) render(); },
+  }, options.map(([v, label]) => el("option", { value: v, selected: String(obj[key] ?? "") === String(v) }, label)));
+  return opts.label ? el("label", { class: "f" }, opts.label, s) : s;
+}
+
+function checkbox(obj, key, label, opts = {}) {
+  return el("label", { class: "check", title: opts.title },
+    el("input", { type: "checkbox", checked: !!obj[key], onchange: (e) => { obj[key] = e.target.checked; markDirty(); if (opts.rerender) render(); } }), label);
+}
+
+function moveButtons(list, i) {
+  const swap = (j) => { [list[i], list[j]] = [list[j], list[i]]; markDirty(); render(); };
+  return [
+    el("button", { class: "small", title: "Move up", disabled: i === 0, onclick: () => swap(i - 1) }, "↑"),
+    el("button", { class: "small", title: "Move down", disabled: i === list.length - 1, onclick: () => swap(i + 1) }, "↓"),
+  ];
+}
+
+// { map, localid } picker. The NPC list comes from the map's map.json.
+function npcPicker(npc, { allowMapOnly = true, onchange } = {}) {
+  const npcs = (S.constants.maps[npc.map] || []);
+  const localSelect = el("select", {
+    class: "mono",
+    onchange: (e) => { npc.localid = e.target.value; markDirty(); if (onchange) onchange(); },
+  },
+    el("option", { value: "" }, allowMapOnly ? "(anywhere on the map)" : "(choose an NPC)"),
+    npcs.map((n) => el("option", { value: n.localid, selected: n.localid === npc.localid }, `${n.localid}  ·  ${n.gfx.replace("OBJ_EVENT_GFX_", "")}`)),
+    npc.localid && !npcs.some((n) => n.localid === npc.localid) ? el("option", { value: npc.localid, selected: true }, `${npc.localid} (not on this map)`) : null);
+  const mapInput = field(npc, "map", { mono: true, list: "dl-maps", placeholder: "MAP_…", cls: "w-map", upper: true, rerender: true });
+  return el("div", { class: "row" }, el("label", { class: "f" }, "Map", mapInput), el("label", { class: "f" }, "NPC (local id)", localSelect));
+}
+
+// Editor for a value that is one { map, localid } or a list of them
+function npcListEditor(obj, key, label, hint) {
+  const list = asList(obj[key]).map((n) => ({ map: "", localid: "", ...n }));
+  obj[key] = list;
+  return el("div", {},
+    el("div", { class: "sub-head" }, label, hint ? el("span", { class: "muted", style: "font-weight:normal" }, hint) : null,
+      el("span", { class: "spacer" }),
+      el("button", { class: "small", onclick: () => { list.push({ map: "", localid: "" }); markDirty(); render(); } }, "+ Add")),
+    list.length === 0 ? el("div", { class: "note" }, "None") : null,
+    list.map((npc, i) => el("div", { class: "row" }, npcPicker(npc),
+      el("button", { class: "small danger", onclick: () => { list.splice(i, 1); markDirty(); render(); } }, "Remove"))));
+}
+
+// *******************************
+// Condition editor
+
+function defaultCondition(type) {
+  switch (type) {
+    case "flag": return { flag: "" };
+    case "var": return { var: "", ge: 1 };
+    case "item": return { item: "", count: 1 };
+    case "party": return { party: { type: "" } };
+    case "dex": return { dex: "", state: "caught" };
+    case "dex_count": return { dex_count: 10, dex: "regional", state: "caught" };
+    case "quest": return { quest: "", status_ge: "QUEST_STATUS_COMPLETE" };
+    case "quests_complete": return { quests_complete: { tag: "" } };
+    case "flags_count": return { flags_count: [""] };
+    default: return undefined;
+  }
+}
+
+function progressToggle(c, def) {
+  const holder = { v: c.progress === undefined ? def : c.progress };
+  return el("label", { class: "check", title: "Show x/y progress in the log and toasts" },
+    el("input", { type: "checkbox", checked: holder.v, onchange: (e) => {
+      if (e.target.checked === def) delete c.progress; else c.progress = e.target.checked;
+      markDirty();
+    } }), "Show x/y");
+}
+
+function conditionEditor(holder, key, label, hint) {
+  const c = holder[key];
+  const type = condType(c);
+  const typeSel = el("select", { onchange: (e) => { holder[key] = defaultCondition(e.target.value); if (!holder[key]) delete holder[key]; markDirty(); render(); } },
+    Object.entries(COND_TYPES).map(([v, l]) => el("option", { value: v, selected: v === type }, l)));
+  const body = el("div", { class: "row" });
+  switch (type) {
+    case "flag":
+      body.append(field(c, "flag", { label: "Flag", mono: true, list: "dl-flags", cls: "w-id", upper: true }));
+      break;
+    case "var": {
+      const op = ["ge", "eq", "lt"].find((o) => o in c) || "ge";
+      const opSel = el("select", { onchange: (e) => { const v = c[op]; delete c[op]; c[e.target.value] = v; markDirty(); render(); } },
+        [["ge", "≥"], ["eq", "="], ["lt", "<"]].map(([v, l]) => el("option", { value: v, selected: v === op }, l)));
+      body.append(field(c, "var", { label: "Variable", mono: true, list: "dl-vars", cls: "w-id", upper: true }),
+        el("label", { class: "f" }, "Compare", opSel), field(c, op, { label: "Value", number: true, cls: "w-sm" }), progressToggle(c, false));
+      break;
+    }
+    case "item":
+      body.append(field(c, "item", { label: "Item", mono: true, list: "dl-items", cls: "w-id", upper: true }),
+        field(c, "count", { label: "Count", number: true, cls: "w-sm", min: 1 }), el("span", { class: "note" }, "Always shows x/y"));
+      break;
+    case "party": {
+      const pkey = Object.keys(c.party)[0] || "type";
+      const lists = { species: "dl-species", type: "dl-types", ability: "dl-abilities", nature: "dl-natures" };
+      const keySel = el("select", { onchange: (e) => { const v = c.party[pkey]; c.party = { [e.target.value]: v }; markDirty(); render(); } },
+        Object.keys(lists).map((k) => el("option", { value: k, selected: k === pkey }, k)));
+      body.append(el("label", { class: "f" }, "Match by", keySel), field(c.party, pkey, { label: "Value", mono: true, list: lists[pkey], cls: "w-id", upper: true }));
+      break;
+    }
+    case "dex":
+      body.append(field(c, "dex", { label: "Species", mono: true, list: "dl-species", cls: "w-id", upper: true }),
+        select(c, "state", [["seen", "seen"], ["caught", "caught"]], { label: "State", rerender: false }));
+      break;
+    case "dex_count":
+      body.append(field(c, "dex_count", { label: "At least", number: true, cls: "w-sm", min: 1 }),
+        select(c, "dex", [["regional", "regional"], ["national", "national"]], { label: "Dex", rerender: false }),
+        select(c, "state", [["seen", "seen"], ["caught", "caught"]], { label: "State", rerender: false }), progressToggle(c, true));
+      break;
+    case "quest": {
+      const op = ["status_ge", "status", "stage_ge", "outcome"].find((o) => o in c) || "status_ge";
+      const opSel = el("select", { onchange: (e) => {
+        delete c[op];
+        const nop = e.target.value;
+        c[nop] = nop.startsWith("status") ? "QUEST_STATUS_COMPLETE" : nop === "stage_ge" ? (stageIdsOf(c.quest)[0] || "") : (outcomeIdsOf(c.quest)[0] || "");
+        markDirty(); render();
+      } }, [["status_ge", "status is at least"], ["status", "status is exactly"], ["stage_ge", "is at or past stage"], ["outcome", "completed with outcome"]]
+        .map(([v, l]) => el("option", { value: v, selected: v === op }, l)));
+      const values = op.startsWith("status") ? STATUSES.map((s) => `QUEST_STATUS_${s}`) : op === "stage_ge" ? stageIdsOf(c.quest) : outcomeIdsOf(c.quest);
+      const questSel = el("select", { class: "mono", onchange: (e) => { c.quest = e.target.value; markDirty(); render(); } },
+        el("option", { value: "" }, "(choose a quest)"),
+        orderNames().filter((id) => allQuests()[id]).map((id) => el("option", { value: id, selected: id === c.quest }, `${id} · ${questLabel(id)}`)));
+      body.append(el("label", { class: "f" }, "Quest", questSel), el("label", { class: "f" }, "Test", opSel),
+        select(c, op, [["", "(choose)"], ...values.map((v) => [v, v])], { label: "Value", mono: true }));
+      break;
+    }
+    case "quests_complete": {
+      const spec = c.quests_complete;
+      const members = questsWithTag(spec.tag);
+      body.append(field(spec, "tag", { label: "Tag", mono: true, list: "dl-tags", cls: "w-md", upper: true, rerender: true, idCheck: true }),
+        field(spec, "count", { label: `Count (blank = all ${members.length})`, number: true, cls: "w-sm", min: 1 }), progressToggle(c, true));
+      body.append(el("div", { class: "note", style: "flex-basis:100%" },
+        members.length ? ["Counts: ", el("span", { class: "chips" }, members.map((id) => el("span", { class: "chip", onclick: () => selectQuest(id) }, questLabel(id))))]
+          : "No quest has this tag yet. Give tasks this tag (and this quest as their parent) to count them."));
+      break;
+    }
+    case "flags_count": {
+      const flags = c.flags_count;
+      body.append(el("div", { style: "flex-basis:100%" },
+        flags.map((f, i) => el("div", { class: "row" },
+          el("input", { class: "mono w-id", list: "dl-flags", value: f, oninput: (e) => { flags[i] = e.target.value.toUpperCase(); markDirty(); } }),
+          el("button", { class: "small danger", disabled: flags.length === 1, onclick: () => { flags.splice(i, 1); markDirty(); render(); } }, "Remove"))),
+        el("button", { class: "small", onclick: () => { flags.push(""); markDirty(); render(); } }, "+ Flag")));
+      body.append(field(c, "count", { label: `Count (blank = all ${flags.length})`, number: true, cls: "w-sm", min: 1 }), progressToggle(c, true));
+      break;
+    }
+  }
+  return el("div", { class: "sub" },
+    el("div", { class: "sub-head" }, label, typeSel, hint ? el("span", { class: "muted", style: "font-weight:normal" }, hint) : null),
+    type ? body : null);
+}
+
+// *******************************
+// Objectives, stages, outcomes
+
+function objectiveEditor(list, i, { canMove = true } = {}) {
+  const o = list[i];
+  if (!o.target) o.target = { map: "", localid: "" };
+  return el("div", { class: "sub" },
+    el("div", { class: "sub-head" }, `Objective ${i}`, el("span", { class: "spacer" }),
+      canMove ? moveButtons(list, i) : null,
+      canMove ? el("button", { class: "small danger", onclick: () => { list.splice(i, 1); markDirty(); render(); } }, "Remove") : null),
+    el("div", { class: "row" }, field(o, "text", { label: "Text shown in the log", grow: true, placeholder: "e.g. Get 3 Potions" }),
+      checkbox(o, "optional", "Optional", { title: "Not needed to turn the stage in" })),
+    el("div", { class: "note" }, "Target (optional): where the player should go. Shown as the location and marked above the NPC."),
+    npcPicker(o.target),
+    conditionEditor(o, "condition", "Completes when", "None = ticked from script with completeobjective"),
+    conditionEditor(o, "reveal", "Hidden until", "None = always visible"));
+}
+
+function stageEditor(stages, i, isTask) {
+  const s = stages[i];
+  if (s.removed) {
+    return el("div", { class: "sub" },
+      el("div", { class: "sub-head" }, `Stage ${i} (retired)`, el("span", { class: "muted", style: "font-weight:normal" }, s.removed)),
+      el("div", { class: "note" }, "This slot is kept so stage numbers in existing save files stay correct."));
+  }
+  s.objectives = s.objectives || [];
+  const paths = s.paths || [0, 1, 2, 3];
+  const togglePath = (p, on) => {
+    const set = new Set(s.paths || [0, 1, 2, 3]);
+    if (on) set.add(p); else set.delete(p);
+    s.paths = [...set].sort();
+    markDirty();
+  };
+  return el("div", { class: "sub" },
+    el("div", { class: "sub-head" }, `Stage ${i}`, el("span", { class: "muted", style: "font-weight:normal" }, s.title || ""),
+      el("span", { class: "spacer" }), moveButtons(stages, i),
+      el("button", { class: "small", title: "Keep an empty slot so existing save files stay valid", onclick: () => {
+        if (!s.id) { alert("Give the stage an id first."); return; }
+        stages[i] = { removed: s.id }; markDirty(); render();
+      } }, "Retire"),
+      el("button", { class: "small danger", title: "Remove the stage completely (fine before release)", onclick: () => {
+        if (stages.length === 1) { alert("A quest needs at least one stage."); return; }
+        if (confirm(`Delete stage ${i}? Later stages move up one slot.`)) { stages.splice(i, 1); markDirty(); render(); }
+      } }, "Delete")),
+    el("div", { class: "row" },
+      field(s, "id", { label: isTask ? "Stage id (optional for tasks)" : "Stage id", mono: true, cls: "w-id", upper: true, idCheck: true, placeholder: "STAGE_…" }),
+      field(s, "title", { label: "Title (heading above the objectives)", grow: true }),
+      el("div", { class: "f" }, el("span", { class: "muted", style: "font-size:11px" }, "On paths"),
+        el("div", { class: "row", style: "margin:0" }, [0, 1, 2, 3].map((p) => el("label", { class: "check" },
+          el("input", { type: "checkbox", checked: paths.includes(p), onchange: (e) => togglePath(p, e.target.checked) }), p))))),
+    s.objectives.map((_, oi) => objectiveEditor(s.objectives, oi)),
+    el("button", { class: "small", disabled: s.objectives.length >= MAX_OBJECTIVES, onclick: () => { s.objectives.push({ text: "" }); markDirty(); render(); } },
+      `+ Objective (${s.objectives.length}/${MAX_OBJECTIVES})`),
+    el("div", { style: "margin-top:8px" }, npcListEditor(s, "turn_in", "Turn in to", "NPCs that get the turn-in marker once the objectives are done")));
+}
+
+function outcomeEditor(outcomes, i, isTask) {
+  const o = outcomes[i];
+  o.closes = asList(o.closes);
+  const others = orderNames().filter((id) => allQuests()[id] && id !== S.current.data.id && !o.closes.includes(id));
+  return el("div", { class: "sub" },
+    el("div", { class: "sub-head" }, `Outcome ${i}`, el("span", { class: "spacer" }), moveButtons(outcomes, i),
+      el("button", { class: "small danger", disabled: outcomes.length === 1, onclick: () => { outcomes.splice(i, 1); markDirty(); render(); } }, "Remove")),
+    el("div", { class: "row" },
+      field(o, "id", { label: isTask ? "Outcome id (optional for tasks)" : "Outcome id", mono: true, cls: "w-id", upper: true, idCheck: true, placeholder: "OUTCOME_…" }),
+      field(o, "summary", { label: "Summary (shown under Complete)", grow: true })),
+    el("div", { class: "row" },
+      el("span", { class: "muted" }, "Closes:"),
+      el("span", { class: "chips" }, o.closes.map((id, ci) => el("span", { class: "chip", title: "Click to remove", onclick: () => { o.closes.splice(ci, 1); markDirty(); render(); } }, `${questLabel(id)} ✕`))),
+      el("select", { class: "mono", onchange: (e) => { if (e.target.value) { o.closes.push(e.target.value); markDirty(); render(); } } },
+        el("option", { value: "" }, "+ close another quest…"), others.map((id) => el("option", { value: id }, `${id} · ${questLabel(id)}`)))));
+}
+
+// *******************************
+// Relationships
+
+function relationsOf(id) {
+  const quests = allQuests();
+  const q = quests[id];
+  const rel = { tasks: [], parent: null, requires: [], requiredBy: [], counts: [], countedBy: [], closes: [], closedBy: [] };
+  if (!q) return rel;
+  if (q.kind === "task" && q.parent) rel.parent = q.parent;
+  for (const [oid, o] of Object.entries(quests)) {
+    if (o.kind === "task" && o.parent === id) rel.tasks.push(oid);
+    for (const { cond } of conditionsOf(o)) {
+      if (condType(cond) === "quest") {
+        if (oid === id && cond.quest) rel.requires.push(cond.quest);
+        if (oid !== id && cond.quest === id) rel.requiredBy.push(oid);
+      }
+      if (condType(cond) === "quests_complete") {
+        const members = questsWithTag(cond.quests_complete.tag);
+        if (oid === id) rel.counts.push(...members);
+        if (oid !== id && members.includes(id)) rel.countedBy.push(oid);
+      }
+    }
+    for (const out of asList(o.outcomes)) for (const c of asList(out.closes)) {
+      if (oid === id) rel.closes.push(c);
+      if (c === id) rel.closedBy.push(oid);
+    }
+  }
+  for (const k of Object.keys(rel)) if (Array.isArray(rel[k])) rel[k] = [...new Set(rel[k])];
+  return rel;
+}
+
+function relationsCard(id) {
+  const r = relationsOf(id);
+  const chips = (ids) => ids.length ? el("span", { class: "chips" }, ids.map((x) => el("span", { class: "chip", onclick: () => selectQuest(x) }, questLabel(x)))) : el("span", { class: "muted" }, "-");
+  return el("section", { class: "card" },
+    el("h3", {}, "Chain", el("span", { class: "hint" }, "Links to other quests, from conditions, tasks and outcomes")),
+    el("div", { class: "rel" },
+      el("div", { class: "k" }, "Parent quest"), chips(r.parent ? [r.parent] : []),
+      el("div", { class: "k" }, "Tasks"), chips(r.tasks),
+      el("div", { class: "k" }, "Waits for"), chips(r.requires),
+      el("div", { class: "k" }, "Needed by"), chips(r.requiredBy),
+      el("div", { class: "k" }, "Counts"), chips(r.counts),
+      el("div", { class: "k" }, "Counted by"), chips(r.countedBy),
+      el("div", { class: "k" }, "Closes"), chips(r.closes),
+      el("div", { class: "k" }, "Closed by"), chips(r.closedBy)),
+    el("div", { class: "row", style: "margin-top:10px" },
+      el("button", { class: "small", onclick: () => newFollowUp(id) }, "+ Follow-up quest"),
+      q_isTask() ? null : el("button", { class: "small", onclick: () => newTaskFor(id) }, "+ Task for this quest")));
+}
+
+const q_isTask = () => S.current && S.current.data.kind === "task";
+
+// A new quest whose first objective waits for this one to be complete
+function newFollowUp(prevId) {
+  if (S.dirty && !confirm("Start a new follow-up quest? Unsaved changes to this quest are lost. Save first to keep them.")) return;
+  S.dirty = false;
+  newQuest(false);
+  const q = S.current.data;
+  q.category = allQuests()[prevId]?.category || "SIDE";
+  q.stages[0].objectives[0] = { text: "", condition: { quest: prevId, status_ge: "QUEST_STATUS_COMPLETE" } };
+  render();
+}
+
+// A new task under this quest, tagged so the parent can count it
+function newTaskFor(parentId) {
+  if (S.dirty && !confirm("Start a new task? Unsaved changes to this quest are lost. Save first to keep them.")) return;
+  const parent = allQuests()[parentId];
+  const counted = [];
+  for (const { cond } of conditionsOf(parent)) if (condType(cond) === "quests_complete") counted.push(cond.quests_complete.tag);
+  S.dirty = false;
+  newQuest(true);
+  S.current.data.parent = parentId;
+  S.current.data.tags = counted.length ? [counted[0]] : [];
+  render();
+}
+
+// *******************************
+// Editor tab
+
+function renderEditor(root) {
+  if (!S.current) {
+    root.append(el("div", { class: "empty" }, "Choose a quest on the left, or create one with New quest / New task."));
+    return;
+  }
+  const q = S.current.data;
+  const isTask = q.kind === "task";
+  const shortForm = isTask && q.objective !== undefined;
+
+  root.append(el("div", { class: "toolbar" },
+    el("h2", {}, q.name || "(unnamed)"),
+    el("span", { class: "file" }, S.current.file ? `src/data/quests/${S.current.file}` : "new file"),
+    el("span", { id: "dirtyNote", class: "warn" }, S.dirty ? "Unsaved changes" : ""),
+    el("span", { class: "spacer" }),
+    el("button", { class: "danger", onclick: deleteCurrent }, S.current.oldId ? "Delete" : "Discard"),
+    el("button", { disabled: !S.current.oldId, onclick: () => {
+      if (!S.dirty || confirm("Discard unsaved changes?")) { S.current.data = clone(S.quests[S.current.oldId].data); S.dirty = false; render(); }
+    } }, "Revert"),
+    el("button", { class: "primary", onclick: saveCurrent }, "Save")));
+
+  // Basics
+  const idField = field(q, "id", { label: "Quest id", mono: true, cls: "w-id", upper: true, idCheck: true,
+    onchange: () => { S.current.autoId = false; } });
+  const nameField = field(q, "name", { label: "Name", grow: true, onchange: (v) => {
+    document.querySelector(".toolbar h2").textContent = v || "(unnamed)";
+    if (!S.current.oldId && S.current.autoId && slug(v)) {
+      q.id = "QUEST_" + slug(v);
+      idField.querySelector("input").value = q.id;
+    }
+  } });
+  root.append(el("section", { class: "card" },
+    el("h3", {}, isTask ? "Task" : "Quest"),
+    el("div", { class: "row" }, nameField, idField),
+    isTask
+      ? el("div", { class: "row" },
+          el("label", { class: "f" }, "Parent quest", el("select", { class: "mono", onchange: (e) => { q.parent = e.target.value; markDirty(); render(); } },
+            el("option", { value: "" }, "(choose)"),
+            orderNames().filter((id) => allQuests()[id] && allQuests()[id].kind !== "task").map((id) => el("option", { value: id, selected: id === q.parent }, `${id} · ${questLabel(id)}`)))),
+          tagsEditor(q),
+          el("div", { class: "note", style: "flex-basis:100%" }, "A task is listed under its parent's objective. The parent needs a \"Quests with a tag complete\" objective for one of this task's tags."))
+      : el("div", { class: "row" }, select(q, "category", Object.entries(CATEGORY_LABELS), { label: "Category" }), tagsEditor(q)),
+    el("div", { class: "row" }, textarea(q, "summary", "Summary (shown on the detail page)", isTask ? "Optional for tasks" : "")),
+    el("div", { class: "row" }, field(q, "giver_name", { label: "Giver name (shown beside the sprite)", cls: "w-md" }), iconEditor(q))));
+
+  // Givers
+  root.append(el("section", { class: "card" }, npcListEditor(q, "giver", "Givers", isTask ? "optional for tasks" : "NPCs that give the quest; each gets the available marker")));
+
+  // Stages / short-form objective
+  if (shortForm) {
+    const holder = { list: [q.objective] };
+    root.append(el("section", { class: "card" },
+      el("h3", {}, "Objective", el("span", { class: "hint" }, "Short task form: one stage with one objective"), el("span", { class: "spacer" }),
+        el("button", { class: "small", onclick: () => {
+          q.stages = [{ title: q.name, objectives: [q.objective], turn_in: q.turn_in }];
+          delete q.objective; delete q.turn_in; markDirty(); render();
+        } }, "Use full stages")),
+      objectiveEditor(holder.list, 0, { canMove: false }),
+      npcListEditor(q, "turn_in", "Turn in to")));
+  } else {
+    q.stages = q.stages || [];
+    root.append(el("section", { class: "card" },
+      el("h3", {}, "Stages", el("span", { class: "hint" }, "Stage numbers are saved in save files: after release, retire stages instead of deleting or moving them")),
+      q.stages.map((_, i) => stageEditor(q.stages, i, isTask)),
+      el("button", { onclick: () => { q.stages.push({ id: isTask ? undefined : `STAGE_${shortId(q.id)}_${q.stages.length + 1}`, title: "", objectives: [{ text: "" }] }); markDirty(); render(); } }, "+ Stage")));
+  }
+
+  // Outcomes
+  if (!isTask || q.outcomes) {
+    q.outcomes = q.outcomes || [];
+    root.append(el("section", { class: "card" },
+      el("h3", {}, "Outcomes", el("span", { class: "hint" }, "Chosen by completequest; can close other quests")),
+      q.outcomes.map((_, i) => outcomeEditor(q.outcomes, i, isTask)),
+      el("button", { disabled: q.outcomes.length >= MAX_OUTCOMES, onclick: () => { q.outcomes.push({ id: isTask ? undefined : `OUTCOME_${shortId(q.id)}_${q.outcomes.length + 1}`, summary: "" }); markDirty(); render(); } },
+        `+ Outcome (${q.outcomes.length}/${MAX_OUTCOMES})`)));
+  } else {
+    root.append(el("section", { class: "card" }, el("h3", {}, "Outcome", el("span", { class: "hint" }, "Tasks get one outcome, \"Done.\", unless you add your own")),
+      el("button", { onclick: () => { q.outcomes = [{ summary: "Done." }]; markDirty(); render(); } }, "Customise outcomes")));
+  }
+
+  root.append(relationsCard(q.id));
+}
+
+function tagsEditor(q) {
+  q.tags = asList(q.tags);
+  return el("label", { class: "f grow" }, "Tags (comma separated)",
+    el("input", { class: "mono", list: "dl-tags", value: q.tags.join(", "), placeholder: "e.g. TOWN, LEGENDARY",
+      oninput: (e) => { q.tags = e.target.value.toUpperCase().split(",").map((t) => t.trim()).filter(Boolean); markDirty(); } }));
+}
+
+function iconEditor(q) {
+  q.icon = q.icon || { type: "OBJECT", value: "" };
+  const lists = { OBJECT: "dl-gfx", ITEM: "dl-items", PKMN: "dl-species" };
+  const firstGiver = asList(q.giver).find((g) => g.map && g.localid);
+  const giverGfx = firstGiver ? (S.constants.maps[firstGiver.map] || []).find((n) => n.localid === firstGiver.localid)?.gfx : null;
+  return el("div", { class: "row", style: "margin:0" },
+    select(q.icon, "type", [["OBJECT", "Overworld sprite"], ["ITEM", "Item icon"], ["PKMN", "Pokémon icon"]], { label: "Icon" }),
+    field(q.icon, "value", { label: "Sprite / item / species", mono: true, list: lists[q.icon.type], cls: "w-id", upper: true }),
+    giverGfx ? el("button", { class: "small", title: giverGfx, onclick: () => { q.icon = { type: "OBJECT", value: giverGfx }; markDirty(); render(); } }, "Use giver's sprite") : null,
+    q.icon.type !== "OBJECT" ? el("div", { class: "warn", style: "flex-basis:100%" }, "Overworld sprites are recommended: mixing sprite sizes makes the icon glitch for a frame when paging in the log.") : null);
+}
+
+// *******************************
+// Chains tab: a layered graph of every link between quests
+
+function renderChains(root) {
+  const quests = allQuests();
+  const ids = orderNames().filter((id) => quests[id]);
+  if (S.current && !ids.includes(S.current.data.id)) ids.push(S.current.data.id);
+  const edges = [];
+  for (const id of ids) {
+    const r = relationsOf(id);
+    if (r.parent) edges.push({ from: r.parent, to: id, kind: "task" });
+    for (const x of r.requires) if (quests[x]) edges.push({ from: x, to: id, kind: "req" });
+    for (const x of r.counts) if (quests[x] && quests[x].parent !== id) edges.push({ from: x, to: id, kind: "count" });
+    for (const x of r.closes) if (quests[x]) edges.push({ from: id, to: x, kind: "close" });
+  }
+  const linked = new Set(edges.flatMap((e) => [e.from, e.to]));
+  const showAll = S.chainsShowAll;
+  const nodes = ids.filter((id) => showAll || linked.has(id));
+
+  // Longest-path layers, ignoring "closes" so branches don't push quests right
+  const layer = Object.fromEntries(nodes.map((id) => [id, 0]));
+  for (let pass = 0; pass < nodes.length; pass++) {
+    let changed = false;
+    for (const e of edges) if (e.kind !== "close" && e.from in layer && e.to in layer && layer[e.to] < layer[e.from] + 1) { layer[e.to] = layer[e.from] + 1; changed = true; }
+    if (!changed) break;
+  }
+  const W = 190, H = 42, GX = 70, GY = 16, PAD = 10;
+  const cols = {};
+  for (const id of nodes) (cols[layer[id]] = cols[layer[id]] || []).push(id);
+  const pos = {};
+  let maxRows = 0;
+  for (const [l, list] of Object.entries(cols)) {
+    list.forEach((id, i) => { pos[id] = { x: PAD + Number(l) * (W + GX), y: PAD + i * (H + GY) }; });
+    maxRows = Math.max(maxRows, list.length);
+  }
+  const width = PAD * 2 + (Object.keys(cols).length || 1) * (W + GX);
+  const height = PAD * 2 + Math.max(1, maxRows) * (H + GY);
+
+  root.append(el("div", { class: "toolbar" }, el("h2", {}, "Quest chains"), el("span", { class: "spacer" }),
+    el("label", { class: "check" }, el("input", { type: "checkbox", checked: !!showAll, onchange: (e) => { S.chainsShowAll = e.target.checked; render(); } }), "Show unlinked quests")));
+  root.append(el("div", { class: "legend" },
+    el("span", { class: "l-task" }, "task of"), el("span", { class: "l-req" }, "waits for (quest condition)"),
+    el("span", { class: "l-count" }, "counted by (tag)"), el("span", { class: "l-close" }, "closes")));
+  if (!nodes.length) { root.append(el("div", { class: "empty" }, "No quests are linked yet. Links come from quest conditions, tasks, tag counts and outcomes that close quests.")); return; }
+
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("width", width); svg.setAttribute("height", height);
+  const colors = { task: "var(--task)", req: "var(--accent)", count: "var(--side)", close: "var(--danger)" };
+  const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
+  const defs = mk("defs", {});
+  for (const [k, c] of Object.entries(colors)) {
+    const m = mk("marker", { id: "arrow-" + k, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" });
+    m.append(mk("path", { d: "M0,0 L10,5 L0,10 z", fill: c }));
+    defs.append(m);
+  }
+  svg.append(defs);
+  for (const e of edges) {
+    if (!pos[e.from] || !pos[e.to]) continue;
+    const a = pos[e.from], b = pos[e.to];
+    let d;
+    if (b.x > a.x) {
+      // Left to right between columns
+      const x1 = a.x + W, y1 = a.y + H / 2, x2 = b.x, y2 = b.y + H / 2;
+      d = `M${x1},${y1} C${x1 + GX / 2},${y1} ${x2 - GX / 2},${y2} ${x2},${y2}`;
+    } else if (b.x === a.x) {
+      // Same column: straight down or up, a little right of centre
+      const x = a.x + W * 0.6;
+      d = b.y > a.y ? `M${x},${a.y + H} L${x},${b.y}` : `M${x},${a.y} L${x},${b.y + H}`;
+    } else {
+      // Backwards: leave from the left, arrive on the right
+      const x1 = a.x, y1 = a.y + H / 2, x2 = b.x + W, y2 = b.y + H / 2;
+      d = `M${x1},${y1} C${x1 - GX / 2},${y1} ${x2 + GX / 2},${y2} ${x2},${y2}`;
+    }
+    svg.append(mk("path", { d, fill: "none", stroke: colors[e.kind], "stroke-width": 1.6, "stroke-dasharray": e.kind === "close" ? "5 4" : "", "marker-end": `url(#arrow-${e.kind})` }));
+  }
+  for (const id of nodes) {
+    const p = pos[id], q = quests[id];
+    const color = q.kind === "task" ? "var(--task)" : q.category === "MAIN" ? "var(--main)" : "var(--side)";
+    const g = mk("g", { style: "cursor:pointer" });
+    g.addEventListener("click", () => selectQuest(id));
+    g.append(mk("rect", { x: p.x, y: p.y, width: W, height: H, rx: 6, fill: "var(--panel)", stroke: S.current && S.current.data.id === id ? "var(--accent)" : "var(--border)", "stroke-width": 1.5 }));
+    g.append(mk("rect", { x: p.x, y: p.y, width: 5, height: H, rx: 2, fill: color }));
+    const t1 = mk("text", { x: p.x + 12, y: p.y + 18 }); t1.textContent = (q.name || id).slice(0, 26);
+    const t2 = mk("text", { x: p.x + 12, y: p.y + 33, class: "nid" }); t2.textContent = shortId(id).slice(0, 30);
+    g.append(t1, t2);
+    svg.append(g);
+  }
+  root.append(el("div", { style: "overflow:auto" }, svg));
+}
+
+// *******************************
+// Help tab
+
+function renderHelp(root) {
+  root.append(el("section", { class: "card" }, el("h3", {}, "How this editor works"),
+    el("ul", {},
+      el("li", {}, "Save writes src/data/quests/<file>.json and order.json, then runs quests_to_header.py --check. Run make afterwards to build."),
+      el("li", {}, "Quest ids are save slots. New quests are appended to order.json; deleted ones leave { \"removed\": id } so the slot is never reused. Renaming keeps the slot and updates other quest files, but not map scripts."),
+      el("li", {}, "Stage and objective positions are also stored in save files. Reorder and delete freely before release; afterwards, retire stages instead."),
+      el("li", {}, "MAIN quests appear on the log's QUESTS tab and SIDE quests on the TASKS tab. A task (kind task) is different: it has a parent quest and is shown under the parent's objective."),
+      el("li", {}, "Chains: make a quest wait for another with a \"Another quest's state\" condition (or use + Follow-up quest). Count tasks with \"Quests with a tag complete\" (or + Task for this quest). An outcome can close other quests."),
+      el("li", {}, "Scripts still start and complete quests: startquest, setqueststage, completequest, completetask. See the quest-log readme for every macro."))));
+}
+
+// *******************************
+// Render
+
+function render() {
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === S.tab));
+  const root = document.getElementById("content");
+  const scroll = document.querySelector("main").scrollTop;
+  root.innerHTML = "";
+  refreshDynamicLists();
+  if (S.tab === "editor") renderEditor(root);
+  else if (S.tab === "chains") renderChains(root);
+  else renderHelp(root);
+  renderList();
+  document.querySelector("main").scrollTop = scroll;
+}
+
+function buildDatalists() {
+  const c = S.constants;
+  const box = document.getElementById("datalists");
+  const make = (id, values) => box.append(el("datalist", { id }, values.map((v) => el("option", { value: v }))));
+  make("dl-maps", Object.keys(c.maps));
+  make("dl-gfx", c.gfx); make("dl-flags", c.flags); make("dl-vars", c.vars); make("dl-items", c.items);
+  make("dl-species", c.species); make("dl-types", c.types); make("dl-abilities", c.abilities); make("dl-natures", c.natures);
+  box.append(el("datalist", { id: "dl-tags" }));
+}
+
+function refreshDynamicLists() {
+  const tags = document.getElementById("dl-tags");
+  if (!tags) return;
+  tags.innerHTML = "";
+  allTags().forEach((t) => tags.append(el("option", { value: t })));
+}
+
+async function init() {
+  document.getElementById("btnNewQuest").onclick = () => newQuest(false);
+  document.getElementById("btnNewTask").onclick = () => newQuest(true);
+  document.getElementById("btnValidate").onclick = validateNow;
+  document.getElementById("validation").onclick = () => S.validation && showMessages(S.validation);
+  document.getElementById("search").oninput = (e) => { S.search = e.target.value; renderList(); };
+  document.querySelectorAll(".tab").forEach((t) => t.onclick = () => { S.tab = t.dataset.tab; render(); });
+  window.addEventListener("beforeunload", (e) => { if (S.dirty) { e.preventDefault(); e.returnValue = ""; } });
+  document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "s" && S.current) { e.preventDefault(); saveCurrent(); } });
+
+  S.constants = await api("/api/constants");
+  buildDatalists();
+  await loadState();
+  render();
+  validateNow();
+}
+
+init();
+</script>
+</body>
+</html>
