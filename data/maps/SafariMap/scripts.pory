@@ -1,1 +1,16 @@
-mapscripts SafariMap_MapScripts {}
+mapscripts SafariMap_MapScripts {
+    MAP_SCRIPT_ON_FRAME_TABLE [
+        VAR_FRIEND_SAFARI_FRIEND, 0: SafariMap_EventScript_NoFriendChosen
+    ]
+}
+
+// Sends the player back if they walked in without choosing a friend at the desk
+script SafariMap_EventScript_NoFriendChosen {
+    lockall
+    msgbox("Please choose whose FRIEND SAFARI\nto visit at the front desk.")
+    closemessage
+    warp(MAP_ENTRANCE, 2)
+    waitstate
+    releaseall
+    end
+}

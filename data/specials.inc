@@ -638,3 +638,18 @@ gSpecials::
 	def_special UpdateTrainerCardPhotoIcons
 	def_special StickerManGetBragFlags
 	def_special CheckAddCoins
+	def_special FriendCode_PushUnlockedTitles
+	def_special FriendCode_BufferOwnCode
+	def_special FriendCode_EnterCode, waitstate=1
+	def_special FriendCode_ProcessEnteredCode
+	def_special FriendCode_UpdateFriend
+	def_special FriendCode_EnterFriendName, waitstate=1
+	def_special FriendCode_SaveNewFriend
+	def_special FriendCode_CountFriends
+	def_special FriendCode_PushFriendList
+	def_special FriendCode_BufferFriendDetails
+	def_special FriendCode_RenameFriend
+	def_special FriendCode_DeleteFriend
+	def_special FriendSafari_SetActiveFriend
+	def_special FriendCode_ShouldDoTVShow
+	def_special FriendCode_DoTVShow

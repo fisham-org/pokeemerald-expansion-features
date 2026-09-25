@@ -26,6 +26,7 @@
 #include "constants/items.h"
 #include "constants/moves.h"
 #include "config/save.h"
+#include "config/friend_code.h"
 
 // Prevent cross-jump optimization.
 #define BLOCK_CROSS_JUMP asm("");
@@ -254,6 +255,17 @@ struct NPCFollower
 #include "constants/items.h"
 #define ITEM_FLAGS_COUNT ((ITEMS_COUNT / 8) + ((ITEMS_COUNT % 8) ? 1 : 0))
 
+// A friend registered from a friend code
+struct FriendRecord
+{
+    u8 name[PLAYER_NAME_LENGTH]; // Not EOS-terminated when full
+    u8 title;
+    u16 trainerId;
+    u16 species[PARTY_SIZE];
+    u8 shinyFlags; // Bit n = slot n is shiny
+    u8 marker; // FRIEND_RECORD_MARKER when the record is in use
+};
+
 struct SaveBlock3
 {
 #if OW_USE_FAKE_RTC
@@ -272,6 +284,7 @@ struct SaveBlock3
 #if APRICORN_TREE_COUNT > 0
     u8 apricornTrees[NUM_APRICORN_TREE_BYTES];
 #endif
+    struct FriendRecord friends[FRIEND_CODE_MAX_FRIENDS];
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

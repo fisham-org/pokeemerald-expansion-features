@@ -1,4 +1,5 @@
 #include "global.h"
+#include "friend_code.h"
 #include "rtc.h"
 #include "overworld.h"
 #include "random.h"
@@ -771,7 +772,7 @@ void UpdateTVScreensOnMap(int width, int height)
             // NPC in Lilycove Hotel is always watching TV
             SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
         }
-        else if (FlagGet(FLAG_SYS_TV_START) && (FindAnyTVShowOnTheAir() != 0xFF || FindAnyPokeNewsOnTheAir() != 0xFF || IsGabbyAndTyShowOnTheAir()))
+        else if (FlagGet(FLAG_SYS_TV_START) && (FindAnyTVShowOnTheAir() != 0xFF || FindAnyPokeNewsOnTheAir() != 0xFF || IsGabbyAndTyShowOnTheAir() || FriendCode_TVShowAvailable()))
         {
             FlagClear(FLAG_SYS_TV_WATCH);
             SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);

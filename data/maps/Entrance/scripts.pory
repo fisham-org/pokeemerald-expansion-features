@@ -1,1 +1,241 @@
-mapscripts Entrance_MapScripts {}
+mapscripts Entrance_MapScripts {
+    MAP_SCRIPT_ON_TRANSITION {
+        if (var(VAR_FRIEND_SAFARI_FRIEND) != 0) {
+            setvar(VAR_FRIEND_SAFARI_FRIEND, 0)
+            setvar(VAR_TEMP_2, 1)
+        }
+    }
+    MAP_SCRIPT_ON_FRAME_TABLE [
+        VAR_TEMP_2, 1: Entrance_EventScript_ReturnFromSafari
+    ]
+}
+
+// Walks the player back from the Safari mat to the front of the counter
+script Entrance_EventScript_ReturnFromSafari {
+    lockall
+    getplayerxy(VAR_0x8004, VAR_0x8005)
+    if (var(VAR_0x8004) == 3 && var(VAR_0x8005) == 8) {
+        applymovement(OBJ_EVENT_ID_PLAYER, Entrance_Movement_ReturnFromSafari)
+        waitmovement(0)
+    }
+    setvar(VAR_TEMP_2, 0)
+    releaseall
+    end
+}
+
+movement Entrance_Movement_ReturnFromSafari {
+    walk_up
+    walk_right * 7
+}
+
+movement Entrance_Movement_EnterSafari {
+    walk_left * 5
+    walk_down
+}
+
+movement Entrance_Movement_StepAwayFromAttendant {
+    walk_right
+}
+
+// The player can't pass the attendant without talking to her
+script Entrance_EventScript_AttendantTrigger {
+    lockall
+    applymovement(OBJ_EVENT_ID_PLAYER, Common_Movement_WalkInPlaceFasterUp)
+    waitmovement(0)
+    goto(Entrance_EventScript_Attendant)
+}
+
+script Entrance_EventScript_Attendant {
+    lockall
+    setspeaker("Attendant")
+    special(FriendCode_CountFriends)
+    if (var(VAR_RESULT) == 0) {
+        msgbox("Welcome to the FRIEND SAFARI!\pPlease register a friend with the\nMANAGER before visiting a SAFARI.")
+        goto(Entrance_EventScript_StepAwayFromAttendant)
+    }
+    msgbox("Welcome to the FRIEND SAFARI!\nWould you like to visit a SAFARI?", MSGBOX_YESNO)
+    if (var(VAR_RESULT) == NO) {
+        msgbox("Please come again!")
+        goto(Entrance_EventScript_StepAwayFromAttendant)
+    }
+    message("Whose FRIEND SAFARI would you\nlike to visit?")
+    waitmessage
+    special(FriendCode_PushFriendList)
+    dynmultipush("Cancel", MULTI_B_PRESSED)
+    dynmultistack(0, 0, FALSE, 6, FALSE, 0, DYN_MULTICHOICE_CB_NONE)
+    if (var(VAR_RESULT) == MULTI_B_PRESSED) {
+        msgbox("Please come again!")
+        goto(Entrance_EventScript_StepAwayFromAttendant)
+    }
+    copyvar(VAR_0x8004, VAR_RESULT)
+    special(FriendSafari_SetActiveFriend)
+    msgbox("Enjoy your visit!")
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Entrance_Movement_EnterSafari)
+    waitmovement(0)
+    warp(MAP_SAFARI_MAP, 0)
+    waitstate
+    end
+}
+
+script Entrance_EventScript_StepAwayFromAttendant {
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Entrance_Movement_StepAwayFromAttendant)
+    waitmovement(0)
+    releaseall
+    end
+}
+
+// Add a friend, view friends, or share your own code
+script Entrance_EventScript_Manager {
+    lock
+    faceplayer
+    setspeaker("Manager")
+    message("Hello! I look after the FRIEND\nSAFARI's list of friends.")
+    waitmessage
+    goto(Entrance_EventScript_ManagerMenu)
+}
+
+script Entrance_EventScript_ManagerMenu {
+    dynmultichoice(0, 0, FALSE, 4, 2, DYN_MULTICHOICE_CB_NONE, "Add a friend", "View friends", "Share my code", "Cancel")
+    switch (var(VAR_RESULT)) {
+        case 0:
+            call(Entrance_EventScript_AddFriend)
+        case 1:
+            call(Entrance_EventScript_ViewFriends)
+            if (var(VAR_0x8006) == TRUE) {
+                message("Is there anything else I can\nhelp you with?")
+                waitmessage
+                goto(Entrance_EventScript_ManagerMenu)
+            }
+        case 2:
+            call(Entrance_EventScript_ShareCode)
+    }
+    msgbox("Please come again!")
+    release
+    end
+}
+
+script Entrance_EventScript_ShareCode {
+    message("Which title would you like your\nfriends to see?")
+    waitmessage
+    special(FriendCode_PushUnlockedTitles)
+    dynmultistack(0, 0, FALSE, 6, FALSE, 0, DYN_MULTICHOICE_CB_NONE)
+    if (var(VAR_RESULT) == MULTI_B_PRESSED) {
+        return
+    }
+    copyvar(VAR_0x8004, VAR_RESULT)
+    special(FriendCode_BufferOwnCode)
+    if (var(VAR_RESULT) == FRIEND_CODE_SHARE_NO_POKEMON) {
+        msgbox("You need at least one POKéMON in\nyour party to share a code.")
+        return
+    }
+    if (var(VAR_RESULT) == FRIEND_CODE_SHARE_NO_BATTLE_POKEMON) {
+        msgbox("None of the POKéMON in your party\ncan battle for you as a friend.\pPlease add another POKéMON to your\nparty before sharing your code.")
+        return
+    }
+    if (var(VAR_RESULT) == FRIEND_CODE_SHARE_NO_SAFARI_POKEMON) {
+        msgbox("None of the POKéMON in your party\ncan appear in a FRIEND SAFARI.\pPlease add another POKéMON to your\nparty before sharing your code.")
+        return
+    }
+    msgbox("Here's your friend code!\n{STR_VAR_1}\pYour friends will need your name\ntoo, so tell them it's {PLAYER}!")
+    return
+}
+
+script Entrance_EventScript_AddFriend {
+    special(FriendCode_CountFriends)
+    if (var(VAR_RESULT) >= FRIEND_CODE_MAX_FRIENDS) {
+        msgbox("Your friend list is full, but you can\nstill update a friend's code.")
+    }
+    msgbox("Friend codes come in 4 parts,\neach with 5 letters and numbers.")
+    fadescreen(FADE_TO_BLACK)
+    special(FriendCode_EnterCode)
+    lock
+    faceplayer
+    if (var(VAR_RESULT) == FALSE) {
+        msgbox("Come back when you have your\nfriend's code handy!")
+        return
+    }
+    special(FriendCode_ProcessEnteredCode)
+    switch (var(VAR_RESULT)) {
+        case FRIEND_CODE_RESULT_INVALID:
+            msgbox("Hmm... That code doesn't seem right.\nPlease check it and try again.")
+        case FRIEND_CODE_RESULT_OWN_CODE:
+            msgbox("That's your own code! Ask a friend\nfor theirs instead.")
+        case FRIEND_CODE_RESULT_LIST_FULL:
+            msgbox("Your friend list is full.\nPlease remove a friend first.")
+        case FRIEND_CODE_RESULT_UPDATE:
+            call(Entrance_EventScript_UpdateFriend)
+        case FRIEND_CODE_RESULT_NEW:
+            call(Entrance_EventScript_SaveNewFriend)
+    }
+    return
+}
+
+script Entrance_EventScript_UpdateFriend {
+    msgbox("That's {STR_VAR_1}'s code!\nUpdate {STR_VAR_1}'s details?", MSGBOX_YESNO)
+    if (var(VAR_RESULT) == YES) {
+        special(FriendCode_UpdateFriend)
+        msgbox("{STR_VAR_1}'s details were updated!")
+    }
+    return
+}
+
+script Entrance_EventScript_SaveNewFriend {
+    msgbox("That code belongs to a\n{STR_VAR_2}!\pWhat's your friend's name?")
+    fadescreen(FADE_TO_BLACK)
+    special(FriendCode_EnterFriendName)
+    lock
+    faceplayer
+    special(FriendCode_SaveNewFriend)
+    if (var(VAR_RESULT) == TRUE) {
+        msgbox("{STR_VAR_1} is now\nregistered as your friend!")
+    } else {
+        msgbox("You didn't enter a name, so your\nfriend wasn't registered.")
+    }
+    return
+}
+
+// Sets VAR_0x8006 to TRUE if the player backed out to the Manager's menu
+script Entrance_EventScript_ViewFriends {
+    setvar(VAR_0x8006, FALSE)
+    special(FriendCode_CountFriends)
+    if (var(VAR_RESULT) == 0) {
+        msgbox("You haven't registered any\nfriends yet.")
+        return
+    }
+    message("Which friend would you like\nto look at?")
+    waitmessage
+    special(FriendCode_PushFriendList)
+    dynmultipush("Cancel", MULTI_B_PRESSED)
+    dynmultistack(0, 0, FALSE, 6, FALSE, 0, DYN_MULTICHOICE_CB_NONE)
+    if (var(VAR_RESULT) == MULTI_B_PRESSED) {
+        setvar(VAR_0x8006, TRUE)
+        return
+    }
+    copyvar(VAR_0x8004, VAR_RESULT)
+    special(FriendCode_BufferFriendDetails)
+    message("{STR_VAR_1}\nID No. {STR_VAR_2}")
+    waitmessage
+    dynmultichoice(0, 0, FALSE, 4, 0, DYN_MULTICHOICE_CB_NONE, "View team", "Edit name", "Remove", "Cancel")
+    switch (var(VAR_RESULT)) {
+        case 0:
+            msgbox("{STR_VAR_1}'s team:\p{STR_VAR_3}")
+        case 1:
+            fadescreen(FADE_TO_BLACK)
+            special(FriendCode_EnterFriendName)
+            lock
+            faceplayer
+            special(FriendCode_RenameFriend)
+            if (var(VAR_RESULT) == TRUE) {
+                msgbox("Your friend's name was changed.")
+            }
+        case 2:
+            msgbox("Remove {STR_VAR_1}\nfrom your friend list?", MSGBOX_YESNO)
+            if (var(VAR_RESULT) == YES) {
+                special(FriendCode_DeleteFriend)
+                msgbox("Your friend was removed.")
+            }
+    }
+    return
+}

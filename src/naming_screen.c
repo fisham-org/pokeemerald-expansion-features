@@ -1551,6 +1551,9 @@ static void SwapKeyboardToLowerAfterFirstCapitalLetter(void)
     if (sNamingScreen->currentPage != KBPAGE_LETTERS_UPPER)
         return;
 
+    if (sNamingScreen->templateNum == NAMING_SCREEN_FRIEND_CODE)
+        return;
+
     if (GetTextEntryPosition() != 1)
         return;
 
@@ -1775,6 +1778,17 @@ static void DrawNormalTextEntryBox(void)
     PutWindowTilemap(sNamingScreen->windows[WIN_TEXT_ENTRY_BOX]);
 }
 
+// The title can use {STR_VAR_1}
+static void DrawExpandedTextEntryBox(void)
+{
+    u8 buffer[64];
+
+    StringExpandPlaceholders(buffer, sNamingScreen->template->title);
+    FillWindowPixelBuffer(sNamingScreen->windows[WIN_TEXT_ENTRY_BOX], PIXEL_FILL(1));
+    AddTextPrinterParameterized(sNamingScreen->windows[WIN_TEXT_ENTRY_BOX], FONT_NORMAL, buffer, 8, 1, 0, 0);
+    PutWindowTilemap(sNamingScreen->windows[WIN_TEXT_ENTRY_BOX]);
+}
+
 static void DrawMonTextEntryBox(void)
 {
     u8 buffer[64];
@@ -1795,7 +1809,9 @@ static void (*const sDrawTextEntryBoxFuncs[])(void) =
     [NAMING_SCREEN_NICKNAME]   = DrawMonTextEntryBox,
     [NAMING_SCREEN_WALDA]      = DrawNormalTextEntryBox,
     [NAMING_SCREEN_CODE]       = DrawNormalTextEntryBox,
-    [NAMING_SCREEN_RIVAL]      = DrawNormalTextEntryBox
+    [NAMING_SCREEN_RIVAL]      = DrawNormalTextEntryBox,
+    [NAMING_SCREEN_FRIEND]     = DrawNormalTextEntryBox,
+    [NAMING_SCREEN_FRIEND_CODE] = DrawExpandedTextEntryBox,
 };
 
 static void DrawTextEntryBox(void)
@@ -2212,6 +2228,26 @@ static const struct NamingScreenTemplate sRivalNamingScreenTemplate =
     .title = sText_RivalsName,
 };
 
+static const struct NamingScreenTemplate sFriendNamingScreenTemplate =
+{
+    .copyExistingString = FALSE,
+    .maxChars = PLAYER_NAME_LENGTH,
+    .iconFunction = 0,
+    .addGenderIcon = FALSE,
+    .initialPage = KBPAGE_LETTERS_UPPER,
+    .title = COMPOUND_STRING("FRIEND'S NAME?"),
+};
+
+static const struct NamingScreenTemplate sFriendCodeScreenTemplate =
+{
+    .copyExistingString = TRUE,
+    .maxChars = 5,
+    .iconFunction = 5,
+    .addGenderIcon = FALSE,
+    .initialPage = KBPAGE_LETTERS_UPPER,
+    .title = COMPOUND_STRING("FRIEND CODE {STR_VAR_1}/4"),
+};
+
 static const struct NamingScreenTemplate *const sNamingScreenTemplates[] =
 {
     [NAMING_SCREEN_PLAYER]     = &sPlayerNamingScreenTemplate,
@@ -2221,6 +2257,8 @@ static const struct NamingScreenTemplate *const sNamingScreenTemplates[] =
     [NAMING_SCREEN_WALDA]      = &sWaldaWordsScreenTemplate,
     [NAMING_SCREEN_CODE]       = &sCodeScreenTemplate,
     [NAMING_SCREEN_RIVAL]      = &sRivalNamingScreenTemplate,
+    [NAMING_SCREEN_FRIEND]     = &sFriendNamingScreenTemplate,
+    [NAMING_SCREEN_FRIEND_CODE] = &sFriendCodeScreenTemplate,
 };
 
 static const struct OamData sOam_8x8 =

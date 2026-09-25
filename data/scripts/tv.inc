@@ -13,8 +13,10 @@ EventScript_TV::
 	end
 
 EventScript_TryDoTVShow::
+	special FriendCode_ShouldDoTVShow
+	goto_if_eq VAR_RESULT, TRUE, EventScript_DoFriendTVShow
 	specialvar VAR_0x8004, GetRandomActiveShowIdx
-	goto_if_eq VAR_0x8004, 255, EventScript_MomDadMightLikeThis2
+	goto_if_eq VAR_0x8004, 255, EventScript_TryFriendTVShow
 	specialvar VAR_0x8004, GetSelectedTVShow
 	goto_if_ne VAR_0x8004, 0, EventScript_DoTVShow
 	end
@@ -50,6 +52,17 @@ EventScript_DoTVShow::
 	waitmessage
 	waitbuttonpress
 	goto_if_ne VAR_RESULT, TRUE, EventScript_DoTVShow
+	goto EventScript_TurnOffTV
+	end
+
+@ Friend shows air when no normal show is available
+EventScript_TryFriendTVShow::
+	special FriendCode_CountFriends
+	goto_if_eq VAR_RESULT, 0, EventScript_MomDadMightLikeThis2
+EventScript_DoFriendTVShow::
+	special FriendCode_DoTVShow
+	waitmessage
+	waitbuttonpress
 	goto EventScript_TurnOffTV
 	end
 
