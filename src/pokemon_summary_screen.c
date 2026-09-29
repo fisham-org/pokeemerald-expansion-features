@@ -231,6 +231,7 @@ static void Task_SetHandleReplaceMoveInput(u8);
 static void Task_HandleReplaceMoveInput(u8);
 static void ToggleLearnMoveStats(void);
 static void PrintLearnMoveStats(u8 windowId);
+static void PrintLearnMoveConditions(u8 windowId);
 static void BufferStat(u8 *dst, enum Stat statIndex, u32 stat, u32 strId, u32 n);
 static bool8 CanReplaceMove(void);
 static void ShowCantForgetHMsWindow(u8);
@@ -2684,6 +2685,34 @@ static void ToggleLearnMoveStats(void)
     PrintMoveDetails(move);
 }
 
+// Contest conditions shown in place of the contest move description while choosing a move to forget
+static void PrintLearnMoveConditions(u8 windowId)
+{
+    static const u8 *const sConditionLabels[] =
+    {
+        COMPOUND_STRING("COOL"),
+        COMPOUND_STRING("BEAUTY"),
+        COMPOUND_STRING("CUTE"),
+        COMPOUND_STRING("SMART"),
+        COMPOUND_STRING("TOUGH"),
+    };
+    static const u8 sConditionIds[] = {MON_DATA_COOL, MON_DATA_BEAUTY, MON_DATA_CUTE, MON_DATA_SMART, MON_DATA_TOUGH};
+    // Label x and value right edge for each column
+    static const u8 sColumnStart[] = {5, 60, 115};
+    static const u8 sColumnEnd[] = {56, 111, 155};
+    struct BoxPokemon *boxMon = GetCurrentBoxmon();
+    u32 i, column, y;
+
+    for (i = 0; i < ARRAY_COUNT(sConditionIds); i++)
+    {
+        column = i % 3;
+        y = 1 + (i / 3) * 16;
+        PrintTextOnWindowWithFont(windowId, sConditionLabels[i], sColumnStart[column], y, 0, 0, FONT_NARROW);
+        ConvertIntToDecimalStringN(gStringVar1, GetBoxMonData(boxMon, sConditionIds[i]), STR_CONV_MODE_LEFT_ALIGN, 3);
+        PrintTextOnWindowWithFont(windowId, gStringVar1, sColumnEnd[column] - GetStringWidth(FONT_NARROW, gStringVar1, 0), y, 0, 0, FONT_NARROW);
+    }
+}
+
 static void PrintLearnMoveStats(u8 windowId)
 {
     static const u8 *const sStatLabels[] =
@@ -4224,7 +4253,10 @@ static void PrintContestMoveDescription(u8 moveSlot)
     if (move != MOVE_NONE)
     {
         u8 windowId = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_DESCRIPTION);
-        PrintTextOnWindowToFit(windowId, gContestEffects[GetMoveContestEffect(move)].description, 6, 1, 0, 0);
+        if (sMonSummaryScreen->showLearnMoveStats)
+            PrintLearnMoveConditions(windowId);
+        else
+            PrintTextOnWindowToFit(windowId, gContestEffects[GetMoveContestEffect(move)].description, 6, 1, 0, 0);
     }
 }
 
@@ -4247,7 +4279,7 @@ static void PrintMoveDetails(enum Move move)
         else
         {
             if (sMonSummaryScreen->showLearnMoveStats)
-                PrintLearnMoveStats(windowId);
+                PrintLearnMoveConditions(windowId);
             else
                 PrintTextOnWindowToFit(windowId, gContestEffects[GetMoveContestEffect(move)].description, 6, 1, 0, 0);
         }

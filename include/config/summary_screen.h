@@ -4,7 +4,7 @@
 // Settings
 #define P_SUMMARY_SCREEN_NATURE_COLORS   TRUE   // If TRUE, nature-based stat boosts and reductions will be red and blue in the summary screen.
 #define P_SUMMARY_SCREEN_RENAME          TRUE   // If TRUE, an option to change Pokémon nicknames replaces the cancel prompt on the summary screen info page.
-#define P_SUMMARY_SCREEN_LEARN_MOVE_STATS TRUE  // If TRUE, pressing START while choosing a move to forget (level up, TM/HM, tutor) swaps the move description for the Pokémon's stats.
+#define P_SUMMARY_SCREEN_LEARN_MOVE_STATS TRUE  // If TRUE, pressing START while choosing a move to forget (level up, TM/HM, tutor) swaps the move description for the Pokémon's stats (or contest conditions on the contest moves page).
 
 // IV/EV settings
 #define P_SUMMARY_SCREEN_IV_EV_INFO      FALSE  // If TRUE, will allow player to cycle through the Stats, IVs, and EVs in the summary screen skills page.
