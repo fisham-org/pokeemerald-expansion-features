@@ -188,6 +188,7 @@ static EWRAM_DATA struct PokemonSummaryScreenData
     s16 switchCounter; // Used for various switch statement cases that decompress/load graphics or Pokémon data
     u8 unk_filler4[6];
     u8 categoryIconSpriteId;
+    bool8 showLearnMoveStats;
 } *sMonSummaryScreen = NULL;
 
 EWRAM_DATA u8 gLastViewedMonIndex = 0;
@@ -228,6 +229,9 @@ static void SwapMonMoves(struct Pokemon *, u8, u8);
 static void SwapBoxMonMoves(struct BoxPokemon *, u8, u8);
 static void Task_SetHandleReplaceMoveInput(u8);
 static void Task_HandleReplaceMoveInput(u8);
+static void ToggleLearnMoveStats(void);
+static void PrintLearnMoveStats(u8 windowId);
+static void BufferStat(u8 *dst, enum Stat statIndex, u32 stat, u32 strId, u32 n);
 static bool8 CanReplaceMove(void);
 static void ShowCantForgetHMsWindow(u8);
 static void Task_HandleInputCantForgetHMsMoves(u8);
@@ -2632,6 +2636,11 @@ static void Task_HandleReplaceMoveInput(u8 taskId)
             {
                 ChangePage(taskId, 1);
             }
+            else if (P_SUMMARY_SCREEN_LEARN_MOVE_STATS && JOY_NEW(START_BUTTON))
+            {
+                PlaySE(SE_SELECT);
+                ToggleLearnMoveStats();
+            }
             else if (JOY_NEW(A_BUTTON))
             {
                 if (CanReplaceMove() == TRUE)
@@ -2659,6 +2668,48 @@ static void Task_HandleReplaceMoveInput(u8 taskId)
                 BeginCloseSummaryScreen(taskId);
             }
         }
+    }
+}
+
+// Shows the Pokémon's stats in place of the move description while choosing a move to forget
+static void ToggleLearnMoveStats(void)
+{
+    enum Move move;
+
+    sMonSummaryScreen->showLearnMoveStats ^= TRUE;
+    if (sMonSummaryScreen->firstMoveIndex == MAX_MON_MOVES)
+        move = sMonSummaryScreen->newMove;
+    else
+        move = sMonSummaryScreen->summary.moves[sMonSummaryScreen->firstMoveIndex];
+    PrintMoveDetails(move);
+}
+
+static void PrintLearnMoveStats(u8 windowId)
+{
+    static const u8 *const sStatLabels[] =
+    {
+        COMPOUND_STRING("HP"),
+        COMPOUND_STRING("ATK"),
+        COMPOUND_STRING("DEF"),
+        COMPOUND_STRING("SPATK"),
+        COMPOUND_STRING("SPDEF"),
+        COMPOUND_STRING("SPD"),
+    };
+    static const enum Stat sStatIds[] = {STAT_HP, STAT_ATK, STAT_DEF, STAT_SPATK, STAT_SPDEF, STAT_SPEED};
+    // Label x and value right edge for each column
+    static const u8 sColumnStart[] = {5, 60, 115};
+    static const u8 sColumnEnd[] = {56, 111, 155};
+    struct PokeSummary *sum = &sMonSummaryScreen->summary;
+    u16 stats[] = {sum->maxHP, sum->atk, sum->def, sum->spatk, sum->spdef, sum->speed};
+    u32 i, column, y;
+
+    for (i = 0; i < ARRAY_COUNT(sStatIds); i++)
+    {
+        column = i % 3;
+        y = 1 + (i / 3) * 16;
+        PrintTextOnWindow(windowId, sStatLabels[i], sColumnStart[column], y, 0, 0);
+        BufferStat(gStringVar1, sStatIds[i], stats[i], 0, 3);
+        PrintTextOnWindow(windowId, gStringVar1, sColumnEnd[column] - GetStringWidth(FONT_NORMAL, gStringVar1, 0), y, 0, 0);
     }
 }
 
@@ -3331,6 +3382,8 @@ static void PutPageWindowTilemaps(u8 page)
         {
             if (sMonSummaryScreen->newMove != MOVE_NONE || sMonSummaryScreen->firstMoveIndex != MAX_MON_MOVES)
                 PutWindowTilemap(PSS_LABEL_WINDOW_MOVES_POWER_ACC);
+            if (P_SUMMARY_SCREEN_LEARN_MOVE_STATS)
+                PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_RELEARN);
         }
         else
         {
@@ -3345,6 +3398,8 @@ static void PutPageWindowTilemaps(u8 page)
         {
             if (sMonSummaryScreen->newMove != MOVE_NONE || sMonSummaryScreen->firstMoveIndex != MAX_MON_MOVES)
                 PutWindowTilemap(PSS_LABEL_WINDOW_MOVES_APPEAL_JAM);
+            if (P_SUMMARY_SCREEN_LEARN_MOVE_STATS)
+                PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_RELEARN);
         }
         else
         {
@@ -4184,11 +4239,17 @@ static void PrintMoveDetails(enum Move move)
             if (B_SHOW_CATEGORY_ICON == TRUE)
                 ShowCategoryIcon(GetBattleMoveCategory(move));
             PrintMovePowerAndAccuracy(move);
-            PrintTextOnWindowToFit(windowId, GetMoveDescription(move), 6, 1, 0, 0);
+            if (sMonSummaryScreen->showLearnMoveStats)
+                PrintLearnMoveStats(windowId);
+            else
+                PrintTextOnWindowToFit(windowId, GetMoveDescription(move), 6, 1, 0, 0);
         }
         else
         {
-            PrintTextOnWindowToFit(windowId, gContestEffects[GetMoveContestEffect(move)].description, 6, 1, 0, 0);
+            if (sMonSummaryScreen->showLearnMoveStats)
+                PrintLearnMoveStats(windowId);
+            else
+                PrintTextOnWindowToFit(windowId, gContestEffects[GetMoveContestEffect(move)].description, 6, 1, 0, 0);
         }
         PutWindowTilemap(windowId);
     }
@@ -4842,11 +4903,14 @@ static inline void ShowUtilityPrompt(s16 mode)
 static void UpdateRelearnPrompt(void)
 {
     FillWindowPixelBuffer(PSS_LABEL_WINDOW_PROMPT_RELEARN, PIXEL_FILL(0));
-    if (!sMonSummaryScreen->hasRelearnableMoves)
-        return;
 
     const u8 *relearnText;
-    relearnText = sText_Relearn;
+    if (P_SUMMARY_SCREEN_LEARN_MOVE_STATS && sMonSummaryScreen->mode == SUMMARY_MODE_SELECT_MOVE)
+        relearnText = COMPOUND_STRING("{START_BUTTON} STATS");
+    else if (!sMonSummaryScreen->hasRelearnableMoves)
+        return;
+    else
+        relearnText = sText_Relearn;
 
     s32 relearnTextXPos = GetStringRightAlignXOffset(FONT_SMALL, relearnText, TILE_WIDTH * sSummaryTemplate[PSS_LABEL_WINDOW_PROMPT_RELEARN].width);
     PrintTextOnWindowWithFont(PSS_LABEL_WINDOW_PROMPT_RELEARN, relearnText, relearnTextXPos, 4, 0, 0, FONT_SMALL);
