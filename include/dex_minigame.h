@@ -1,7 +1,7 @@
 #ifndef GUARD_DEX_MINIGAME_H
 #define GUARD_DEX_MINIGAME_H
 
-// Shared code for the Pokédex minigames (PokeDoku, Squirdle): the species pool,
+// Shared code for the Pokédex minigames (PokeDoku, Squirdle, PokeConnect): the species pool,
 // daily puzzle bookkeeping, a full-screen board with outlined boxes, and the species picker.
 
 #include "constants/dex_minigames.h"
@@ -40,6 +40,7 @@ enum DexRewardTable
 {
     DEX_REWARDS_POKEDOKU, // Score: squares correct (0-9)
     DEX_REWARDS_SQUIRDLE, // Score: guesses a win took (1-8)
+    DEX_REWARDS_POKECONNECT, // Score: mistakes in a win (0-3)
 };
 
 struct DexRewardItem
@@ -86,6 +87,9 @@ enum DexBoxPalette
     DEX_BOX_WRONG,
     DEX_BOX_CORRECT,
     DEX_BOX_PARTIAL,
+    DEX_BOX_SELECTED,
+    DEX_BOX_BLUE,
+    DEX_BOX_PURPLE,
     DEX_BOX_CURSOR_OFFSET, // Add to any of the above for a highlighted outline
 };
 

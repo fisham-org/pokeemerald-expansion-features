@@ -295,6 +295,36 @@ struct SquirdleSave
     u8 winsByGuesses[SQUIRDLE_MAX_GUESSES]; // Index 0 is a win on the first guess. Each stops at 255
 };
 
+struct PokeconnectCategory
+{
+    u8 kind;    // enum PokeconnectKind
+    u8 padding;
+    u16 param;
+};
+
+struct PokeconnectSave
+{
+    u16 day;                                                // RTC day count of the stored puzzle
+    u16 lastWinDay;
+    u16 species[POKECONNECT_NUM_TILES];                     // Tile species. Tile t is in group t / POKECONNECT_GROUP_SIZE
+    struct PokeconnectCategory categories[POKECONNECT_NUM_GROUPS]; // Easiest (most species in the pool) first
+    u8 order[POKECONNECT_NUM_TILES];                        // Tiles in screen order: solved groups' rows first, in the order solved
+    u16 wrongGuesses[POKECONNECT_MAX_MISTAKES];             // Tile masks, so repeating one doesn't cost a mistake
+    u8 solvedMask:POKECONNECT_NUM_GROUPS;                   // Groups the player found
+    u8 mistakes:3;
+    u8 active:1;                                            // day/species hold a puzzle
+    u8 finished:1;
+    u8 won:1;
+    u8 rewardPending:1;
+    u8 answerPool:2;                                        // DEX_POOL_* the puzzle was made from
+    u8 padding:3;
+    u16 played;                                             // Daily puzzles with at least one guess
+    u16 wins;
+    u16 streak;                                             // Consecutive days won
+    u16 bestStreak;
+    u16 perfect;                                            // Wins without a mistake
+};
+
 struct SaveBlock3
 {
 #if OW_USE_FAKE_RTC
@@ -318,6 +348,9 @@ struct SaveBlock3
 #endif
 #if SQUIRDLE_ENABLED
     struct SquirdleSave squirdle;
+#endif
+#if POKECONNECT_ENABLED
+    struct PokeconnectSave pokeconnect;
 #endif
 }; /* max size 1624 bytes */
 

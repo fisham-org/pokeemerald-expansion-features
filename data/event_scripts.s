@@ -1742,3 +1742,4 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/scripts/dex_minigames.inc"
 	.include "data/scripts/pokedoku.inc"
 	.include "data/scripts/squirdle.inc"
+	.include "data/scripts/pokeconnect.inc"

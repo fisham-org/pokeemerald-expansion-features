@@ -1,7 +1,8 @@
 #ifndef GUARD_CONFIG_DEX_MINIGAMES_H
 #define GUARD_CONFIG_DEX_MINIGAMES_H
 
-// Pokédex minigames, opened with the scripts in data/scripts/pokedoku.inc and data/scripts/squirdle.inc.
+// Pokédex minigames, opened with the scripts in data/scripts/pokedoku.inc, data/scripts/squirdle.inc
+// and data/scripts/pokeconnect.inc.
 // Disabling a game removes its save data from SaveBlock3 and makes its specials do nothing.
 
 // PokeDoku: fill a 3x3 grid with Pokémon matching each row and column.
@@ -23,5 +24,10 @@
 // The 5 columns must fit on screen, which fails the build for both types + height + weight + color.
 #define SQUIRDLE_COLUMNS                SQUIRDLE_ATTR_GEN, SQUIRDLE_ATTR_TYPE_1, SQUIRDLE_ATTR_TYPE_2, SQUIRDLE_ATTR_BST, SQUIRDLE_ATTR_COLOR, \
                                         SQUIRDLE_ATTR_HEIGHT, SQUIRDLE_ATTR_WEIGHT
+
+// PokeConnect: sort 16 Pokémon into 4 groups of 4 that share something.
+#define POKECONNECT_ENABLED              TRUE
+#define POKECONNECT_DEFAULT_ANSWER_POOL  DEX_POOL_ALL // Answer pool used by Pokeconnect_EventScript_Terminal. Every tile is from the answer pool.
+#define POKECONNECT_MAX_GENERATION_TRIES 2000         // Random puzzles tried before giving up. Small seen/caught pools may not make one.
 
 #endif // GUARD_CONFIG_DEX_MINIGAMES_H

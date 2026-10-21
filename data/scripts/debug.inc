@@ -207,8 +207,7 @@ Debug_EventScript_Script_2::
 	goto Squirdle_EventScript_Terminal
 
 Debug_EventScript_Script_3::
-	release
-	end
+	goto Pokeconnect_EventScript_Terminal
 
 Debug_EventScript_Script_4::
 	release

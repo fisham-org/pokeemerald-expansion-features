@@ -71,6 +71,9 @@ static const struct BgTemplate sBgTemplates[] =
 #define WRONG_COLOR    RGB(30, 17, 17)
 #define CORRECT_COLOR  RGB(17, 30, 17)
 #define PARTIAL_COLOR  RGB(31, 28, 12)
+#define SELECTED_COLOR RGB(17, 19, 24)
+#define BLUE_COLOR     RGB(17, 24, 31)
+#define PURPLE_COLOR   RGB(25, 19, 30)
 
 // Index 1 is the fill, 2 the outer outline and 3 the inner outline (fill unless highlighted).
 #define BOX_PALETTE(fill, outline) { BACKDROP_COLOR, fill, outline, (outline) == CURSOR_COLOR ? CURSOR_COLOR : fill }
@@ -80,10 +83,16 @@ static const u16 sBoxPalettes[][16] =
     [DEX_BOX_WRONG]                           = BOX_PALETTE(WRONG_COLOR,   OUTLINE_COLOR),
     [DEX_BOX_CORRECT]                         = BOX_PALETTE(CORRECT_COLOR, OUTLINE_COLOR),
     [DEX_BOX_PARTIAL]                         = BOX_PALETTE(PARTIAL_COLOR, OUTLINE_COLOR),
+    [DEX_BOX_SELECTED]                        = BOX_PALETTE(SELECTED_COLOR, OUTLINE_COLOR),
+    [DEX_BOX_BLUE]                            = BOX_PALETTE(BLUE_COLOR,    OUTLINE_COLOR),
+    [DEX_BOX_PURPLE]                          = BOX_PALETTE(PURPLE_COLOR,  OUTLINE_COLOR),
     [DEX_BOX_CURSOR_OFFSET + DEX_BOX_EMPTY]   = BOX_PALETTE(EMPTY_COLOR,   CURSOR_COLOR),
     [DEX_BOX_CURSOR_OFFSET + DEX_BOX_WRONG]   = BOX_PALETTE(WRONG_COLOR,   CURSOR_COLOR),
     [DEX_BOX_CURSOR_OFFSET + DEX_BOX_CORRECT] = BOX_PALETTE(CORRECT_COLOR, CURSOR_COLOR),
     [DEX_BOX_CURSOR_OFFSET + DEX_BOX_PARTIAL] = BOX_PALETTE(PARTIAL_COLOR, CURSOR_COLOR),
+    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_SELECTED] = BOX_PALETTE(SELECTED_COLOR, CURSOR_COLOR),
+    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_BLUE]    = BOX_PALETTE(BLUE_COLOR,    CURSOR_COLOR),
+    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_PURPLE]  = BOX_PALETTE(PURPLE_COLOR,  CURSOR_COLOR),
 };
 #undef BOX_PALETTE
 
@@ -321,6 +330,7 @@ static const struct { const struct DexRewardTier *tiers; u8 count; } sRewardTabl
 {
     [DEX_REWARDS_POKEDOKU] = { sPokedokuRewardTiers, ARRAY_COUNT(sPokedokuRewardTiers) },
     [DEX_REWARDS_SQUIRDLE] = { sSquirdleRewardTiers, ARRAY_COUNT(sSquirdleRewardTiers) },
+    [DEX_REWARDS_POKECONNECT] = { sPokeconnectRewardTiers, ARRAY_COUNT(sPokeconnectRewardTiers) },
 };
 
 // Picks an item from the first tier covering the score, weighted, using the seed (the day, so

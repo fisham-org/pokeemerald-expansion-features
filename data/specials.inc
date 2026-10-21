@@ -646,3 +646,7 @@ gSpecials::
 	def_special PrepareSquirdle
 	def_special OpenSquirdle, waitstate=1
 	def_special ClaimSquirdleReward
+	def_special GetPokeconnectStatus
+	def_special PreparePokeconnect
+	def_special OpenPokeconnect, waitstate=1
+	def_special ClaimPokeconnectReward

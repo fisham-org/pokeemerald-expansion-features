@@ -67,4 +67,35 @@ static const struct DexRewardTier sSquirdleRewardTiers[] =
     },
 };
 
+// Score: mistakes in a win (0-3). Losses give no reward.
+static const struct DexRewardTier sPokeconnectRewardTiers[] =
+{
+    {
+        .minScore = 0, .maxScore = 0,
+        .message = COMPOUND_STRING("Not a single mistake!"),
+        REWARD_ITEMS(
+            { ITEM_RARE_CANDY,  1, 4 },
+            { ITEM_PP_UP,       1, 3 },
+            { ITEM_BOTTLE_CAP,  1, 1 },
+        ),
+    },
+    {
+        .minScore = 1, .maxScore = 2,
+        .message = COMPOUND_STRING("Nicely done!"),
+        REWARD_ITEMS(
+            { ITEM_ULTRA_BALL,   3, 2 },
+            { ITEM_HYPER_POTION, 2, 2 },
+            { ITEM_NUGGET,       1, 1 },
+        ),
+    },
+    {
+        .minScore = 3, .maxScore = 3,
+        .message = COMPOUND_STRING("Phew, just made it!"),
+        REWARD_ITEMS(
+            { ITEM_POKE_BALL,    3, 2 },
+            { ITEM_SUPER_POTION, 2, 2 },
+        ),
+    },
+};
+
 #undef REWARD_ITEMS
