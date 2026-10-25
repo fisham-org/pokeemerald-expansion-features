@@ -2254,46 +2254,23 @@ void CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Traine
     DoTrainerPartyPool(trainer, monIndices, monsCount, gBattleTypeFlags);
 
 #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
-    // Precompute each drawn mon's final (post-scale, post-devolution) level/species once —
-    // CalculateScaledLevel uses RNG, so recomputing later would desync from what BST selection
-    // saw. SelectScaledTrainerParty then drops over-BST non-ace mons and applies the party-size
-    // cap, compacting monIndices/scaledLevels/scaledSpecies in step with each other.
-    u8 fullCount = monsCount;
-    u8 scaledLevels[fullCount];
-    u16 scaledSpecies[fullCount];
     const struct LevelScalingConfig *scalingConfig = GetTrainerLevelScalingConfig(trainerId);
-
-    InvalidatePartyLevelCache();
-    for (i = 0; i < fullCount; i++)
-    {
-        const struct TrainerMon *trainerMon = &trainer->party[monIndices[i]];
-
-        if (scalingConfig->mode != LEVEL_SCALING_NONE)
-        {
-            scaledLevels[i] = CalculateScaledLevel(scalingConfig, trainerMon->lvl);
-            scaledSpecies[i] = ValidateSpeciesForLevel(trainerMon->species, scaledLevels[i], scalingConfig->manageEvolutions);
-        }
-        else
-        {
-            scaledLevels[i] = trainerMon->lvl;
-            scaledSpecies[i] = trainerMon->species;
-        }
-    }
-    if (scalingConfig->mode != LEVEL_SCALING_NONE)
-        monsCount = SelectScaledTrainerParty(trainer, trainerId, monIndices, scaledLevels, scaledSpecies, fullCount);
 #endif
 
     for (i = 0; i < monsCount; i++)
     {
         u32 monIndex = monIndices[i];
 #if B_LEVEL_SCALING_ENABLED && B_TRAINER_SCALING_ENABLED
-        struct TrainerMon scaledMon = trainer->party[monIndex];
+        const struct TrainerMon *trainerMon = &trainer->party[monIndex];
+        struct TrainerMon scaledMon = *trainerMon;
 
+        if (scalingConfig->mode != LEVEL_SCALING_NONE)
+        {
+            scaledMon.lvl = CalculateScaledLevel(scalingConfig, trainerMon->lvl);
+            scaledMon.species = ValidateSpeciesForLevel(trainerMon->species, scaledMon.lvl, scalingConfig->manageEvolutions);
+        }
         // Devolution can strand the trainer's ability on a species that cannot have it.
-        // scaledMon.species is still the original here.
-        scaledMon.ability = GetScaledTrainerAbility(scaledMon.species, scaledSpecies[i], scaledMon.ability);
-        scaledMon.lvl = scaledLevels[i];
-        scaledMon.species = scaledSpecies[i];
+        scaledMon.ability = GetScaledTrainerAbility(trainerMon->species, scaledMon.species, trainerMon->ability);
         GenerateMonFromTrainerMon(&party[i], &scaledMon, trainerGen);
         MaybeStripTrainerItem(&party[i], trainerId, scaledMon.lvl);
         MaybeFilterTrainerMoves(&party[i], trainerId, scaledMon.species, scaledMon.lvl);

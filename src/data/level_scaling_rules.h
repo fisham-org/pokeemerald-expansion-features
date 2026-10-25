@@ -9,6 +9,7 @@
 // - If B_TRAINER_SCALING_DEFAULT_MODE is set to anything other than LEVEL_SCALING_NONE,
 //   ALL trainers will use that default configuration
 // - Trainers listed here can override the default with custom rules
+// - Every entry must set .mode (an entry without it is treated as absent)
 // - Use LEVEL_SCALING_CONFIG_NONE to explicitly disable scaling for a specific trainer
 //
 // EXAMPLES:
@@ -24,13 +25,10 @@
 //        .excludeFainted = FALSE,
 //    },
 //
-// 2. Use a preset macro:
-//    [TRAINER_BRAWLY_1] = LEVEL_SCALING_CONFIG_PARTY_AVG,
-//
-// 3. Explicitly disable scaling (opt-out):
+// 2. Explicitly disable scaling (opt-out):
 //    [TRAINER_WALLY_VR_1] = LEVEL_SCALING_CONFIG_NONE,
 //
-// 4. Opt-in to EV scaling and/or moveset filtering for a specific trainer:
+// 3. Opt-in to EV scaling and/or moveset filtering for a specific trainer:
 //    [TRAINER_STEVEN] = {
 //        .mode = LEVEL_SCALING_PARTY_AVG,
 //        .scaleEVs = TRUE,        // Scale defined EVs proportionally to scaled level
@@ -38,9 +36,6 @@
 //                                 // (filled from the scaled species' level-up learnset)
 //        .manageEvolutions = TRUE,
 //    },
-//
-// Available macros: LEVEL_SCALING_CONFIG_NONE, LEVEL_SCALING_CONFIG_LEVEL_CAP,
-//                   LEVEL_SCALING_CONFIG_PARTY_AVG, LEVEL_SCALING_CONFIG_PARTY_HIGHEST
 
 #include "constants/opponents.h"
 
@@ -110,87 +105,4 @@ const struct LevelScalingConfig gTrainerLevelScalingRules[TRAINERS_COUNT] =
         .levelVariationPct = 0,
         .manageEvolutions = TRUE,
     },
-
-    // Example configurations (commented out by default):
-
-    /*
-    // Gym Leaders scale to level cap + 2
-    [TRAINER_ROXANNE_1] = {
-        .mode = LEVEL_SCALING_TO_LEVEL_CAP,
-        .levelAugmentAdd = 2,
-        .levelVariationPct = 1,
-        .minLevel = 0,
-        .maxLevel = 0,
-        .manageEvolutions = TRUE,
-        .excludeFainted = FALSE,
-    },
-
-    [TRAINER_BRAWLY_1] = {
-        .mode = LEVEL_SCALING_TO_LEVEL_CAP,
-        .levelAugmentAdd = 2,
-        .levelVariationPct = 1,
-        .manageEvolutions = TRUE,
-    },
-
-    // Rival battles scale to player's highest
-    [TRAINER_BRENDAN_ROUTE_103_TREECKO] = {
-        .mode = LEVEL_SCALING_PARTY_HIGHEST,
-        .levelAugmentAdd = 0,
-        .levelVariationPct = 1,
-        .manageEvolutions = TRUE,
-        .excludeFainted = TRUE,
-    },
-
-    // Elite Four scale to party average + 5
-    [TRAINER_SIDNEY] = {
-        .mode = LEVEL_SCALING_PARTY_AVG,
-        .levelAugmentAdd = 5,
-        .levelVariationPct = 2,
-        .minLevel = 55,
-        .maxLevel = 75,
-        .manageEvolutions = TRUE,
-        .excludeFainted = TRUE,
-    },
-
-    [TRAINER_PHOEBE] = {
-        .mode = LEVEL_SCALING_PARTY_AVG,
-        .levelAugmentAdd = 5,
-        .levelVariationPct = 2,
-        .minLevel = 55,
-        .maxLevel = 75,
-        .manageEvolutions = TRUE,
-        .excludeFainted = TRUE,
-    },
-
-    [TRAINER_GLACIA] = {
-        .mode = LEVEL_SCALING_PARTY_AVG,
-        .levelAugmentAdd = 5,
-        .levelVariationPct = 2,
-        .minLevel = 55,
-        .maxLevel = 75,
-        .manageEvolutions = TRUE,
-        .excludeFainted = TRUE,
-    },
-
-    [TRAINER_DRAKE] = {
-        .mode = LEVEL_SCALING_PARTY_AVG,
-        .levelAugmentAdd = 5,
-        .levelVariationPct = 2,
-        .minLevel = 55,
-        .maxLevel = 75,
-        .manageEvolutions = TRUE,
-        .excludeFainted = TRUE,
-    },
-
-    // Champion scales to party or PC highest
-    [TRAINER_WALLACE] = {
-        .mode = LEVEL_SCALING_PARTY_OR_PC_HIGHEST,
-        .levelAugmentAdd = 7,
-        .levelVariationPct = 2,
-        .minLevel = 60,
-        .maxLevel = 80,
-        .manageEvolutions = TRUE,
-        .excludeFainted = TRUE,
-    },
-    */
 };

@@ -44,14 +44,12 @@ static void SetUpPlayerParty(const u8 *levels, u32 count)
         CalculateMonStats(mon);   // CreateMon does not fill in stats/current HP
     }
     CalculatePlayerPartyCount();
-    InvalidatePartyLevelCache();
 }
 
 static void FaintPartyMon(u32 index)
 {
     u32 hp = 0;
     SetMonData(&gParties[B_TRAINER_PLAYER][index], MON_DATA_HP, &hp);
-    InvalidatePartyLevelCache();
 }
 
 // ============================================================================
@@ -106,18 +104,6 @@ TEST("(Level Scaling) fainted party members still count when excludeFainted is F
     EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_PARTY_HIGHEST, FALSE), 50);
 }
 
-TEST("(Level Scaling) both excludeFainted variants read correctly from a warm cache")
-{
-    static const u8 levels[] = {10, 50};
-
-    SetUpPlayerParty(levels, ARRAY_COUNT(levels));
-    FaintPartyMon(1);
-
-    // The two variants disagree, so they cannot share one cache slot.
-    EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_PARTY_HIGHEST, TRUE), 10);
-    EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_PARTY_HIGHEST, FALSE), 50);
-}
-
 TEST("(Level Scaling) an empty party falls back to base level 1")
 {
     u8 mode;
@@ -138,31 +124,6 @@ TEST("(Level Scaling) LEVEL_SCALING_NONE reports base level 0 as the 'do not sca
     SetUpPlayerParty(levels, ARRAY_COUNT(levels));
 
     EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_NONE, FALSE), 0);
-}
-
-TEST("(Level Scaling) the party level cache is refreshed by InvalidatePartyLevelCache")
-{
-    static const u8 before[] = {10};
-    static const u8 after[] = {50};
-
-    SetUpPlayerParty(before, ARRAY_COUNT(before));
-    EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_PARTY_HIGHEST, FALSE), 10);
-
-    SetUpPlayerParty(after, ARRAY_COUNT(after));
-    EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_PARTY_HIGHEST, FALSE), 50);
-}
-
-TEST("(Level Scaling) every mode reads correctly from a warm cache")
-{
-    static const u8 levels[] = {10, 50};   // avg 30, highest 50, lowest 10
-
-    SetUpPlayerParty(levels, ARRAY_COUNT(levels));
-
-    // Warm the cache on one mode, then query the others without invalidating —
-    // a double battle can resolve two trainers with different modes back to back.
-    EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_PARTY_HIGHEST, FALSE), 50);
-    EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_PARTY_AVG, FALSE), 30);
-    EXPECT_EQ(CalculatePlayerPartyBaseLevel(LEVEL_SCALING_PARTY_LOWEST, FALSE), 10);
 }
 
 // ============================================================================
@@ -545,81 +506,6 @@ TEST("(Level Scaling) EV scaling is skipped for trainers that have not opted in"
 }
 
 // ============================================================================
-// Party selection — BST ceiling and the never-empty floor
-// ============================================================================
-
-TEST("(Level Scaling) SelectScaledTrainerParty drops non-ace mons above the level's BST ceiling")
-{
-    const struct Trainer *trainer = GetTrainerStructFromId(TRAINER_WITH_TEST_PARTY);
-    u32 monIndices[3] = {0, 0, 0};
-    u8 scaledLevels[3] = {5, 5, 5};
-    u16 scaledSpecies[3] = {SPECIES_CATERPIE, SPECIES_MEWTWO, SPECIES_CATERPIE};
-    u8 kept;
-
-    ASSUME(P_FAMILY_CATERPIE == TRUE);
-    ASSUME(P_FAMILY_MEWTWO == TRUE);
-    ASSUME(trainer->partySize >= 1);
-    ASSUME((trainer->party[0].tags & MON_POOL_TAG_ACE) == 0);
-    ASSUME(GetTrainerLevelScalingConfig(TRAINER_WITH_TEST_PARTY)->mode != LEVEL_SCALING_NONE);
-    // Below B_SCALING_TIER_MID_MIN_LEVEL the ceiling is B_SCALING_BST_BELOW_MID.
-    ASSUME(5 < B_SCALING_TIER_MID_MIN_LEVEL);
-    ASSUME(B_SCALING_BST_BELOW_MID < 680);   // Mewtwo's BST
-    ASSUME(GetScaledTrainerPartySize(TRAINER_WITH_TEST_PARTY, 3) == 3);
-
-    kept = SelectScaledTrainerParty(trainer, TRAINER_WITH_TEST_PARTY, monIndices, scaledLevels, scaledSpecies, 3);
-
-    EXPECT_EQ(kept, 2);
-    EXPECT_EQ(scaledSpecies[0], SPECIES_CATERPIE);
-    EXPECT_EQ(scaledSpecies[1], SPECIES_CATERPIE);
-}
-
-TEST("(Level Scaling) SelectScaledTrainerParty keeps mons within the BST ceiling")
-{
-    const struct Trainer *trainer = GetTrainerStructFromId(TRAINER_WITH_TEST_PARTY);
-    u32 monIndices[2] = {0, 0};
-    u8 scaledLevels[2] = {50, 50};
-    u16 scaledSpecies[2] = {SPECIES_MEWTWO, SPECIES_CATERPIE};
-    u8 kept;
-
-    ASSUME(P_FAMILY_CATERPIE == TRUE);
-    ASSUME(P_FAMILY_MEWTWO == TRUE);
-    ASSUME(trainer->partySize >= 1);
-    ASSUME((trainer->party[0].tags & MON_POOL_TAG_ACE) == 0);
-    ASSUME(GetTrainerLevelScalingConfig(TRAINER_WITH_TEST_PARTY)->mode != LEVEL_SCALING_NONE);
-    // At level 50 the ceiling is B_SCALING_BST_LATE, which is unlimited by default.
-    ASSUME(B_SCALING_BST_LATE >= 680);
-    ASSUME(GetScaledTrainerPartySize(TRAINER_WITH_TEST_PARTY, 2) == 2);
-
-    kept = SelectScaledTrainerParty(trainer, TRAINER_WITH_TEST_PARTY, monIndices, scaledLevels, scaledSpecies, 2);
-
-    EXPECT_EQ(kept, 2);
-    EXPECT_EQ(scaledSpecies[0], SPECIES_MEWTWO);
-    EXPECT_EQ(scaledSpecies[1], SPECIES_CATERPIE);
-}
-
-TEST("(Level Scaling) SelectScaledTrainerParty always fields at least one mon")
-{
-    const struct Trainer *trainer = GetTrainerStructFromId(TRAINER_WITH_TEST_PARTY);
-    u32 monIndices[2] = {0, 0};
-    u8 scaledLevels[2] = {5, 5};
-    u16 scaledSpecies[2] = {SPECIES_MEWTWO, SPECIES_MEWTWO};
-    u8 kept;
-
-    ASSUME(P_FAMILY_MEWTWO == TRUE);
-    ASSUME(trainer->partySize >= 1);
-    ASSUME((trainer->party[0].tags & MON_POOL_TAG_ACE) == 0);
-    ASSUME(GetTrainerLevelScalingConfig(TRAINER_WITH_TEST_PARTY)->mode != LEVEL_SCALING_NONE);
-    ASSUME(5 < B_SCALING_TIER_MID_MIN_LEVEL);
-    ASSUME(B_SCALING_BST_BELOW_MID < 680);
-
-    // Every mon is over the ceiling, so the lowest-BST mon is kept as a floor.
-    kept = SelectScaledTrainerParty(trainer, TRAINER_WITH_TEST_PARTY, monIndices, scaledLevels, scaledSpecies, 2);
-
-    EXPECT_EQ(kept, 1);
-    EXPECT_EQ(scaledSpecies[0], SPECIES_MEWTWO);
-}
-
-// ============================================================================
 // Wild encounters
 // ============================================================================
 
@@ -648,7 +534,7 @@ TEST("(Level Scaling) wild variation only ever reduces the level")
 
     for (i = 0; i < VARIATION_SAMPLES; i++)
     {
-        u8 level = CalculateWildScaledLevel(SPECIES_WOBBUFFET, 5);
+        u8 level = CalculateWildScaledLevel(5);
         if (level > highest)
             highest = level;
     }
