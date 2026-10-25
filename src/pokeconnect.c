@@ -76,10 +76,14 @@ static void Pokeconnect_Free(void);
 static void DrawGrid(void);
 static void DrawTile(u32 position);
 static void DrawInfo(void);
+static void DrawCursor(void);
+
+static const u16 sAccentPalette[] = INCBIN_U16("graphics/dex_minigames/pokeconnect.gbapal");
 
 static const struct DexGameScreen sPokeconnectScreen =
 {
     .windows = sWindowTemplates,
+    .accentPalette = sAccentPalette,
     .init = Pokeconnect_Init,
     .draw = Pokeconnect_Draw,
     .inputTask = Task_PokeconnectMainInput,
@@ -237,6 +241,7 @@ static bool32 Pokeconnect_Init(void)
 
 static void Pokeconnect_Draw(void)
 {
+    DexGame_DrawBox(0, GRID_HEIGHT, 30, 4, DEX_BOX_EMPTY);
     DrawGrid();
     DrawInfo();
 }
@@ -434,7 +439,6 @@ static void MoveCursor(s32 rowDelta, s32 colDelta)
 {
     s32 row = sUi->cursor / POKECONNECT_GROUP_SIZE + rowDelta;
     s32 col = sUi->cursor % POKECONNECT_GROUP_SIZE + colDelta;
-    u32 old = sUi->cursor;
 
     if (row < (s32)GetGroupRowCount() || row >= POKECONNECT_NUM_GROUPS || col < 0 || col >= POKECONNECT_GROUP_SIZE)
         return;
@@ -442,9 +446,7 @@ static void MoveCursor(s32 rowDelta, s32 colDelta)
     PlaySE(SE_SELECT);
     sUi->cursor = row * POKECONNECT_GROUP_SIZE + col;
     SetMessage(NULL, 0);
-    DrawTile(old);
-    DrawTile(sUi->cursor);
-    DexGame_CopyBoxesToVram();
+    DrawCursor();
     DrawInfo();
 }
 
@@ -553,8 +555,6 @@ static void DrawTile(u32 position)
 {
     u32 palette = (sUi->selectedMask & (1 << sUi->game->order[position])) ? DEX_BOX_SELECTED : DEX_BOX_EMPTY;
 
-    if (position == sUi->cursor && !sUi->game->finished)
-        palette += DEX_BOX_CURSOR_OFFSET;
     DexGame_DrawBox(GetTileX(position), GetTileY(position), CELL_WIDTH, CELL_HEIGHT, palette);
 }
 
@@ -573,7 +573,7 @@ static void DrawGroupRow(u32 row)
     DexGame_DrawBox(GRID_LEFT, row * CELL_HEIGHT, GRID_WIDTH, CELL_HEIGHT, sGroupPalettes[group]);
 
     Pokeconnect_GetCategoryName(game->categories[group], gStringVar4);
-    DexGame_PrintText(WIN_GRID, GetFittingFont(gStringVar4, FONT_NORMAL, FONT_NARROW), 4, y + 2, DEX_FONT_DARK, gStringVar4);
+    DexGame_PrintText(WIN_GRID, GetFittingFont(gStringVar4, FONT_NORMAL, FONT_NARROW), 4, y + 2, DEX_FONT_NORMAL, gStringVar4);
 
     end = gStringVar4;
     for (i = 0; i < POKECONNECT_GROUP_SIZE; i++)
@@ -582,7 +582,7 @@ static void DrawGroupRow(u32 row)
             end = StringCopy(end, COMPOUND_STRING(", "));
         end = StringCopy(end, GetSpeciesName(game->species[game->order[row * POKECONNECT_GROUP_SIZE + i]]));
     }
-    DexGame_PrintText(WIN_GRID, GetFittingFont(gStringVar4, FONT_SMALL, FONT_SMALL_NARROW), 4, y + 17, DEX_FONT_DARK, gStringVar4);
+    DexGame_PrintText(WIN_GRID, GetFittingFont(gStringVar4, FONT_SMALL, FONT_SMALL_NARROW), 4, y + 16, DEX_FONT_NORMAL, gStringVar4);
 }
 
 static void DrawGrid(void)
@@ -605,6 +605,15 @@ static void DrawGrid(void)
     }
     CopyWindowToVram(WIN_GRID, COPYWIN_GFX);
     DexGame_CopyBoxesToVram();
+    DrawCursor();
+}
+
+static void DrawCursor(void)
+{
+    if (sUi->game->finished)
+        DexGame_HideCursor();
+    else
+        DexGame_ShowCursor(GetTileX(sUi->cursor), GetTileY(sUi->cursor), CELL_WIDTH, CELL_HEIGHT);
 }
 
 static void PrintStats(void)
@@ -620,12 +629,12 @@ static void PrintStats(void)
     end = ConvertIntToDecimalStringN(end, (game->lastWinDay + 1 >= sUi->today) ? game->streak : 0, STR_CONV_MODE_LEFT_ALIGN, 5);
     end = StringCopy(end, COMPOUND_STRING("  Best "));
     ConvertIntToDecimalStringN(end, game->bestStreak, STR_CONV_MODE_LEFT_ALIGN, 5);
-    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 2, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 2, DEX_FONT_NORMAL, gStringVar4);
 
     end = StringCopy(gStringVar4, COMPOUND_STRING("Perfect "));
     end = ConvertIntToDecimalStringN(end, game->perfect, STR_CONV_MODE_LEFT_ALIGN, 5);
     StringCopy(end, COMPOUND_STRING("   {SELECT_BUTTON} Back  {B_BUTTON} Exit"));
-    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 18, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 16, DEX_FONT_NORMAL, gStringVar4);
 }
 
 static void PrintResult(void)
@@ -649,7 +658,7 @@ static void PrintResult(void)
         DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_RED, COMPOUND_STRING("Out of mistakes!"));
     }
 
-    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 18, DEX_FONT_WHITE,
+    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 16, DEX_FONT_NORMAL,
                       sUi->practice ? COMPOUND_STRING("{START_BUTTON} New puzzle  {B_BUTTON} Exit")
                                     : COMPOUND_STRING("{SELECT_BUTTON} Stats  {B_BUTTON} Exit"));
 }
@@ -659,20 +668,20 @@ static void PrintBoardInfo(void)
     u8 *end;
     u32 x;
 
-    DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, GetSpeciesName(sUi->game->species[GetCursorTile()]));
+    DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL, GetSpeciesName(sUi->game->species[GetCursorTile()]));
 
     end = StringCopy(gStringVar4, COMPOUND_STRING("Mistakes left: "));
     ConvertIntToDecimalStringN(end, POKECONNECT_MAX_MISTAKES - sUi->game->mistakes, STR_CONV_MODE_LEFT_ALIGN, 1);
     x = 30 * 8 - 4 - GetStringWidth(FONT_NORMAL, gStringVar4, 0);
-    DexGame_PrintText(WIN_INFO, FONT_NORMAL, x, 1, sUi->game->mistakes == POKECONNECT_MAX_MISTAKES - 1 ? DEX_FONT_RED : DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_NORMAL, x, 1, sUi->game->mistakes == POKECONNECT_MAX_MISTAKES - 1 ? DEX_FONT_RED : DEX_FONT_NORMAL, gStringVar4);
 
     if (sUi->message != NULL)
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 16, sUi->messageColor, sUi->message);
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 15, sUi->messageColor, sUi->message);
     else if (sUi->selectedMask != 0)
-        DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 18, DEX_FONT_GRAY,
+        DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 16, DEX_FONT_NORMAL,
                           COMPOUND_STRING("{A_BUTTON} Pick  {START_BUTTON} Submit  {SELECT_BUTTON} Shuffle  {B_BUTTON} Clear"));
     else
-        DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 18, DEX_FONT_GRAY,
+        DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 16, DEX_FONT_NORMAL,
                           COMPOUND_STRING("{A_BUTTON} Pick  {START_BUTTON} Submit  {SELECT_BUTTON} Shuffle  {B_BUTTON} Exit"));
 }
 
@@ -682,8 +691,8 @@ static void DrawInfo(void)
 
     if (sUi->mode == MODE_SAVE_MESSAGE || sUi->mode == MODE_SAVE)
     {
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, COMPOUND_STRING("Saving…"));
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 16, DEX_FONT_WHITE, COMPOUND_STRING("Don't turn off the power."));
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL, COMPOUND_STRING("Saving…"));
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 15, DEX_FONT_NORMAL, COMPOUND_STRING("Don't turn off the power."));
     }
     else if (sUi->game->finished && sUi->showStats)
     {

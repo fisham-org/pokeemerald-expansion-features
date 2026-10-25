@@ -196,9 +196,13 @@ static void DrawTitle(void);
 static void DrawLog(void);
 static void DrawInfo(void);
 
+static const u16 sAccentPalette[] = INCBIN_U16("graphics/dex_minigames/squirdle.gbapal");
+
 static const struct DexGameScreen sSquirdleScreen =
 {
     .windows = sWindowTemplates,
+    .accentPalette = sAccentPalette,
+    .headerHeight = 2,
     .init = Squirdle_Init,
     .draw = Squirdle_Draw,
     .inputTask = Task_SquirdleMainInput,
@@ -379,10 +383,11 @@ static void Squirdle_Draw(void)
     u32 i;
 
     FillWindowPixelBuffer(WIN_HEADERS, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
-    DexGame_PrintText(WIN_HEADERS, FONT_SMALL_NARROW, 4, 3, DEX_FONT_WHITE, COMPOUND_STRING("Guess"));
+    DexGame_PrintText(WIN_HEADERS, FONT_SMALL_NARROW, 4, 3, DEX_FONT_NORMAL, COMPOUND_STRING("Guess"));
     for (i = 0; i < SQUIRDLE_NUM_COLUMNS; i++)
-        DexGame_PrintText(WIN_HEADERS, FONT_SMALL_NARROW, sUi->columnX[i] * 8 + 3, 3, DEX_FONT_WHITE, sColumns[sColumnAttributes[i]].label);
+        DexGame_PrintText(WIN_HEADERS, FONT_SMALL_NARROW, sUi->columnX[i] * 8 + 3, 3, DEX_FONT_NORMAL, sColumns[sColumnAttributes[i]].label);
     CopyWindowToVram(WIN_HEADERS, COPYWIN_GFX);
+    DexGame_DrawBox(0, 16, SCREEN_WIDTH, 4, DEX_BOX_EMPTY);
 
     DrawTitle();
     DrawLog();
@@ -533,14 +538,14 @@ static void DrawTitle(void)
     u8 *end;
 
     FillWindowPixelBuffer(WIN_TITLE, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
-    DexGame_PrintText(WIN_TITLE, FONT_NORMAL, 4, 1, DEX_FONT_WHITE,
+    DexGame_PrintText(WIN_TITLE, FONT_NORMAL, 4, 1, DEX_FONT_HEADER,
                       sUi->practice ? COMPOUND_STRING("SQUIRDLE  Practice") : COMPOUND_STRING("SQUIRDLE  Daily"));
 
     end = StringCopy(gStringVar4, COMPOUND_STRING("Guess "));
     end = ConvertIntToDecimalStringN(end, game->finished ? game->numGuesses : game->numGuesses + 1, STR_CONV_MODE_LEFT_ALIGN, 1);
     end = StringCopy(end, COMPOUND_STRING("/"));
     ConvertIntToDecimalStringN(end, SQUIRDLE_MAX_GUESSES, STR_CONV_MODE_LEFT_ALIGN, 1);
-    DexGame_PrintText(WIN_TITLE, FONT_NORMAL, 180, 1, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_TITLE, FONT_NORMAL, 180, 1, DEX_FONT_HEADER, gStringVar4);
     CopyWindowToVram(WIN_TITLE, COPYWIN_GFX);
 }
 
@@ -590,7 +595,7 @@ static void PrintClue(u32 row, u32 column, u32 dex, u32 clue)
         StringCopy(end, COMPOUND_STRING("{DOWN_ARROW}"));
 
     DexGame_PrintText(WIN_LOG, FONT_SMALL_NARROW, (sUi->columnX[column] - LOG_LEFT) * 8 + 4,
-                      row * ROW_HEIGHT * 8 + 18, DEX_FONT_DARK, gStringVar4);
+                      row * ROW_HEIGHT * 8 + 16, DEX_FONT_NORMAL, gStringVar4);
 }
 
 static void DrawRow(u32 row, u32 index)
@@ -607,7 +612,7 @@ static void DrawRow(u32 row, u32 index)
     if (index >= sUi->game->numGuesses)
     {
         StringCopy(end, COMPOUND_STRING("{A_BUTTON} Guess"));
-        DexGame_PrintText(WIN_LOG, FONT_NORMAL, 0, textY, DEX_FONT_GRAY, gStringVar4);
+        DexGame_PrintText(WIN_LOG, FONT_NORMAL, 0, textY, DEX_FONT_NORMAL, gStringVar4);
         for (i = 0; i < SQUIRDLE_NUM_COLUMNS; i++)
             DexGame_DrawBox(sUi->columnX[i], boxY, sUi->columnX[i + 1] - sUi->columnX[i], BOX_HEIGHT, DEX_BOX_EMPTY);
         return;
@@ -615,7 +620,7 @@ static void DrawRow(u32 row, u32 index)
 
     dex = GetGuessDex(index);
     StringCopy(end, GetSpeciesName(sUi->pool->species[dex]));
-    DexGame_PrintText(WIN_LOG, FONT_NORMAL, 0, textY, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_LOG, FONT_NORMAL, 0, textY, DEX_FONT_NORMAL, gStringVar4);
     sUi->rowIconSpriteIds[row] = DexGame_CreateIcon(sUi->pool->species[dex], ICON_X, (LOG_TOP + row * ROW_HEIGHT) * 8 + 16);
 
     Squirdle_Compare(sUi->pool, dex, GetTargetDex(), clues);
@@ -658,7 +663,7 @@ static void PrintStats(void)
     end = ConvertIntToDecimalStringN(end, (game->lastWinDay + 1 >= sUi->today) ? game->streak : 0, STR_CONV_MODE_LEFT_ALIGN, 5);
     end = StringCopy(end, COMPOUND_STRING("  Best "));
     ConvertIntToDecimalStringN(end, game->bestStreak, STR_CONV_MODE_LEFT_ALIGN, 5);
-    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 2, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 2, DEX_FONT_NORMAL, gStringVar4);
 
     end = StringCopy(gStringVar4, COMPOUND_STRING("Wins by guess "));
     for (i = 0; i < SQUIRDLE_MAX_GUESSES; i++)
@@ -668,7 +673,7 @@ static void PrintStats(void)
         end = StringCopy(end, COMPOUND_STRING(":"));
         end = ConvertIntToDecimalStringN(end, game->winsByGuesses[i], STR_CONV_MODE_LEFT_ALIGN, 3);
     }
-    DexGame_PrintText(WIN_INFO, FONT_SMALL_NARROWER, 4, 18, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_SMALL_NARROWER, 4, 16, DEX_FONT_NORMAL, gStringVar4);
 }
 
 static void PrintResult(void)
@@ -691,7 +696,7 @@ static void PrintResult(void)
     end = StringCopy(gStringVar4, COMPOUND_STRING("It was "));
     end = StringCopy(end, GetSpeciesName(game->target));
     StringCopy(end, sUi->practice ? COMPOUND_STRING(".  {START_BUTTON} New") : COMPOUND_STRING(".  {SELECT_BUTTON} Stats"));
-    DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 16, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 15, DEX_FONT_NORMAL, gStringVar4);
 
     if (sUi->targetIconSpriteId == SPRITE_NONE)
         sUi->targetIconSpriteId = DexGame_CreateIcon(game->target, DEX_PICKER_ICON_X, DEX_PICKER_ICON_Y);
@@ -704,8 +709,8 @@ static void DrawInfo(void)
 
     if (sUi->mode == MODE_SAVE_MESSAGE || sUi->mode == MODE_SAVE)
     {
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, COMPOUND_STRING("Saving…"));
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 16, DEX_FONT_WHITE, COMPOUND_STRING("Don't turn off the power."));
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL, COMPOUND_STRING("Saving…"));
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 15, DEX_FONT_NORMAL, COMPOUND_STRING("Don't turn off the power."));
     }
     else if (sUi->game->finished && sUi->showStats)
     {
@@ -717,9 +722,9 @@ static void DrawInfo(void)
     }
     else
     {
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE,
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL,
                           COMPOUND_STRING("{A_BUTTON} Guess  {DPAD_UPDOWN} Scroll  {B_BUTTON} Exit"));
-        DexGame_PrintText(WIN_INFO, FONT_SMALL_NARROW, 4, 18, DEX_FONT_GRAY,
+        DexGame_PrintText(WIN_INFO, FONT_SMALL_NARROW, 4, 16, DEX_FONT_NORMAL,
                           COMPOUND_STRING("Yellow: other type slot  {UP_ARROW}{DOWN_ARROW}: target higher/lower"));
     }
 

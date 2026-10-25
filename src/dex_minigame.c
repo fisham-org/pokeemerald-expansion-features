@@ -33,16 +33,32 @@
 extern const u16 gPokedexOrder_Alphabetical[];
 #define ALPHABETICAL_ORDER_COUNT NATIONAL_DEX_PECHARUNT
 
-#define BOX_TILE_COUNT 10 // Blank + 3x3 outline pieces
 #define BOX_BG 1
+#define BACKDROP_BG 2
+#define BACKDROP_PALETTE 14
+#define TEXT_PALETTE 15
 #define TILEMAP_BUFFER_SIZE (1024 * 2)
 #define PICKER_DIGITS 4
+#define TAG_CURSOR 0x5D11
+#define CURSOR_CORNERS 4
+#define CURSOR_PULSE_FRAMES 16
+
+// Tiles in graphics/dex_minigames/backdrop.png
+enum
+{
+    BACKDROP_TILE_LIGHT,
+    BACKDROP_TILE_DARK,
+    BACKDROP_TILE_STRIP_TOP,
+    BACKDROP_TILE_STRIP_MIDDLE,
+    BACKDROP_TILE_STRIP_BOTTOM,
+};
 
 struct DexGameScreenState
 {
     const struct DexGameScreen *screen;
-    u32 boxTiles[BOX_TILE_COUNT * 8];
     u8 tilemap[TILEMAP_BUFFER_SIZE];
+    u8 backdropTilemap[TILEMAP_BUFFER_SIZE];
+    u8 cursorSpriteIds[CURSOR_CORNERS];
 };
 
 static EWRAM_DATA const struct DexGameScreen *sPendingScreen = NULL;
@@ -62,60 +78,80 @@ static const struct BgTemplate sBgTemplates[] =
         .mapBaseIndex = 30,
         .priority = 2
     },
+    {
+        .bg = BACKDROP_BG,
+        .charBaseIndex = 3,
+        .mapBaseIndex = 29,
+        .priority = 3
+    },
 };
 
-#define BACKDROP_COLOR RGB(5, 8, 14)
-#define OUTLINE_COLOR  RGB(12, 14, 18)
-#define CURSOR_COLOR   RGB(31, 26, 4)
-#define EMPTY_COLOR    RGB(30, 30, 31)
-#define WRONG_COLOR    RGB(30, 17, 17)
-#define CORRECT_COLOR  RGB(17, 30, 17)
-#define PARTIAL_COLOR  RGB(31, 28, 12)
-#define SELECTED_COLOR RGB(17, 19, 24)
-#define BLUE_COLOR     RGB(17, 24, 31)
-#define PURPLE_COLOR   RGB(25, 19, 30)
+static const u32 sPanelTiles[] = INCBIN_U32("graphics/dex_minigames/panel.4bpp");
+static const u32 sBackdropTiles[] = INCBIN_U32("graphics/dex_minigames/backdrop.4bpp");
+static const u32 sCursorTiles[] = INCBIN_U32("graphics/dex_minigames/cursor.4bpp");
+static const u16 sCursorPalette[] = INCBIN_U16("graphics/dex_minigames/cursor.gbapal");
 
-// Index 1 is the fill, 2 the outer outline and 3 the inner outline (fill unless highlighted).
-#define BOX_PALETTE(fill, outline) { BACKDROP_COLOR, fill, outline, (outline) == CURSOR_COLOR ? CURSOR_COLOR : fill }
+// The panel tiles use index 1 for the fill, 2 the fill's shadow, 3 its highlight, 4 the frame and 5 the outline.
+#define BOX_PALETTE(fill, shadow, highlight, frame, outline) { RGB_BLACK, fill, shadow, highlight, frame, outline }
 static const u16 sBoxPalettes[][16] =
 {
-    [DEX_BOX_EMPTY]                           = BOX_PALETTE(EMPTY_COLOR,   OUTLINE_COLOR),
-    [DEX_BOX_WRONG]                           = BOX_PALETTE(WRONG_COLOR,   OUTLINE_COLOR),
-    [DEX_BOX_CORRECT]                         = BOX_PALETTE(CORRECT_COLOR, OUTLINE_COLOR),
-    [DEX_BOX_PARTIAL]                         = BOX_PALETTE(PARTIAL_COLOR, OUTLINE_COLOR),
-    [DEX_BOX_SELECTED]                        = BOX_PALETTE(SELECTED_COLOR, OUTLINE_COLOR),
-    [DEX_BOX_BLUE]                            = BOX_PALETTE(BLUE_COLOR,    OUTLINE_COLOR),
-    [DEX_BOX_PURPLE]                          = BOX_PALETTE(PURPLE_COLOR,  OUTLINE_COLOR),
-    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_EMPTY]   = BOX_PALETTE(EMPTY_COLOR,   CURSOR_COLOR),
-    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_WRONG]   = BOX_PALETTE(WRONG_COLOR,   CURSOR_COLOR),
-    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_CORRECT] = BOX_PALETTE(CORRECT_COLOR, CURSOR_COLOR),
-    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_PARTIAL] = BOX_PALETTE(PARTIAL_COLOR, CURSOR_COLOR),
-    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_SELECTED] = BOX_PALETTE(SELECTED_COLOR, CURSOR_COLOR),
-    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_BLUE]    = BOX_PALETTE(BLUE_COLOR,    CURSOR_COLOR),
-    [DEX_BOX_CURSOR_OFFSET + DEX_BOX_PURPLE]  = BOX_PALETTE(PURPLE_COLOR,  CURSOR_COLOR),
+    [DEX_BOX_EMPTY]    = BOX_PALETTE(RGB(31, 31, 31), RGB(26, 27, 28), RGB(31, 31, 31), RGB(17, 21, 26), RGB(8, 11, 15)),
+    [DEX_BOX_WRONG]    = BOX_PALETTE(RGB(31, 24, 23), RGB(28, 19, 18), RGB(31, 28, 27), RGB(26, 12, 11), RGB(16, 6, 6)),
+    [DEX_BOX_CORRECT]  = BOX_PALETTE(RGB(24, 30, 21), RGB(19, 26, 16), RGB(28, 31, 26), RGB(11, 22, 10), RGB(5, 12, 5)),
+    [DEX_BOX_PARTIAL]  = BOX_PALETTE(RGB(31, 29, 18), RGB(28, 25, 12), RGB(31, 31, 25), RGB(26, 21, 7), RGB(16, 12, 3)),
+    [DEX_BOX_SELECTED] = BOX_PALETTE(RGB(19, 23, 29), RGB(15, 19, 25), RGB(24, 27, 31), RGB(9, 14, 23), RGB(4, 7, 13)),
+    [DEX_BOX_BLUE]     = BOX_PALETTE(RGB(21, 27, 31), RGB(16, 22, 28), RGB(26, 30, 31), RGB(9, 17, 26), RGB(4, 9, 16)),
+    [DEX_BOX_PURPLE]   = BOX_PALETTE(RGB(27, 24, 30), RGB(23, 19, 27), RGB(30, 28, 31), RGB(18, 13, 24), RGB(9, 6, 14)),
 };
 #undef BOX_PALETTE
 
+// Emerald's standard menu text colors. TEXT_COLOR_BLUE is the header text's shadow, copied from the
+// accent palette's strip edge (index 5) when the screen loads.
 static const u16 sTextPalette[16] =
 {
     [TEXT_COLOR_TRANSPARENT] = RGB_BLACK,
     [TEXT_COLOR_WHITE]       = RGB_WHITE,
-    [TEXT_COLOR_DARK_GRAY]   = RGB(3, 4, 7),
-    [TEXT_COLOR_LIGHT_GRAY]  = RGB(18, 18, 20),
-    [TEXT_COLOR_RED]         = CURSOR_COLOR,
-    [TEXT_COLOR_LIGHT_RED]   = RGB(31, 14, 14),
-    [TEXT_COLOR_GREEN]       = RGB(14, 29, 14),
-    [TEXT_COLOR_LIGHT_GREEN] = RGB(22, 23, 26), // Shadow for DEX_FONT_DARK
+    [TEXT_COLOR_DARK_GRAY]   = RGB(12, 12, 12),
+    [TEXT_COLOR_LIGHT_GRAY]  = RGB(26, 26, 25),
+    [TEXT_COLOR_RED]         = RGB(28, 1, 1),
+    [TEXT_COLOR_LIGHT_RED]   = RGB(31, 23, 14),
+    [TEXT_COLOR_GREEN]       = RGB(4, 19, 1),
+    [TEXT_COLOR_LIGHT_GREEN] = RGB(18, 30, 18),
+    [TEXT_DYNAMIC_COLOR_1]   = RGB(21, 21, 21),
 };
+#define ACCENT_STRIP_EDGE 5
 
 static const u8 sFontColors[][3] =
 {
-    [DEX_FONT_WHITE]     = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE,       TEXT_COLOR_DARK_GRAY},
-    [DEX_FONT_HIGHLIGHT] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_RED,         TEXT_COLOR_DARK_GRAY},
-    [DEX_FONT_RED]       = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_LIGHT_RED,   TEXT_COLOR_DARK_GRAY},
-    [DEX_FONT_GREEN]     = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_GREEN,       TEXT_COLOR_DARK_GRAY},
-    [DEX_FONT_GRAY]      = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_LIGHT_GRAY,  TEXT_COLOR_DARK_GRAY},
-    [DEX_FONT_DARK]      = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY,   TEXT_COLOR_LIGHT_GREEN},
+    [DEX_FONT_NORMAL] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY,  TEXT_COLOR_LIGHT_GRAY},
+    [DEX_FONT_HEADER] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE,      TEXT_COLOR_BLUE},
+    [DEX_FONT_RED]    = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_RED,        TEXT_COLOR_LIGHT_RED},
+    [DEX_FONT_GREEN]  = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_GREEN,      TEXT_COLOR_LIGHT_GREEN},
+    [DEX_FONT_GRAY]   = {TEXT_COLOR_TRANSPARENT, TEXT_DYNAMIC_COLOR_1,  TEXT_COLOR_LIGHT_GRAY},
+};
+
+// Each corner is the top-left bracket, flipped. It moves out and back by a pixel.
+static const struct OamData sCursorOam =
+{
+    .shape = SPRITE_SHAPE(8x8),
+    .size = SPRITE_SIZE(8x8),
+    .priority = 0,
+};
+
+static const struct SpriteSheet sCursorSpriteSheet = { sCursorTiles, sizeof(sCursorTiles), TAG_CURSOR };
+static const struct SpritePalette sCursorSpritePalette = { sCursorPalette, TAG_CURSOR };
+
+static void SpriteCB_Cursor(struct Sprite *sprite);
+
+static const struct SpriteTemplate sCursorSpriteTemplate =
+{
+    .tileTag = TAG_CURSOR,
+    .paletteTag = TAG_CURSOR,
+    .oam = &sCursorOam,
+    .anims = gDummySpriteAnimTable,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCB_Cursor,
 };
 
 static const u16 sPowersOfTen[PICKER_DIGITS] = {1, 10, 100, 1000};
@@ -438,40 +474,58 @@ static void Task_OpenScreen(u8 taskId)
     DestroyTask(taskId);
 }
 
-// Tile 0 is blank; tiles 1-9 are the corners, edges and middle of a box, row by row.
-// Each pixel's value depends on its distance from the box's outer edge: a 1px gap,
-// the outline, the inner outline, then fill.
-static void BuildBoxTiles(u32 *tiles)
+// A checker of 2x2 tile squares, with the header strip across the top
+static void DrawBackdrop(u32 headerHeight)
 {
-    static const u8 sPixelByDistance[] = {0, 2, 3};
-    u32 piece, x, y;
+    u32 x, y, tile;
 
-    memset(tiles, 0, sizeof(u32) * 8);
-    for (piece = 0; piece < 9; piece++)
+    for (y = 0; y < DISPLAY_TILE_HEIGHT; y++)
     {
-        u32 edgeX = piece % 3, edgeY = piece / 3;
-
-        for (y = 0; y < 8; y++)
+        for (x = 0; x < DISPLAY_TILE_WIDTH; x++)
         {
-            u32 row = 0;
-
-            for (x = 0; x < 8; x++)
-            {
-                u32 dist = 8;
-
-                if (edgeX == 0)
-                    dist = min(dist, x);
-                else if (edgeX == 2)
-                    dist = min(dist, 7 - x);
-                if (edgeY == 0)
-                    dist = min(dist, y);
-                else if (edgeY == 2)
-                    dist = min(dist, 7 - y);
-                row |= (dist < ARRAY_COUNT(sPixelByDistance) ? sPixelByDistance[dist] : 1) << (x * 4);
-            }
-            tiles[(piece + 1) * 8 + y] = row;
+            if (y >= headerHeight)
+                tile = BACKDROP_TILE_LIGHT + (x / 2 + y / 2) % 2;
+            else if (y == 0)
+                tile = BACKDROP_TILE_STRIP_TOP;
+            else if (y == headerHeight - 1)
+                tile = BACKDROP_TILE_STRIP_BOTTOM;
+            else
+                tile = BACKDROP_TILE_STRIP_MIDDLE;
+            FillBgTilemapBufferRect(BACKDROP_BG, tile, x, y, 1, 1, BACKDROP_PALETTE);
         }
     }
+    ScheduleBgCopyTilemapToVram(BACKDROP_BG);
+}
+
+static void CreateCursor(void)
+{
+    u32 i;
+
+    LoadSpriteSheet(&sCursorSpriteSheet);
+    LoadSpritePalette(&sCursorSpritePalette);
+    for (i = 0; i < CURSOR_CORNERS; i++)
+    {
+        u8 spriteId = CreateSprite(&sCursorSpriteTemplate, 0, 0, 0);
+
+        sScreenState->cursorSpriteIds[i] = spriteId;
+        if (spriteId == MAX_SPRITES)
+            continue;
+        gSprites[spriteId].hFlip = i & 1;
+        gSprites[spriteId].vFlip = (i >> 1) & 1;
+        // The dummy animation never starts, so it won't apply the flips to the OAM itself
+        gSprites[spriteId].oam.matrixNum = (gSprites[spriteId].hFlip ? ST_OAM_HFLIP : 0)
+                                         | (gSprites[spriteId].vFlip ? ST_OAM_VFLIP : 0);
+        gSprites[spriteId].invisible = TRUE;
+    }
+}
+
+// Moves the corner outwards (in the direction it points) every other pulse
+static void SpriteCB_Cursor(struct Sprite *sprite)
+{
+    s32 offset = ((u16)sprite->data[0]++ / CURSOR_PULSE_FRAMES) % 2;
+
+    sprite->x2 = sprite->hFlip ? offset : -offset;
+    sprite->y2 = sprite->vFlip ? offset : -offset;
 }
 
 static void InitScreenWindows(void)
@@ -519,17 +573,23 @@ static void DexGame_SetupCB(void)
         ResetBgsAndClearDma3BusyFlags(0);
         InitBgsFromTemplates(0, sBgTemplates, NELEMS(sBgTemplates));
         SetBgTilemapBuffer(BOX_BG, sScreenState->tilemap);
+        SetBgTilemapBuffer(BACKDROP_BG, sScreenState->backdropTilemap);
         ScheduleBgCopyTilemapToVram(BOX_BG);
         ShowBg(0);
         ShowBg(BOX_BG);
+        ShowBg(BACKDROP_BG);
         gMain.state++;
         break;
     case 3:
-        BuildBoxTiles(sScreenState->boxTiles);
-        LoadBgTiles(BOX_BG, sScreenState->boxTiles, sizeof(sScreenState->boxTiles), 0);
+        LoadBgTiles(BOX_BG, sPanelTiles, sizeof(sPanelTiles), 0);
+        LoadBgTiles(BACKDROP_BG, sBackdropTiles, sizeof(sBackdropTiles), 0);
         LoadPalette(sBoxPalettes, BG_PLTT_ID(0), sizeof(sBoxPalettes));
-        LoadPalette(sTextPalette, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
+        LoadPalette(screen->accentPalette, BG_PLTT_ID(BACKDROP_PALETTE), PLTT_SIZE_4BPP);
+        LoadPalette(sTextPalette, BG_PLTT_ID(TEXT_PALETTE), PLTT_SIZE_4BPP);
+        LoadPalette(&screen->accentPalette[ACCENT_STRIP_EDGE], BG_PLTT_ID(TEXT_PALETTE) + TEXT_COLOR_BLUE, PLTT_SIZEOF(1));
         LoadMonIconPalettes();
+        DrawBackdrop(screen->headerHeight);
+        CreateCursor();
         gMain.state++;
         break;
     case 4:
@@ -591,6 +651,7 @@ static void Task_WaitFadeAndExit(u8 taskId)
     FREE_AND_SET_NULL(sScreenState);
     FreeAllWindowBuffers();
     FreeMonIconPalettes();
+    FreeSpritePaletteByTag(TAG_CURSOR);
     ResetSpriteData();
     DestroyTask(taskId);
 }
@@ -627,6 +688,36 @@ void DexGame_ClearBoxes(u32 x, u32 y, u32 width, u32 height)
 void DexGame_CopyBoxesToVram(void)
 {
     ScheduleBgCopyTilemapToVram(BOX_BG);
+}
+
+void DexGame_ShowCursor(u32 x, u32 y, u32 width, u32 height)
+{
+    u32 i;
+
+    for (i = 0; i < CURSOR_CORNERS; i++)
+    {
+        struct Sprite *sprite;
+
+        if (sScreenState->cursorSpriteIds[i] == MAX_SPRITES)
+            continue;
+        // Each bracket overlaps the box's corner by a pixel past its outline
+        sprite = &gSprites[sScreenState->cursorSpriteIds[i]];
+        sprite->x = (sprite->hFlip ? (x + width) * 8 - 7 : x * 8 - 1) + 4;
+        sprite->y = (sprite->vFlip ? (y + height) * 8 - 7 : y * 8 - 1) + 4;
+        sprite->data[0] = 0;
+        sprite->invisible = FALSE;
+    }
+}
+
+void DexGame_HideCursor(void)
+{
+    u32 i;
+
+    for (i = 0; i < CURSOR_CORNERS; i++)
+    {
+        if (sScreenState->cursorSpriteIds[i] != MAX_SPRITES)
+            gSprites[sScreenState->cursorSpriteIds[i]].invisible = TRUE;
+    }
 }
 
 void DexGame_PrintText(u32 windowId, u32 font, u32 x, u32 y, u32 color, const u8 *str)
@@ -697,22 +788,22 @@ static void DrawPicker(struct DexPicker *picker)
     end = ConvertIntToDecimalStringN(end, picker->dex, STR_CONV_MODE_LEADING_ZEROS, PICKER_DIGITS);
     end = StringCopy(end, COMPOUND_STRING(" "));
     StringCopy(end, GetSpeciesName(species));
-    DexGame_PrintText(picker->windowId, FONT_NORMAL, 4, 1, picker->isUsed(picker->dex) ? DEX_FONT_GRAY : DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(picker->windowId, FONT_NORMAL, 4, 1, picker->isUsed(picker->dex) ? DEX_FONT_GRAY : DEX_FONT_NORMAL, gStringVar4);
 
     if (picker->message != NULL)
     {
-        DexGame_PrintText(picker->windowId, FONT_NORMAL, 4, 16, DEX_FONT_RED, picker->message);
+        DexGame_PrintText(picker->windowId, FONT_NORMAL, 4, 15, DEX_FONT_RED, picker->message);
     }
     else if (picker->byNumber)
     {
         end = StringCopy(gStringVar4, COMPOUND_STRING("{DPAD_UPDOWN}+"));
         end = ConvertIntToDecimalStringN(end, sPowersOfTen[picker->digit], STR_CONV_MODE_LEFT_ALIGN, PICKER_DIGITS);
         StringCopy(end, COMPOUND_STRING(" {DPAD_LEFTRIGHT}Digit {SELECT_BUTTON}A-Z {A_BUTTON}OK {B_BUTTON}Back"));
-        DexGame_PrintText(picker->windowId, FONT_SMALL, 4, 18, DEX_FONT_WHITE, gStringVar4);
+        DexGame_PrintText(picker->windowId, FONT_SMALL, 4, 16, DEX_FONT_NORMAL, gStringVar4);
     }
     else
     {
-        DexGame_PrintText(picker->windowId, FONT_SMALL, 4, 18, DEX_FONT_WHITE,
+        DexGame_PrintText(picker->windowId, FONT_SMALL, 4, 16, DEX_FONT_NORMAL,
                           COMPOUND_STRING("{DPAD_LEFTRIGHT}A-Z {DPAD_UPDOWN}Scroll {SELECT_BUTTON}By No. {A_BUTTON}OK {B_BUTTON}Back"));
     }
 

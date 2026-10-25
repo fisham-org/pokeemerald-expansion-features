@@ -95,10 +95,15 @@ static void DrawTitle(void);
 static void DrawHeaders(void);
 static void DrawInfo(void);
 static void DrawCellIcon(u32 cell);
+static void DrawCursor(void);
+
+static const u16 sAccentPalette[] = INCBIN_U16("graphics/dex_minigames/pokedoku.gbapal");
 
 static const struct DexGameScreen sPokedokuScreen =
 {
     .windows = sWindowTemplates,
+    .accentPalette = sAccentPalette,
+    .headerHeight = GRID_TOP,
     .init = Pokedoku_Init,
     .draw = Pokedoku_Draw,
     .inputTask = Task_PokedokuMainInput,
@@ -366,7 +371,6 @@ static void MoveCursor(s32 rowDelta, s32 colDelta)
 {
     s32 row = sUi->cursorRow + rowDelta;
     s32 col = sUi->cursorCol + colDelta;
-    u32 oldRow = sUi->cursorRow, oldCol = sUi->cursorCol;
 
     // The top-left corner holds the title, not a header
     if (row < 0 || row > POKEDOKU_GRID_SIZE || col < 0 || col > POKEDOKU_GRID_SIZE || (row == 0 && col == 0))
@@ -376,13 +380,8 @@ static void MoveCursor(s32 rowDelta, s32 colDelta)
     sUi->cursorRow = row;
     sUi->cursorCol = col;
     sUi->showStats = FALSE;
-    if (oldRow != 0 && oldCol != 0)
-        DrawCell((oldRow - 1) * POKEDOKU_GRID_SIZE + (oldCol - 1));
-    if (IsCursorOnCell())
-        DrawCell(GetCursorCell());
-    DrawHeaders();
+    DrawCursor();
     DrawInfo();
-    DexGame_CopyBoxesToVram();
 }
 
 static void StartNewPracticeBoard(void)
@@ -518,9 +517,6 @@ static void DrawCell(u32 cell)
     else
         palette = DEX_BOX_EMPTY;
 
-    if (IsCursorOnCell() && GetCursorCell() == cell)
-        palette += DEX_BOX_CURSOR_OFFSET;
-
     DexGame_DrawBox(GetCellX(cell), GetCellY(cell), CELL_WIDTH, CELL_HEIGHT, palette);
 }
 
@@ -530,13 +526,13 @@ static void DrawTitle(void)
     u8 *end;
 
     FillWindowPixelBuffer(WIN_TITLE, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
-    DexGame_PrintText(WIN_TITLE, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, COMPOUND_STRING("POKéDOKU"));
+    DexGame_PrintText(WIN_TITLE, FONT_NORMAL, 4, 1, DEX_FONT_HEADER, COMPOUND_STRING("POKéDOKU"));
     if (sUi->board->finished)
     {
         end = ConvertIntToDecimalStringN(gStringVar4, __builtin_popcount(sUi->board->correctMask), STR_CONV_MODE_LEFT_ALIGN, 1);
         end = StringCopy(end, COMPOUND_STRING("/9  Rarity "));
         ConvertIntToDecimalStringN(end, GetRarityScore(), STR_CONV_MODE_LEFT_ALIGN, 3);
-        DexGame_PrintText(WIN_TITLE, FONT_SMALL, 4, 17, DEX_FONT_WHITE, gStringVar4);
+        DexGame_PrintText(WIN_TITLE, FONT_SMALL, 4, 17, DEX_FONT_HEADER, gStringVar4);
         CopyWindowToVram(WIN_TITLE, COPYWIN_GFX);
         return;
     }
@@ -547,14 +543,14 @@ static void DrawTitle(void)
     }
     end = StringCopy(end, COMPOUND_STRING("/"));
     ConvertIntToDecimalStringN(end, POKEDOKU_NUM_CELLS, STR_CONV_MODE_LEFT_ALIGN, 1);
-    DexGame_PrintText(WIN_TITLE, FONT_SMALL, 4, 17, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_TITLE, FONT_SMALL, 4, 17, DEX_FONT_HEADER, gStringVar4);
     CopyWindowToVram(WIN_TITLE, COPYWIN_GFX);
 }
 
-// Column headers are narrow, so squeeze long labels
+// Column headers are narrow, so squeeze long labels. Text starts 4 px in, and the box's right border takes 5 px.
 static u32 GetHeaderFont(u32 windowId, const u8 *str)
 {
-    if (GetStringWidth(FONT_SMALL_NARROW, str, 0) > WindowWidthPx(windowId) - 2)
+    if (GetStringWidth(FONT_SMALL_NARROW, str, 0) > WindowWidthPx(windowId) - 9)
         return FONT_SMALL_NARROWER;
     return FONT_SMALL_NARROW;
 }
@@ -571,13 +567,11 @@ static void DrawHeaders(void)
         const u8 *rowName = gPokedokuCriteria[sUi->board->criteria[i]].name;
 
         FillWindowPixelBuffer(colWindow, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
-        DexGame_PrintText(colWindow, GetHeaderFont(colWindow, colName), 2, 4,
-                          (sUi->cursorCol == i + 1) ? DEX_FONT_HIGHLIGHT : DEX_FONT_WHITE, colName);
+        DexGame_PrintText(colWindow, GetHeaderFont(colWindow, colName), 4, 6, DEX_FONT_NORMAL, colName);
         CopyWindowToVram(colWindow, COPYWIN_GFX);
 
         FillWindowPixelBuffer(rowWindow, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
-        DexGame_PrintText(rowWindow, FONT_SMALL_NARROW, 4, 4,
-                          (sUi->cursorRow == i + 1) ? DEX_FONT_HIGHLIGHT : DEX_FONT_WHITE, rowName);
+        DexGame_PrintText(rowWindow, FONT_SMALL_NARROW, 6, 6, DEX_FONT_NORMAL, rowName);
         CopyWindowToVram(rowWindow, COPYWIN_GFX);
     }
 }
@@ -595,7 +589,7 @@ static void PrintPopularityLine(const u8 *prefix, u32 dex, u32 cell)
     u8 *end = StringCopy(gStringVar4, prefix);
     end = ConvertIntToDecimalStringN(end, Pokedoku_GetPopularityPercent(sUi->pool, dex, sUi->cellTotals[cell]), STR_CONV_MODE_LEFT_ALIGN, 3);
     StringCopy(end, COMPOUND_STRING("%"));
-    DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 16, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 15, DEX_FONT_NORMAL, gStringVar4);
 }
 
 static u8 *AppendNameAndPercent(u8 *end, u32 dex, u32 cell)
@@ -639,7 +633,7 @@ static void PrintCellResult(u32 cell)
         end = StringCopy(end, COMPOUND_STRING("   Rarest: "));
         AppendNameAndPercent(end, leastDex, cell);
     }
-    DexGame_PrintText(WIN_INFO, FONT_SMALL_NARROW, 4, 19, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_SMALL_NARROW, 4, 16, DEX_FONT_NORMAL, gStringVar4);
 }
 
 static void PrintStats(void)
@@ -654,8 +648,8 @@ static void PrintStats(void)
         end = ConvertIntToDecimalStringN(end, __builtin_popcount(board->correctMask), STR_CONV_MODE_LEFT_ALIGN, 1);
         end = StringCopy(end, COMPOUND_STRING("/9  Rarity "));
         ConvertIntToDecimalStringN(end, GetRarityScore(), STR_CONV_MODE_LEFT_ALIGN, 3);
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, gStringVar4);
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 16, DEX_FONT_WHITE, COMPOUND_STRING("{START_BUTTON} New board  {B_BUTTON} Exit"));
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL, gStringVar4);
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 15, DEX_FONT_NORMAL, COMPOUND_STRING("{START_BUTTON} New board  {B_BUTTON} Exit"));
         return;
     }
 
@@ -665,7 +659,7 @@ static void PrintStats(void)
     end = ConvertIntToDecimalStringN(end, board->played ? (board->perfect * 100) / board->played : 0, STR_CONV_MODE_LEFT_ALIGN, 3);
     end = StringCopy(end, COMPOUND_STRING("%  Best rarity "));
     ConvertIntToDecimalStringN(end, board->bestRarity, STR_CONV_MODE_LEFT_ALIGN, 3);
-    DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL, gStringVar4);
 
     end = StringCopy(gStringVar4, COMPOUND_STRING("Streak "));
     end = ConvertIntToDecimalStringN(end, streakAlive ? board->streak : 0, STR_CONV_MODE_LEFT_ALIGN, 5);
@@ -673,7 +667,7 @@ static void PrintStats(void)
     end = ConvertIntToDecimalStringN(end, board->bestStreak, STR_CONV_MODE_LEFT_ALIGN, 5);
     end = StringCopy(end, COMPOUND_STRING("   Perfect streak "));
     ConvertIntToDecimalStringN(end, streakAlive ? board->perfectStreak : 0, STR_CONV_MODE_LEFT_ALIGN, 5);
-    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 17, DEX_FONT_WHITE, gStringVar4);
+    DexGame_PrintText(WIN_INFO, FONT_SMALL, 4, 16, DEX_FONT_NORMAL, gStringVar4);
 }
 
 static void DrawInfo(void)
@@ -684,8 +678,8 @@ static void DrawInfo(void)
 
     if (sUi->mode == MODE_SAVE_MESSAGE || sUi->mode == MODE_SAVE)
     {
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, COMPOUND_STRING("Saving…"));
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 16, DEX_FONT_WHITE, COMPOUND_STRING("Don't turn off the power."));
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL, COMPOUND_STRING("Saving…"));
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 15, DEX_FONT_NORMAL, COMPOUND_STRING("Don't turn off the power."));
     }
     else if (sUi->showStats)
     {
@@ -694,7 +688,7 @@ static void DrawInfo(void)
     else if (!IsCursorOnCell())
     {
         u32 criterion = (sUi->cursorRow == 0) ? criteria[POKEDOKU_GRID_SIZE + sUi->cursorCol - 1] : criteria[sUi->cursorRow - 1];
-        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, gPokedokuCriteria[criterion].description);
+        DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL, gPokedokuCriteria[criterion].description);
     }
     else
     {
@@ -716,8 +710,8 @@ static void DrawInfo(void)
         }
         else
         {
-            DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_WHITE, gPokedokuCriteria[criteria[sUi->cursorRow - 1]].description);
-            DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 16, DEX_FONT_WHITE, gPokedokuCriteria[criteria[POKEDOKU_GRID_SIZE + sUi->cursorCol - 1]].description);
+            DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 1, DEX_FONT_NORMAL, gPokedokuCriteria[criteria[sUi->cursorRow - 1]].description);
+            DexGame_PrintText(WIN_INFO, FONT_NORMAL, 4, 15, DEX_FONT_NORMAL, gPokedokuCriteria[criteria[POKEDOKU_GRID_SIZE + sUi->cursorCol - 1]].description);
         }
     }
 
@@ -726,14 +720,31 @@ static void DrawInfo(void)
 
 static void DrawBoard(void)
 {
-    u32 cell;
+    u32 i;
 
-    for (cell = 0; cell < POKEDOKU_NUM_CELLS; cell++)
-        DrawCell(cell);
+    for (i = 0; i < POKEDOKU_GRID_SIZE; i++)
+    {
+        DexGame_DrawBox(GRID_LEFT + i * CELL_WIDTH, 0, CELL_WIDTH, GRID_TOP, DEX_BOX_EMPTY);
+        DexGame_DrawBox(0, GRID_TOP + i * CELL_HEIGHT, GRID_LEFT, CELL_HEIGHT, DEX_BOX_EMPTY);
+    }
+    for (i = 0; i < POKEDOKU_NUM_CELLS; i++)
+        DrawCell(i);
+    DexGame_DrawBox(0, 16, 30, 4, DEX_BOX_EMPTY);
     DexGame_CopyBoxesToVram();
+    DrawCursor();
     DrawTitle();
     DrawHeaders();
     DrawInfo();
+}
+
+static void DrawCursor(void)
+{
+    if (sUi->cursorRow == 0)
+        DexGame_ShowCursor(GRID_LEFT + (sUi->cursorCol - 1) * CELL_WIDTH, 0, CELL_WIDTH, GRID_TOP);
+    else if (sUi->cursorCol == 0)
+        DexGame_ShowCursor(0, GRID_TOP + (sUi->cursorRow - 1) * CELL_HEIGHT, GRID_LEFT, CELL_HEIGHT);
+    else
+        DexGame_ShowCursor(GetCellX(GetCursorCell()), GetCellY(GetCursorCell()), CELL_WIDTH, CELL_HEIGHT);
 }
 
 // Correct cells show their species. Wrong ones stay empty, marked by their color.

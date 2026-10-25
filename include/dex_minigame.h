@@ -67,11 +67,13 @@ bool32 DexGame_CanOpenDaily(u32 status);
 void DexGame_SaveProgress(void);
 void DexGame_ResumeScriptNextFrame(void);
 
-// Full-screen board. BG1 holds boxes (8x8 tile units), BG0 holds the game's text windows.
-// WIN_* ids are up to each game; the templates must end with DUMMY_WIN_TEMPLATE.
+// Full-screen board. BG2 holds the backdrop, BG1 holds boxes (8x8 tile units), BG0 holds the game's
+// text windows. WIN_* ids are up to each game; the templates must end with DUMMY_WIN_TEMPLATE.
 struct DexGameScreen
 {
     const struct WindowTemplate *windows;
+    const u16 *accentPalette; // Backdrop and header strip colors, from graphics/dex_minigames/<game>.pal
+    u8 headerHeight;          // Tile rows of header strip across the top (at least 2), or 0 for none
     bool32 (*init)(void);     // Allocate game state. Returning FALSE exits.
     void (*draw)(void);       // Draw everything once windows exist
     void (*inputTask)(u8 taskId); // Runs once the fade-in finishes
@@ -90,22 +92,22 @@ enum DexBoxPalette
     DEX_BOX_SELECTED,
     DEX_BOX_BLUE,
     DEX_BOX_PURPLE,
-    DEX_BOX_CURSOR_OFFSET, // Add to any of the above for a highlighted outline
 };
 
 enum DexFontColor
 {
-    DEX_FONT_WHITE,
-    DEX_FONT_HIGHLIGHT,
+    DEX_FONT_NORMAL, // Dark text, for boxes and the backdrop
+    DEX_FONT_HEADER, // White text, for the header strip
     DEX_FONT_RED,
     DEX_FONT_GREEN,
     DEX_FONT_GRAY,
-    DEX_FONT_DARK, // For text drawn on top of boxes
 };
 
 void DexGame_DrawBox(u32 x, u32 y, u32 width, u32 height, u32 palette);
 void DexGame_ClearBoxes(u32 x, u32 y, u32 width, u32 height);
 void DexGame_CopyBoxesToVram(void);
+void DexGame_ShowCursor(u32 x, u32 y, u32 width, u32 height); // Brackets around a box, in tiles
+void DexGame_HideCursor(void);
 void DexGame_PrintText(u32 windowId, u32 font, u32 x, u32 y, u32 color, const u8 *str);
 u8 DexGame_CreateIcon(u32 species, s16 x, s16 y);
 void DexGame_DestroyIcon(u8 *spriteId);
