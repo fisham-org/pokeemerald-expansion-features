@@ -16,8 +16,11 @@ enum PokeconnectKind
     PCON_KIND_EVO_METHOD,  // param: enum PokeconnectEvoMethod
     PCON_KIND_GENDER,      // param: MON_GENDERLESS, MON_FEMALE or MON_MALE
     PCON_KIND_FIRST_LETTER, // param: 0-25 for A-Z
-    PCON_KIND_SHORT_NAME,  // param: max name length
     PCON_KIND_SET,         // param: enum PokeconnectSet, a hand-written species list
+    PCON_KIND_BEST_STAT,   // param: STAT_*, the one base stat higher than all others
+    PCON_KIND_PURE_TYPE,   // param: TYPE_*, with no second type
+    PCON_KIND_FORM,        // param: enum PokeconnectForm
+    PCON_KIND_BRANCH_EVO,  // Can evolve into 2+ different Pokémon
     PCON_KIND_DUAL_TYPE,   // param: type1 | (type2 << 8), exactly these two types. Last, as it isn't cached.
     PCON_KIND_COUNT
 };
@@ -28,6 +31,7 @@ enum PokeconnectClass
     PCON_CLASS_MYTHICAL,
     PCON_CLASS_ULTRA_BEAST,
     PCON_CLASS_PARADOX,
+    PCON_CLASS_BABY,
     PCON_CLASS_COUNT
 };
 
@@ -37,6 +41,15 @@ enum PokeconnectEvoMethod
     PCON_EVO_TRADE,
     PCON_EVO_FRIENDSHIP,
     PCON_EVO_COUNT
+};
+
+enum PokeconnectForm
+{
+    PCON_FORM_MEGA,
+    PCON_FORM_ALOLAN,
+    PCON_FORM_GALARIAN,
+    PCON_FORM_HISUIAN,
+    PCON_FORM_COUNT
 };
 
 // Hand-written sets, listed in src/pokeconnect_categories.c

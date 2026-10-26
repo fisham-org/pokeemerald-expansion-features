@@ -53,9 +53,6 @@ TEST("PokeConnect matches names, sets and exact dual types")
 
     EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_ZUBAT, Category(PCON_KIND_FIRST_LETTER, 25)));
     EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_PIKACHU, Category(PCON_KIND_FIRST_LETTER, 25)));
-    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_MUK, Category(PCON_KIND_SHORT_NAME, 4)));
-    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_ONIX, Category(PCON_KIND_SHORT_NAME, 4)));
-    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_EKANS, Category(PCON_KIND_SHORT_NAME, 4)));
 
     EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_PAWMI, Category(PCON_KIND_SET, PCON_SET_PIKACHU_CLONES)));
     EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_RAICHU, Category(PCON_KIND_SET, PCON_SET_PIKACHU_CLONES)));
@@ -63,6 +60,50 @@ TEST("PokeConnect matches names, sets and exact dual types")
     EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_SWAMPERT, Category(PCON_KIND_DUAL_TYPE, TYPE_WATER | (TYPE_GROUND << 8))));
     EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_SWAMPERT, Category(PCON_KIND_DUAL_TYPE, TYPE_GROUND | (TYPE_WATER << 8))));
     EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_MUDKIP, Category(PCON_KIND_DUAL_TYPE, TYPE_WATER | (TYPE_GROUND << 8))));
+
+    Free(pool);
+}
+
+TEST("PokeConnect matches best stats, pure types, forms, branches and babies")
+{
+    struct DexPool *pool = DexPool_Create(DEX_POOL_ALL);
+
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_JOLTEON, Category(PCON_KIND_BEST_STAT, STAT_SPEED)));
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_CHANSEY, Category(PCON_KIND_BEST_STAT, STAT_HP)));
+    // A tie isn't a best stat: Shuckle's Defense and Sp. Def are both 230
+    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_SHUCKLE, Category(PCON_KIND_BEST_STAT, STAT_DEF)));
+
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_CHARMANDER, Category(PCON_KIND_PURE_TYPE, TYPE_FIRE)));
+    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_CHARIZARD, Category(PCON_KIND_PURE_TYPE, TYPE_FIRE)));
+
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_CHARIZARD, Category(PCON_KIND_FORM, PCON_FORM_MEGA)));
+    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_CHARMANDER, Category(PCON_KIND_FORM, PCON_FORM_MEGA)));
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_RATTATA, Category(PCON_KIND_FORM, PCON_FORM_ALOLAN)));
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_MEOWTH, Category(PCON_KIND_FORM, PCON_FORM_GALARIAN)));
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_GROWLITHE, Category(PCON_KIND_FORM, PCON_FORM_HISUIAN)));
+    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_PIDGEY, Category(PCON_KIND_FORM, PCON_FORM_ALOLAN)));
+
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_EEVEE, Category(PCON_KIND_BRANCH_EVO, 0)));
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_WURMPLE, Category(PCON_KIND_BRANCH_EVO, 0)));
+    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_POLIWAG, Category(PCON_KIND_BRANCH_EVO, 0)));
+    // Regional evolutions keep the same dex number, so don't count
+    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_EXEGGCUTE, Category(PCON_KIND_BRANCH_EVO, 0)));
+
+    EXPECT(Pokeconnect_Matches(pool, NATIONAL_DEX_PICHU, Category(PCON_KIND_CLASS, PCON_CLASS_BABY)));
+    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_PIKACHU, Category(PCON_KIND_CLASS, PCON_CLASS_BABY)));
+    EXPECT(!Pokeconnect_Matches(pool, NATIONAL_DEX_COSMOG, Category(PCON_KIND_CLASS, PCON_CLASS_BABY)));
+
+    Free(pool);
+}
+
+TEST("PokeConnect forms and Baby Pokémon each have 4+ enabled species")
+{
+    struct DexPool *pool = DexPool_Create(DEX_POOL_ALL);
+    u32 form;
+
+    for (form = 0; form < PCON_FORM_COUNT; form++)
+        EXPECT_GE(CountPoolMatches(pool, Category(PCON_KIND_FORM, form)), POKECONNECT_GROUP_SIZE);
+    EXPECT_GE(CountPoolMatches(pool, Category(PCON_KIND_CLASS, PCON_CLASS_BABY)), POKECONNECT_GROUP_SIZE);
 
     Free(pool);
 }

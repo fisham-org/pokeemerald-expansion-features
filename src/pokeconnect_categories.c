@@ -1,5 +1,6 @@
 #include "global.h"
 #include "battle_main.h"
+#include "battle_message.h"
 #include "malloc.h"
 #include "pokeconnect.h"
 #include "pokemon.h"
@@ -39,8 +40,6 @@ static const u16 sAbilities[] =
 };
 
 static const u8 sGenders[] = { MON_GENDERLESS, MON_FEMALE, MON_MALE };
-
-#define SHORT_NAME_LENGTH 4
 
 static const u16 sSetNumberWords[] =
 {
@@ -121,27 +120,34 @@ static const struct { u16 count; u8 weight; } sKinds[PCON_KIND_COUNT] =
 {
     [PCON_KIND_TYPE]         = { ARRAY_COUNT(sTypes),      4 },
     [PCON_KIND_COLOR]        = { BODY_COLOR_PINK + 1,      3 },
-    [PCON_KIND_GEN]          = { 9,                        3 },
-    [PCON_KIND_EGG_GROUP]    = { ARRAY_COUNT(sEggGroups),  2 },
+    [PCON_KIND_GEN]          = { 9,                        2 },
+    [PCON_KIND_EGG_GROUP]    = { ARRAY_COUNT(sEggGroups),  1 },
     [PCON_KIND_STAGE]        = { DEX_STAGE_FINAL + 1,      1 },
-    [PCON_KIND_CLASS]        = { PCON_CLASS_COUNT,         1 },
+    [PCON_KIND_CLASS]        = { PCON_CLASS_COUNT,         2 },
     [PCON_KIND_ABILITY]      = { ARRAY_COUNT(sAbilities),  3 },
     [PCON_KIND_EVO_METHOD]   = { PCON_EVO_COUNT,           2 },
     [PCON_KIND_GENDER]       = { ARRAY_COUNT(sGenders),    1 },
     [PCON_KIND_FIRST_LETTER] = { 26,                       1 },
-    [PCON_KIND_SHORT_NAME]   = { 1,                        1 },
     [PCON_KIND_SET]          = { PCON_SET_COUNT,           3 },
+    [PCON_KIND_BEST_STAT]    = { NUM_STATS,                2 },
+    [PCON_KIND_PURE_TYPE]    = { ARRAY_COUNT(sTypes),      2 },
+    [PCON_KIND_FORM]         = { PCON_FORM_COUNT,          2 },
+    [PCON_KIND_BRANCH_EVO]   = { 1,                        1 },
     [PCON_KIND_DUAL_TYPE]    = { NUM_DUAL_TYPES,           2 },
 };
 
 // Every kind before PCON_KIND_DUAL_TYPE. Dual types are worked out from two type bitsets instead.
 #define NUM_CACHED_CATEGORIES (ARRAY_COUNT(sTypes) + BODY_COLOR_PINK + 1 + 9 + ARRAY_COUNT(sEggGroups) \
                                + DEX_STAGE_FINAL + 1 + PCON_CLASS_COUNT + ARRAY_COUNT(sAbilities) + PCON_EVO_COUNT \
-                               + ARRAY_COUNT(sGenders) + 26 + 1 + PCON_SET_COUNT)
+                               + ARRAY_COUNT(sGenders) + 26 + PCON_SET_COUNT \
+                               + NUM_STATS + ARRAY_COUNT(sTypes) + PCON_FORM_COUNT + 1)
 #define NUM_CATEGORIES (NUM_CACHED_CATEGORIES + NUM_DUAL_TYPES)
 
 #define BITSET_WORDS ((NATIONAL_DEX_COUNT + 32) / 32)
 #define NUM_QUADS 1820 // 16 choose 4
+// Puzzles tried with the same 4 kinds before picking new ones. Re-rolling only the params
+// gives kinds with few working categories a fair chance, rather than favouring broad kinds.
+#define TRIES_PER_KINDS 20
 
 struct PokeconnectGen
 {
@@ -184,6 +190,7 @@ static struct PokeconnectCategory MakeCategory(u32 kind, u32 index)
     switch (kind)
     {
     case PCON_KIND_TYPE:
+    case PCON_KIND_PURE_TYPE:
         category.param = sTypes[index];
         break;
     case PCON_KIND_GEN:
@@ -197,9 +204,6 @@ static struct PokeconnectCategory MakeCategory(u32 kind, u32 index)
         break;
     case PCON_KIND_GENDER:
         category.param = sGenders[index];
-        break;
-    case PCON_KIND_SHORT_NAME:
-        category.param = SHORT_NAME_LENGTH;
         break;
     case PCON_KIND_DUAL_TYPE:
         category.param = GetDualTypeParam(index);
@@ -259,6 +263,58 @@ static bool32 EvolvesBy(u32 species, u32 dex, u32 method)
     return FALSE;
 }
 
+static bool32 CanEvolveIntoMultiple(u32 species, u32 dex)
+{
+    const struct Evolution *evolutions = GetSpeciesEvolutions(species);
+    u32 i, firstDex = 0;
+
+    for (i = 0; evolutions != NULL && evolutions[i].method != EVOLUTIONS_END; i++)
+    {
+        enum Species target = evolutions[i].targetSpecies;
+        u32 targetDex = gSpeciesInfo[target].natDexNum;
+
+        if (evolutions[i].method == EVO_NONE || !IsSpeciesEnabled(target) || targetDex == dex)
+            continue;
+        if (firstDex == 0)
+            firstDex = targetDex;
+        else if (targetDex != firstDex)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+static bool32 HasForm(u32 species, u32 form)
+{
+    const u16 *forms = GetSpeciesFormTable(species);
+    u32 i;
+
+    for (i = 0; forms != NULL && forms[i] != FORM_SPECIES_END; i++)
+    {
+        const struct SpeciesInfo *info = &gSpeciesInfo[forms[i]];
+
+        if (!IsSpeciesEnabled(forms[i]))
+            continue;
+        if ((form == PCON_FORM_MEGA && info->isMegaEvolution)
+         || (form == PCON_FORM_ALOLAN && info->isAlolanForm)
+         || (form == PCON_FORM_GALARIAN && info->isGalarianForm)
+         || (form == PCON_FORM_HISUIAN && info->isHisuianForm))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+static bool32 IsBestStat(u32 species, u32 stat)
+{
+    u32 i, best = GetSpeciesBaseStat(species, stat);
+
+    for (i = 0; i < NUM_STATS; i++)
+    {
+        if (i != stat && GetSpeciesBaseStat(species, i) >= best)
+            return FALSE;
+    }
+    return TRUE;
+}
+
 static bool32 IsInSet(u32 set, u32 dex)
 {
     const u16 *species;
@@ -304,6 +360,11 @@ bool32 Pokeconnect_Matches(const struct DexPool *pool, u32 dex, struct Pokeconne
             return info->isUltraBeast;
         case PCON_CLASS_PARADOX:
             return info->isParadox;
+        case PCON_CLASS_BABY:
+            return pool->stage[dex] == DEX_STAGE_BASIC
+                && (info->eggGroups[0] == EGG_GROUP_NO_EGGS_DISCOVERED || info->eggGroups[1] == EGG_GROUP_NO_EGGS_DISCOVERED)
+                && !info->isRestrictedLegendary && !info->isSubLegendary && !info->isMythical
+                && !info->isUltraBeast && !info->isParadox;
         }
         return FALSE;
     case PCON_KIND_ABILITY:
@@ -314,10 +375,16 @@ bool32 Pokeconnect_Matches(const struct DexPool *pool, u32 dex, struct Pokeconne
         return info->genderRatio == param;
     case PCON_KIND_FIRST_LETTER:
         return GetSpeciesName(species)[0] == CHAR_A + param;
-    case PCON_KIND_SHORT_NAME:
-        return StringLength(GetSpeciesName(species)) <= param;
     case PCON_KIND_SET:
         return IsInSet(param, dex);
+    case PCON_KIND_BEST_STAT:
+        return IsBestStat(species, param);
+    case PCON_KIND_PURE_TYPE:
+        return info->types[0] == param && info->types[1] == param;
+    case PCON_KIND_FORM:
+        return HasForm(species, param);
+    case PCON_KIND_BRANCH_EVO:
+        return CanEvolveIntoMultiple(species, dex);
     case PCON_KIND_DUAL_TYPE:
         return (info->types[0] == (param & 0xFF) && info->types[1] == (param >> 8))
             || (info->types[0] == (param >> 8) && info->types[1] == (param & 0xFF));
@@ -371,6 +438,15 @@ static const u8 *const sClassNames[] =
     [PCON_CLASS_MYTHICAL]    = COMPOUND_STRING("Mythical Pokémon"),
     [PCON_CLASS_ULTRA_BEAST] = COMPOUND_STRING("Ultra Beasts"),
     [PCON_CLASS_PARADOX]     = COMPOUND_STRING("Paradox Pokémon"),
+    [PCON_CLASS_BABY]        = COMPOUND_STRING("Baby Pokémon"),
+};
+
+static const u8 *const sFormNames[] =
+{
+    [PCON_FORM_MEGA]       = COMPOUND_STRING("Has a Mega Evolution"),
+    [PCON_FORM_ALOLAN]     = COMPOUND_STRING("Has an Alolan form"),
+    [PCON_FORM_GALARIAN]   = COMPOUND_STRING("Has a Galarian form"),
+    [PCON_FORM_HISUIAN]    = COMPOUND_STRING("Has a Hisuian form"),
 };
 
 static const u8 *const sEvoMethodNames[] =
@@ -428,13 +504,23 @@ void Pokeconnect_GetCategoryName(struct PokeconnectCategory category, u8 *dest)
         *dest++ = CHAR_A + param;
         *dest = EOS;
         break;
-    case PCON_KIND_SHORT_NAME:
-        dest = StringCopy(dest, COMPOUND_STRING("Name of "));
-        dest = ConvertIntToDecimalStringN(dest, param, STR_CONV_MODE_LEFT_ALIGN, 1);
-        StringCopy(dest, COMPOUND_STRING(" letters or fewer"));
-        break;
     case PCON_KIND_SET:
         StringCopy(dest, sSets[param].name);
+        break;
+    case PCON_KIND_BEST_STAT:
+        dest = StringCopy(dest, COMPOUND_STRING("Best base stat: "));
+        StringCopy(dest, gStatNamesTable[param]);
+        break;
+    case PCON_KIND_PURE_TYPE:
+        dest = StringCopy(dest, COMPOUND_STRING("Pure "));
+        dest = StringCopy(dest, gTypesInfo[param].name);
+        StringCopy(dest, COMPOUND_STRING(" type"));
+        break;
+    case PCON_KIND_FORM:
+        StringCopy(dest, sFormNames[param]);
+        break;
+    case PCON_KIND_BRANCH_EVO:
+        StringCopy(dest, COMPOUND_STRING("Can evolve into 2+ Pokémon"));
         break;
     case PCON_KIND_DUAL_TYPE:
         dest = StringCopy(dest, gTypesInfo[param & 0xFF].name);
@@ -648,20 +734,29 @@ static u32 PickKind(rng_value_t *rng, u32 usedKinds)
     }
 }
 
-// Picks 4 categories of different kinds, then 4 species for each that fit none of the other 3.
+static void PickKinds(rng_value_t *rng, u8 *kinds)
+{
+    u32 group, usedKinds = 0;
+
+    for (group = 0; group < POKECONNECT_NUM_GROUPS; group++)
+    {
+        kinds[group] = PickKind(rng, usedKinds);
+        usedKinds |= 1 << kinds[group];
+    }
+}
+
+// Picks a category of each of the 4 kinds, then 4 species for each that fit none of the other 3.
 // Fills dexes and indices (catalog index of each group, in tile order) on success.
-static bool32 TryMakePuzzle(struct PokeconnectGen *gen, const struct DexPool *pool, rng_value_t *rng, u16 *dexes, u16 *indices, u16 *sizes)
+static bool32 TryMakePuzzle(struct PokeconnectGen *gen, const struct DexPool *pool, rng_value_t *rng, const u8 *kinds, u16 *dexes, u16 *indices, u16 *sizes)
 {
     const u32 *bits[POKECONNECT_NUM_GROUPS];
     u32 exclusive[BITSET_WORDS];
-    u32 usedKinds = 0;
     u32 group, other, word, i;
 
     for (group = 0; group < POKECONNECT_NUM_GROUPS; group++)
     {
-        u32 kind = PickKind(rng, usedKinds);
+        u32 kind = kinds[group];
 
-        usedKinds |= 1 << kind;
         indices[group] = GetKindStart(kind) + LocalRandom(rng) % sKinds[kind].count;
         bits[group] = GetCategoryBits(gen, pool, indices[group], group);
         sizes[group] = CountBits(bits[group]);
@@ -707,12 +802,17 @@ bool32 Pokeconnect_GeneratePuzzle(const struct DexPool *pool, u32 seed, struct P
     rng_value_t rng = LocalRandomSeed(seed * 2246822519u + 0xC0EC);
     u16 dexes[POKECONNECT_NUM_TILES], indices[POKECONNECT_NUM_GROUPS], sizes[POKECONNECT_NUM_GROUPS];
     u8 rank[POKECONNECT_NUM_GROUPS] = {0, 1, 2, 3};
+    u8 kinds[POKECONNECT_NUM_GROUPS];
     bool32 found = FALSE;
     u32 try, i, j;
     u8 temp;
 
     for (try = 0; try < POKECONNECT_MAX_GENERATION_TRIES && gen != NULL && !found; try++)
-        found = TryMakePuzzle(gen, pool, &rng, dexes, indices, sizes);
+    {
+        if (try % TRIES_PER_KINDS == 0)
+            PickKinds(&rng, kinds);
+        found = TryMakePuzzle(gen, pool, &rng, kinds, dexes, indices, sizes);
+    }
     TRY_FREE_AND_SET_NULL(gen);
     if (!found)
         return FALSE;
